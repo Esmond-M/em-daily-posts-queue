@@ -1,17 +1,11 @@
 <?php
         // Use correct database Credentials
         $servername = "localhost";
+		$username = "root";
+		$password = "";
+		$dbname = "em-site";
 
-		if($_SERVER['SERVER_NAME'] == 'awc-demo-1.esmondmccain.com') {
-			$username = "root";
-			$password = "";
-			$dbname = "em-site";
-		 }
-		 if($_SERVER['SERVER_NAME'] == 'webtest.awc-inc.com') {
-			$username = "wpdev_user";
-			$password = "4-0a9iOPhT";
-			$dbname = "WPWebdev";
-		 } 
+
          $conn = mysqli_connect($servername, $username, $password, $dbname);
          
          if (!$conn)
