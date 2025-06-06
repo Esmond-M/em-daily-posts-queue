@@ -44,7 +44,7 @@
       <td class="awc-title-<?php echo $table_postQueueNumber;  ?>"><?php echo get_the_title($table_postID); ?></td>
       <td>
 	  <?php
-		if ($i > 3) {
+		if ($i > 1) {
 		?>
       <button class="up-btn up-btn-queue-number-<?php echo $table_postQueueNumber; ?> up-btn-ID-<?php echo $table_postID; ?>">up</button>
         <?php
@@ -53,7 +53,7 @@
       </td>
       <td>
 	  <?php
-		if ( count($stored_queue_list_arr) > 1 && $i !== array_key_last($stored_queue_list_arr) && $i !== array_key_first($stored_queue_list_arr)  && $i >= 3)  {
+		if ( count($stored_queue_list_arr) > 1 && $i !== array_key_last($stored_queue_list_arr) && $i !== array_key_first($stored_queue_list_arr) )  {
 		?>
     <button class="dwn-btn dwn-btn-queue-number-<?php echo $table_postQueueNumber; ?> dwn-btn-ID-<?php echo $table_postID; ?>">down</button>
         <?php
@@ -62,7 +62,7 @@
       </td>
       <td>
 	  <?php
-		if ( $i !== array_key_first($stored_queue_list_arr) && $i >= 3)  {
+		if ( $i !== array_key_first($stored_queue_list_arr) )  {
 		?>
     <button class="delete-btn delete-btn-queue-number-<?php echo $table_postQueueNumber; ?> delete-btn-ID-<?php echo $table_postID; ?>">delete</button>
      </td>
