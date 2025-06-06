@@ -358,11 +358,6 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
 					 $conn->close();					
 				}
-				
-
-				   
-
-
 
 			} // end of function
 
@@ -377,7 +372,8 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 'Queue List',
                 "upload_files" ,
                 'edit_net_submissions' ,
-                [$this, 'AWCqueue_list_page'], '');
+                [$this, 'AWCqueue_list_page'] 
+				);
 				//Add Custom Social Sharing Sub Menu
 				add_submenu_page(
                 'edit.php?post_type=net_submission',
@@ -385,7 +381,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 'Admin Photo Queue List',
                 "manage_options",
                 'admin-queue-list',
-                [$this, 'AWCadmin_queue_list_page'], '');
+                [$this, 'AWCadmin_queue_list_page']);
 
 			} // end of function
 
