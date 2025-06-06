@@ -56,7 +56,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 				}
 
 				if (is_array($value) && count($value) > 0) {
-					$recursiveArrayDiff = AWCcompareMultiDimensional($value, $array2[$key], $strict);
+					$recursiveArrayDiff = $this->AWCcompareMultiDimensional($value, $array2[$key], $strict);
 
 					if (count($recursiveArrayDiff) > 0) {
 						$result[$key] = $recursiveArrayDiff;
@@ -140,14 +140,14 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 					<div class="awc-response-msg"><p>Queue List updated. Item has been removed.<br>Page will reload soon.</p>
 					<div class="awc-ajax-loader"></div></div>
 					<?php
-					header( "refresh:5; url=https://webdev.awc-inc.com/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );                    
+					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );                    
 					} 
 					if ($SubmissionConn->query($SubmissionConnsql) !== TRUE) {
 					?>
 					<div class="awc-response-msg"><p><?php echo "SQL Error: " . $SubmissionConnsql . "<br>" . $SubmissionConn->error;?><br>Page will reload soon.</p>
 					<div class="awc-ajax-loader"></div></div>
 					<?php
-					header( "refresh:5; url=https://webdev.awc-inc.com/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );					
+					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );					
 					}
 				}
 
@@ -156,7 +156,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 					<div class="awc-response-msg"><p>This window is out of date. Please refresh and make sure you only have one tab of this page open or that no one else is editing the page at the same time as you.<br>Page will reload soon.</p>
 					<div class="awc-ajax-loader"></div></div>
 					<?php 
-					header( "refresh:5; url=https://webdev.awc-inc.com/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
+					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
 				 }	
 
 
@@ -168,7 +168,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 					<div class="awc-response-msg"><p>Database row does not exist.<br>Page will reload soon.</p>
 					<div class="awc-ajax-loader"></div></div>
 					<?php		
-					header( "refresh:5; url=https://webdev.awc-inc.com/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
+					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
 			 }
 
 
@@ -230,14 +230,14 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 					<div class="awc-response-msg"><p>Queue List updated.<br>Page will reload soon.</p>
 					<div class="awc-ajax-loader"></div></div>
 					<?php
-					header( "refresh:5; url=https://webdev.awc-inc.com/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
+					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
 					} 
 					if ($SubmissionConn->query($SubmissionConnsql) !== TRUE) {
 					?>
 					<div class="awc-response-msg"><p><?php echo "SQL Error: " . $SubmissionConnsql . "<br>" . $SubmissionConn->error;?><br>Page will reload soon.</p>
 					<div class="awc-ajax-loader"></div></div>
 					<?php
-					header( "refresh:5; url=https://webdev.awc-inc.com/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
+					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
 					}
 
 				}
@@ -247,7 +247,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 					<div class="awc-response-msg"><p>This window is out of date. Please refresh and make sure you only have one tab of this page open or that no one else is editing the page at the same time as you.<br>Page will reload soon.</p>
 					<div class="awc-ajax-loader"></div></div>
 					<?php 
-					header( "refresh:5; url=https://webdev.awc-inc.com/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
+					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
 				 }	
 
 			 }
@@ -291,7 +291,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 					return;
 				}
                 else{
-//$post_id = $post->ID; // Get the current posts ID
+                //$post_id = $post->ID; // Get the current posts ID
 				// Use correct database Credentials
 				$servername = "localhost";	
 				$username = "root";
