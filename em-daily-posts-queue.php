@@ -4,7 +4,10 @@
  * Plugin URI: https://github.com/Esmond-M
  * Author: Esmond Mccain
  * Author URI: https://esmondmccain.com/
- * Description: Show daily posts on front and allow assigned user to edit queue. 
+ * Description: Show daily posts on front and allow assigned user to edit queue.
+ * Requires at least: 6.1
+ * Requires PHP:      7.4.33
+ * Requires Plugins: action-scheduler
  * Version: 0.1.0
  * License: 0.1.0
  * License URL: http://www.gnu.org/licenses/gpl-2.0.txt
