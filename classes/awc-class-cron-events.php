@@ -129,7 +129,7 @@ if (!class_exists('initCronEvents')) {
 					// Email subject, "New {post_type_label}"
 					$subject = 'Next submission Live: Check Status - '. ' ' . date("m-d-y");
 					// Email body
-					$message = '<a href="https://awc-demo-1.esmondmccain.com/wp-admin/tools.php?page=action-scheduler&status=pending">View it</a>';
+					$message = '<a href="' . site_url() . '/wp-admin/tools.php?page=action-scheduler&status=pending">View it</a>';
 					wp_mail( $emailto, $subject, $message );                   
 					} 
 					if ($SubmissionConn->query($SubmissionConnsql) !== TRUE) {
