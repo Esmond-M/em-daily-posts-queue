@@ -15,11 +15,11 @@ if (!class_exists('cpt_meta_net_submission')) {
 
             add_action(
                 'add_meta_boxes',
-                [$this, 'icon_class_metabox']
+                [$this, 'netSubmissionMetabox']
             );
             add_action(
                 'save_post',
-                [$this, 'icon_class_save_metabox']
+                [$this, 'netSubmissionMetaboxSave']
             );
     
         }
@@ -30,14 +30,14 @@ if (!class_exists('cpt_meta_net_submission')) {
 
         @return void
          */
-        public function icon_class_metabox()
+        public function netSubmissionMetabox()
         {
             $screens = ['net_submission']; // post type to display one
             foreach ($screens as $screen) {
                 add_meta_box(
-                    'em_icon_class_metaboxbox_id',    // Unique ID
-                    'Icon class text',  // Box title
-                    array($this, 'icon_class_html'),
+                    'netSubmission_metaboxbox_id',    // Unique ID
+                    'Topic Custom Fields',  // Box title
+                    array($this, 'netSubmissionCustomFields'),
                     $screen,                  // Post type
                     'normal',
                     'high'
@@ -52,48 +52,35 @@ if (!class_exists('cpt_meta_net_submission')) {
 
         @return callable
          */
-        public function icon_class_html($post)
+        public function netSubmissionCustomFields($post)
         {
-            $get_services_post_icon_class = get_post_meta($post->ID, 'services_post_icon_class_value', true);
-			$get_portfolio_post_url_link = get_post_meta($post->ID, 'portfolio_post_url_link_value', true);
-            $get_portfolio_post_popup_target_id = get_post_meta($post->ID, 'portfolio_post_popup_target_id_value', true);
+            $get_topic_headline = get_post_meta($post->ID, 'topic_headline_value', true);
+			$get_topic_caption = get_post_meta($post->ID, 'topic_caption_value', true);
             wp_nonce_field(
-                'services_post_metabox',
-                'services_post_metabox_nonce'
+                'net_submission_post_metabox',
+                'net_submission_post_metabox_nonce'
             ); // adding nonce to meta box.
             ?>
             <div class="post_meta_extras">
                 <p>
-				<label>Icon Class <input
+				<label>Topic Headline <input
                                type="text"
-                               name="services_post_icon_class_value"
+                               name="topic_headline_value"
                                value="<?php 
-							   if (is_string($get_services_post_icon_class) ) {
-                             	echo $get_services_post_icon_class;
+							   if (is_string($get_topic_headline) ) {
+                             	echo $get_topic_headline;
                                }?>"
                             />
 
                     </label>
                 </p>
 				<p>
-				<label>URL Link <input
+				<label>Topic Caption <input
                                type="text"
-                               name="portfolio_post_url_link_value"
+                               name="topic_caption_value"
                                value="<?php 
-							   if (is_string($get_portfolio_post_url_link) ) {
-                             	echo $get_portfolio_post_url_link;
-                               }?>"
-                            />
-
-                    </label>
-                </p>
-                <p>
-				<label>Popup target ID <input
-                               type="text"
-                               name="portfolio_post_popup_target_id_value"
-                               value="<?php 
-							   if (is_string($get_portfolio_post_popup_target_id) ) {
-                             	echo $get_portfolio_post_popup_target_id;
+							   if (is_string($get_topic_caption) ) {
+                             	echo $get_topic_caption;
                                }?>"
                             />
 
@@ -110,7 +97,7 @@ if (!class_exists('cpt_meta_net_submission')) {
 
         @return string
          */
-        public function icon_class_save_metabox($post_id)
+        public function netSubmissionMetaboxSave($post_id)
         {
             /*
             * We need to verify this came from the
@@ -119,12 +106,12 @@ if (!class_exists('cpt_meta_net_submission')) {
             *  other times. Add as many nonces, as you
             * have metaboxes.
                */
-            if (!isset($_POST['services_post_metabox_nonce'])
+            if (!isset($_POST['net_submission_post_metabox_nonce'])
                 || !wp_verify_nonce(
                     sanitize_key(
-                        $_POST['services_post_metabox_nonce']
+                        $_POST['net_submission_post_metabox_nonce']
                     ),
-                    'services_post_metabox'
+                    'net_submission_post_metabox'
                 )
             ) { // Input var okay.
                 return $post_id;
@@ -157,23 +144,18 @@ if (!class_exists('cpt_meta_net_submission')) {
 
             /* Ok to save */
 
-            $services_post_icon_class_value = $_POST['services_post_icon_class_value']; // Input var okay.
+            $topic_headline_value = $_POST['topic_headline_value']; // Input var okay.
             update_post_meta(
                 $post_id,
-                'services_post_icon_class_value',
-                esc_attr($services_post_icon_class_value)
+                'topic_headline_value',
+                esc_attr($topic_headline_value)
             );
-            $portfolio_post_url_link_value = $_POST['portfolio_post_url_link_value']; // Input var okay.
-            $portfolio_post_popup_target_id_value = $_POST['portfolio_post_popup_target_id_value']; // Input var okay.
+            $topic_caption_value = $_POST['topic_caption_value']; // Input var okay.
+
             update_post_meta(
                 $post_id,
-                'portfolio_post_url_link_value',
-                esc_attr($portfolio_post_url_link_value)
-            );
-            update_post_meta(
-                $post_id,
-                'portfolio_post_popup_target_id_value',
-                esc_attr($portfolio_post_popup_target_id_value)
+                'topic_caption_value',
+                esc_attr($topic_caption_value)
             );
 
         }
