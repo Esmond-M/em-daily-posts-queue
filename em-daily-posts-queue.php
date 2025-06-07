@@ -97,32 +97,14 @@ final class EmDailyPostsQueueInit {
             ?>
 
             <!-- Employee Name -->
-            <label for="net_employee_name">Employee Name</label><br />
-            <input type="text" value="" tabindex="1" size="20" name="net_employee_name" required/>
+            <label for="topic_headline_value">Topic Headline</label><br />
+            <input type="text" value="" tabindex="1" size="20" name="topic_headline_value" required/>
             <br />
             <!-- --------- -->
 
             <!-- Title -->
-            <label for="net_title">Title</label><br />
-            <input type="text" value="" tabindex="1" size="20" name="net_title" required/>
-            <br />
-            <!-- --------- -->
-
-            <!-- Beat Team -->
-            <label for="net_beat_team">Beat Team</label><br />
-            <select name="net_beat_team">
-            <option value="A3IM">A3IM</option>
-            <option value="ACE">ACE</option>
-            <option value="AWC">AWC</option>
-            <option value="Beat Emerson">Beat Emerson</option>
-            <option value="Beat Rockwell">Beat Rockwell</option>
-            <option value="NSCC">NSCC</option>
-            </select>
-            <!-- --------- -->
-
-            <!-- >Region -->
-            <br /><label for="net_region">Region</label><br />
-            <input type="text" value="" tabindex="1" size="20" name="net_region" required/>
+            <label for="topic_caption_value">Topic Caption</label><br />
+            <input type="text" value="" tabindex="1" size="20" name="topic_caption_value" required/>
             <br />
             <!-- --------- -->
 

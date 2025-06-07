@@ -563,7 +563,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
 
 				// Do some minor form validation to make sure there is content
-				if ( isset($_POST['net_employee_name']) && isset($_POST['net_title']) && isset($_POST['net_beat_team']) && isset($_POST['net_region']) ) {
+				if (  isset($_POST['topic_headline_value']) && isset($_POST['topic_caption_value'])  ) {
 
 				}
 				else{
@@ -572,14 +572,11 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
 				// Add the content of the form to $post as an array
 				$new_post = array(
-					'post_title'    => $_POST['net_employee_name'] . ' ' . $_POST['net_title'] . ' ' . date("m-d-y") ,
+					'post_title'    => $_POST['topic_headline_value'] . ' ' . date("m-d-y") ,
 					'post_status'   => 'draft',           // Choose: publish, preview, future, draft, etc.
 					'meta_input'   => array(
-					'net_employee_name' => '' . $_POST['net_employee_name'] . '',
-					'net_title' => '' . $_POST['net_title'] . '',
-					'net_beat_team' => '' . $_POST['net_beat_team'] . '',
-					'net_region' => '' . $_POST['net_region'] . '',
-					'net_caption' => '' . $_POST['net_caption'] . '',
+					'net_title' => '' . $_POST['topic_headline_value'] . '',
+					'net_caption' => '' . $_POST['topic_caption_value'] . '',
 					),
 					'post_type' => 'net_submission'  //'post',page' or use a custom post type if you want to
 					);
@@ -603,7 +600,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 				$emailto = 'esmondmccain@gmail.com';
 
 				// Email subject, "New {post_type_label}"
-				$subject = 'New Photo Submission for: ' . $_POST['net_employee_name'] . ' ' . date("m-d-y");
+				$subject = 'New Photo Submission for: ' . $_POST['topic_headline_value'] . ' ' . date("m-d-y");
 
                 wp_set_current_user(604); // get user that can edit posts so edit link function will work
 				// Email body
