@@ -85,12 +85,8 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 		 * Queue List photo deletion ajax submission
 		 */
 		public function net_photo_deletion_info_ajax() {
+			
 			$stored_queue_list_arr =  json_decode(stripslashes($_POST['checkWindowAge']),true);
-			$servername = "localhost";
-			$username = "root";
-			$password = "";
-			$dbname = "em-site";
-
 			if(isset($_POST['remove_postid'])){
 			$idToRemove =  $_POST['remove_postid'];
 			$queueNumberToRemove =  $_POST['remove_queue'];
@@ -110,7 +106,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
 			}
 
-			 $SubmissionConn = mysqli_connect($servername, $username, $password, $dbname);
+			 $SubmissionConn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
 
 			 if (!$SubmissionConn)
 			 { 
@@ -199,7 +195,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
 			 $updatedQueuelist = array_replace($stored_queue_list_arr, $FixedTempArrayFromPageForm);
 
-			 $SubmissionConn = mysqli_connect($servername, $username, $password, $dbname);
+			 $SubmissionConn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
 
 			 if (!$SubmissionConn)
 			 { 
@@ -291,15 +287,9 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 					return;
 				}
                 else{
+
                 //$post_id = $post->ID; // Get the current posts ID
-				// Use correct database Credentials
-				$servername = "localhost";	
-				$username = "root";
-				$password = "";
-				$dbname = "em-site";
-
-
-				 $conn = mysqli_connect($servername, $username, $password, $dbname);
+				 $conn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
 
 				 if (!$conn)
 				 { 

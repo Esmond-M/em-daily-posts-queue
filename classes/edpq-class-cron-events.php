@@ -67,13 +67,7 @@ if (!class_exists('initCronEvents')) {
 		 */
 		public function eg_action_net_submission_weekly_update() {
 	
-			// Use correct database Credentials
-			$servername = "localhost";
-			$username = "root";
-			$password = "";
-			$dbname = "em-site";
-	
-			 $conn = mysqli_connect($servername, $username, $password, $dbname);
+			 $conn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
 
 			 if (!$conn)
 			 { 
@@ -103,7 +97,7 @@ if (!class_exists('initCronEvents')) {
 			}
 
 
-			 $SubmissionConn = mysqli_connect($servername, $username, $password, $dbname);
+			 $SubmissionConn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
 
 			 if (!$SubmissionConn)
 			 { 
