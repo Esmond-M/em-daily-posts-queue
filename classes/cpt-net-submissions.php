@@ -27,12 +27,18 @@ if (!class_exists('cpt_net_submission')) {
 			 */
 		
 			$labels = array(
-				'name'          => esc_html__( ' Net submissions', 'net_submission' ),
-				'singular_name' => esc_html__( 'net_submission', 'net_submission' ),
+				'name'          => esc_html__( 'Net submissions', 'net_submission' ),
+				'singular_name' => esc_html__( 'Net submission', 'net_submission' ),
+				'add_new'       => esc_html__( 'Add New Net submission', 'net_submission' ),
+				'add_new_item'  => esc_html__( 'Add New Net submission', 'net_submission' ),
+				'new_item'      => esc_html__( 'New Net submission', 'net_submission' ),
+				'edit_item'     => esc_html__( 'Edit Net submission', 'net_submission' ),
+				'view_item'     => esc_html__( 'View Net submission', 'net_submission' ),
+				'all_items'     => esc_html__( 'All Net submissions', 'net_submission' ),
 			);
 		
 			$args = array(
-				'label'                 => esc_html__( 'net_submission', 'net_submission' ),
+				'label'                 => esc_html__( 'Net submissions', 'net_submission' ),
 				'labels'                => $labels,
 				'description'           => '',
 				'public'                => false,
