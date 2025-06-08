@@ -75,17 +75,21 @@ if (!class_exists('cpt_meta_net_submission')) {
                     </label>
                 </p>
 				<p>
-				<label>Topic Caption <input
-                               type="text"
-                               name="topic_caption_value"
-                               value="<?php 
+				<label>Topic Caption
+                    <textarea cols="40" rows="10" name="topic_caption_value"  required>
+                     <?php 
 							   if (is_string($get_topic_caption) ) {
                              	echo $get_topic_caption;
-                               }?>"
-                            />
-
-                    </label>
+                               }?>   
+                   </textarea>
+                </label>
                 </p>
+            <style>
+            .post_meta_extras textarea {
+                display:block;
+                text-align:left;
+            }    
+                        </style>    
             </div>
             <?php
         }
