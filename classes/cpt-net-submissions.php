@@ -139,6 +139,8 @@ if (!class_exists('cpt_net_submission')) {
 		$net_submission_role->add_cap( 'delete_others_net_submissions' ); 
 		$net_submission_role->add_cap( 'edit_private_net_submissions' ); 
 		$net_submission_role->add_cap( 'edit_published_net_submissions' ); 
+		$net_submission_role->add_cap( 'upload_files' ); // for featured images
+		
 
     }	
 
