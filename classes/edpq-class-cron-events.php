@@ -13,10 +13,54 @@ if (!class_exists('initCronEvents')) {
         public function __construct()
         {
 
-		add_action( 'eg_3_weekdays_log',[$this, 'eg_action_net_submission_weekly_update' ]  );
+		add_action( 'eg_1_weekdays_log',[$this, 'eg_action_net_submission_weekly_update' ]  ); // this action "eg_1_weekdays_log" is also called in another file edpq-class-cron-events.php
 
         }
+		/**
+		 * Check if multidimensional array is the same
+		 */
+		public function edpqcompareMultiDimensional($array1, $array2, $strict = true){
+			if (!is_array($array1)) {
+				throw new \InvalidArgumentException('$array1 must be an array!');
+			}
 
+			if (!is_array($array2)) {
+				return $array1;
+			}
+
+			$result = array();
+
+			foreach ($array1 as $key => $value) {
+				if (!array_key_exists($key, $array2)) {
+					$result[$key] = $value;
+					continue;
+				}
+
+				if (is_array($value) && count($value) > 0) {
+					$recursiveArrayDiff = $this->edpqcompareMultiDimensional($value, $array2[$key], $strict);
+
+					if (count($recursiveArrayDiff) > 0) {
+						$result[$key] = $recursiveArrayDiff;
+					}
+
+					continue;
+				}
+
+				$value1 = $value;
+				$value2 = $array2[$key];
+
+				if ($strict ? is_float($value1) && is_float($value2) : is_float($value1) || is_float($value2)) {
+					$value1 = (string) $value1;
+					$value2 = (string) $value2;
+				}
+
+				if ($strict ? $value1 !== $value2 : $value1 != $value2) {
+					$result[$key] = $value;
+				}
+			}
+
+			return $result;
+		} // end function
 
 		/**
 		 * Get jobs info for careers page.
@@ -46,46 +90,16 @@ if (!class_exists('initCronEvents')) {
 				 
 			 $old_stored_queue_list_arr = $stored_queue_list_arr; /* using this to verify before updating database. This will be different to my other code because i am unsetting the first aray in the code below.*/		
 				 
-             //inserting code to see if three items or stored in queue or less than removing them for the week.
-              if( count($stored_queue_list_arr) >=3  ){
-				 unset($stored_queue_list_arr[0]); // remove first entry from queue 
-                 unset($stored_queue_list_arr[1]); // remove second entry from queue   
-                 unset($stored_queue_list_arr[2]); // remove third entry from queue 
-				  // remove post itself from WordPress fully
-				$idToRemove = $stored_queue_list_arr[0]['postid'];
-				$idToRemove2 = $stored_queue_list_arr[1]['postid'];
-				$idToRemove3 = $stored_queue_list_arr[2]['postid'];
-			  }
-              if( count($stored_queue_list_arr) == 2  ){
-				 unset($stored_queue_list_arr[0]); // remove first entry from queue  
-                 unset($stored_queue_list_arr[1]); // remove second entry from queue 
-				
-			    $idToRemove = $stored_queue_list_arr[0]['postid'];
-				$idToRemove2 = $stored_queue_list_arr[1]['postid'];
-			  }
-              if( count($stored_queue_list_arr) == 1  ){
-				 unset($stored_queue_list_arr[0]); // remove first entry from queue    
-			     $idToRemove = $stored_queue_list_arr[0]['postid'];
-			  }				  
+		    $idToRemove = $stored_queue_list_arr[0]['postid'];	//grab id to delete post.
+			unset($stored_queue_list_arr[0]); // remove first entry from queue    
+		  
 			
 			 }
 
 			$reNumberBeforeSubmit = array_values($stored_queue_list_arr); // re-number an array
 			// loop and subtract all by one to move list up
-			if( count($stored_queue_list_arr) >=3  ){ //  will check how many posts I am removing from queue
-							for($i = 0; $i < count($reNumberBeforeSubmit); $i++) {
-				$reNumberBeforeSubmit[$i]['queueNumber'] = $reNumberBeforeSubmit[$i]['queueNumber'] - 3;
-			}
-			}
-			if( count($stored_queue_list_arr) == 2  ){ //  will check how many posts I am removing from queue note: I do not think these last two ifs apply
-							for($i = 0; $i < count($reNumberBeforeSubmit); $i++) {
-				$reNumberBeforeSubmit[$i]['queueNumber'] = $reNumberBeforeSubmit[$i]['queueNumber'] - 2;
-			}
-			}
-			if( count($stored_queue_list_arr) == 1  ){ //  will check how many posts I am removing from queue note: I do not think this last if applys
-							for($i = 0; $i < count($reNumberBeforeSubmit); $i++) {
+			for($i = 0; $i < count($reNumberBeforeSubmit); $i++) {
 				$reNumberBeforeSubmit[$i]['queueNumber'] = $reNumberBeforeSubmit[$i]['queueNumber'] - 1;
-			}
 			}
 
 
@@ -104,7 +118,7 @@ if (!class_exists('initCronEvents')) {
 
 			 if( isset($Second_row['list']) && !empty($Second_row['list']) ){
 				$Second_stored_queue_list_arr = unserialize(base64_decode($Second_row['list']));
-				$isWindowOutdated = edpqcompareMultiDimensional($Second_stored_queue_list_arr, $old_stored_queue_list_arr);
+				$isWindowOutdated = $this->edpqcompareMultiDimensional($Second_stored_queue_list_arr, $old_stored_queue_list_arr);
 			   /* 
 			  ----- This will check if array is the same. if yes then it will be empty.----
 			  I am doing this incase another user is updating the same page on another device or if the current user is updating the page in multiple tabs.
@@ -115,14 +129,9 @@ if (!class_exists('initCronEvents')) {
 					$SubmissionConnsql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialize_queueListArray . "' WHERE id=1";
 					if ($SubmissionConn->query($SubmissionConnsql) === TRUE) {
                     if(isset($idToRemove) ){
-						wp_delete_post( $idToRemove, true); // Set to False if you want to send them to Trash.
+						wp_delete_post( $idToRemove, true); 
 					}
-                    if(isset($idToRemove2) ){
-						wp_delete_post( $idToRemove2, true); // Set to False if you want to send them to Trash.
-					}						
-                    if(isset($idToRemove3) ){
-						wp_delete_post( $idToRemove3, true); // Set to False if you want to send them to Trash.
-					}							
+						
 						echo 'Queue List updated. Item has been removed. Next weekly post active.';
 					// send email of queue having run
 					$emailto = 'esmondmccain@gmail.com';

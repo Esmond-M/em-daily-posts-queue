@@ -15,7 +15,7 @@ if (!class_exists('initEventTimers')) {
         public function __construct()
         {
 
-		add_action( 'init', [$this, 'eg_schedule_3_weekdays_log']  );
+		add_action( 'init', [$this, 'eg_schedule_1_weekdays_log']  );
 
         }
 
@@ -24,23 +24,23 @@ if (!class_exists('initEventTimers')) {
 		 * so that our callbacks in the class cron events is run then.
 		 */
 
-		public function eg_schedule_3_weekdays_log() {
-			if ( false === as_has_scheduled_action( 'eg_3_weekdays_log' ) ) {
-			$str3Weekdays = strtotime( '+3 weekdays 10pm America/Chicago' );
+		public function eg_schedule_1_weekdays_log() {
+			if ( false === as_has_scheduled_action( 'eg_1_weekdays_log' ) ) {
+			$str1Weekdays = strtotime( '+1 weekday 10pm America/Chicago' );
 			$strToday = strtotime( 'Now America/Chicago' );
 			$startDate = new \DateTime( gmdate("Y-m-d H:i:s", $strToday) );//start time
-			$nextDate = new \DateTime( gmdate("Y-m-d H:i:s", $str3Weekdays));//end time
-			$threeWeekDayInterval = $nextDate->getTimestamp() - $startDate->getTimestamp();
+			$nextDate = new \DateTime( gmdate("Y-m-d H:i:s", $str1Weekdays));//end time
+			$oneWeekDayInterval = $nextDate->getTimestamp() - $startDate->getTimestamp();
 
-            if($threeWeekDayInterval < 259200){
-				$threeWeekDayInterval = 259200;
+            if($oneWeekDayInterval < 86400){ // this number is seconds to hours
+				$oneWeekDayInterval = 86400;
 						$emailto = 'esmondmccain@gmail.com';
 
 						// Email subject, "New {post_type_label}"
 						$subject = 'Auto timer not working';
 
 						// Email body
-						$message = 'Had to set default 3 days<br>' . 'timer:' . $threeWeekDayInterval ;
+						$message = 'Had to set default 1 days<br>' . 'timer:' . $oneWeekDayInterval ;
 
 						wp_mail( $emailto, $subject, $message );
 			}
@@ -52,11 +52,11 @@ if (!class_exists('initEventTimers')) {
 						$subject = 'Run timer value';
 
 						// Email body
-						$message = 'timer:' . $threeWeekDayInterval ;
+						$message = 'timer:' . $oneWeekDayInterval ;
 
 						wp_mail( $emailto, $subject, $message );	
 			}
-           as_schedule_recurring_action( strtotime( '+3 weekdays 10pm America/Chicago' ), $threeWeekDayInterval, 'eg_3_weekdays_log' );
+           as_schedule_recurring_action( strtotime( '+1 weekdays 10pm America/Chicago' ), $oneWeekDayInterval, 'eg_1_weekdays_log' );
 		   }
 	   } 
 
