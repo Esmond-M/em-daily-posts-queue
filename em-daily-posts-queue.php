@@ -25,8 +25,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 /** Define plugin path constant */
-if (!defined('PLUGIN_PATH')) {
-    define('PLUGIN_PATH', plugin_dir_url(__FILE__));
+if (!defined('EmDailyPostsQueue_PATH')) {
+    define('EmDailyPostsQueue_PATH', plugin_dir_url(__FILE__));
 }
     global $EmDailyPostsQueueDbVersion;
     $EmDailyPostsQueueDbVersion = '1.0';
@@ -96,16 +96,16 @@ final class EmDailyPostsQueueInit {
             date_default_timezone_set("America/Chicago");
             ?>
 
-            <!-- Employee Name -->
+            <!-- Topic Healine -->
             <label for="topic_headline_value">Topic Headline</label><br />
             <input type="text" value="" tabindex="1" size="20" name="topic_headline_value" required/>
             <br />
             <!-- --------- -->
-
-            <!-- Title -->
-            <label for="topic_caption_value">Topic Caption</label><br />
-            <input type="text" value="" tabindex="1" size="20" name="topic_caption_value" required/>
-            <br />
+             
+            <!-- > Topic Caption-->
+            <br /><label for="topic_caption_value">Please write a short description of the photo and include the full names of those pictured so they may be credited.</label><br />
+            <textarea cols="40" rows="10" name="topic_caption_value" required>
+            </textarea>
             <!-- --------- -->
 
             <!-- Photo -->
@@ -113,12 +113,6 @@ final class EmDailyPostsQueueInit {
             <input type="file"
                 id="net_image" name="net_image"
                 accept=".png, .jpg, .jpeg" required>
-            <!-- --------- -->
-
-            <!-- >Caption-->
-            <br /><label for="net_caption">Please write a short description of the photo and include the full names of those pictured so they may be credited.</label><br />
-            <textarea cols="40" rows="10" name="net_caption" required>
-            </textarea>
             <!-- --------- -->
 
             <!-- Hidden inputs -->

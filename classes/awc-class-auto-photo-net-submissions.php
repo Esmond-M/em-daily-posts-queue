@@ -391,9 +391,9 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 				require_once __DIR__  . '/../templates/options-page-auto-submission.php';
 
 
-				wp_enqueue_style( 'awc-photo-submission-styles', PLUGIN_PATH  . '/admin/assets/css/awc-photo-submission.css' , array(),  $rand );
+				wp_enqueue_style( 'awc-photo-submission-styles', EmDailyPostsQueue_PATH  . '/admin/assets/css/awc-photo-submission.css' , array(),  $rand );
 
-				wp_enqueue_script( 'awc-photo-submission-scripts', PLUGIN_PATH  . '/admin/assets/js/awc-photo-submission.js', array('jquery'), $rand, true);
+				wp_enqueue_script( 'awc-photo-submission-scripts', EmDailyPostsQueue_PATH  . '/admin/assets/js/awc-photo-submission.js', array('jquery'), $rand, true);
 					wp_localize_script('awc-photo-submission-scripts', 'ajax_net_photo_deletion_info', array(
 					'ajaxurl_net_photo_deletion_info' => admin_url('admin-ajax.php') ,
 					'noposts' => __('No older posts found', 'awc-white') ,
@@ -411,7 +411,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 				$rand = rand(1, 99999999999);
 
 			   if ( 'edit.php' === $pagenow  && 'net_submission' ===  $_GET['post_type'] ) {
-				wp_enqueue_style( 'edit_screen_css',  PLUGIN_PATH  . '/admin/assets/css/net-submission-edit.css' , array(),  $rand );
+				wp_enqueue_style( 'edit_screen_css',  EmDailyPostsQueue_PATH  . '/admin/assets/css/net-submission-edit.css' , array(),  $rand );
 				}
 			}
 
@@ -613,10 +613,10 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 			}
 
 			public function net_style_scripts(){
-
+	            global $post;
 				$rand = rand(1, 99999999999);
-					 if( is_page(3396) ){
-						wp_enqueue_script( 'awc-submit-photo-submission-script', PLUGIN_PATH . '/assets/js/awc-submit-photo-submission.js', array('jquery'), $rand, true);
+					 if( has_shortcode( $post->post_content, 'EmDailyPostsQueueShortcode' ) ){
+						wp_enqueue_script( 'awc-submit-photo-submission-script', EmDailyPostsQueue_PATH . 'assets/js/awc-submit-photo-submission.js', array('jquery'), $rand, true);
 							wp_localize_script('awc-submit-photo-submission-script', 'ajax_form_post_new_net_photo_submission', array(
 							'ajaxurl_form_post_new_net_photo_submission' => admin_url('admin-ajax.php') ,
 							'noposts' => __('No older posts found', 'awc-white') ,
