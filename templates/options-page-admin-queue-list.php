@@ -82,7 +82,7 @@ tr:nth-child(even) td {
          die("Connection to database failed with error#: " . mysqli_connect_error()); 
          }   
          
-         $sql = "SELECT list FROM awc_net_photos_queue_order WHERE id='1';"; //----- get current queue list
+         $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';"; //----- get current queue list
          
          $result = mysqli_query($conn, $sql);
          $row = mysqli_fetch_assoc($result);

@@ -11,7 +11,7 @@ body {
 body {
   font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
 }
-form#awc-send-new-queue-list {
+form#edpq-send-new-queue-list {
     max-width: 1280px;
     width: 100%;
 }
@@ -59,10 +59,10 @@ form#awc-send-new-queue-list {
 .queue-list-table tr:nth-child(even) td {
   background: #f8f6ff;
 }
-#awc-send-new-queue-list button{
+#edpq-send-new-queue-list button{
 	cursor:pointer;
 }
-#awc-send-new-queue-list input[type="submit"] {
+#edpq-send-new-queue-list input[type="submit"] {
     background: #EA212E;
     color: white;
     border: none;
@@ -76,7 +76,7 @@ form#awc-send-new-queue-list {
     display: block;
     margin: 39px auto 0 auto;
 }
-#awc-send-new-queue-list .up-btn {
+#edpq-send-new-queue-list .up-btn {
     background: #0062FF;
     color: white;
     border: none;
@@ -84,7 +84,7 @@ form#awc-send-new-queue-list {
     font-size: 16px;
     padding: 5px 34px;
 }
-#awc-send-new-queue-list .dwn-btn {
+#edpq-send-new-queue-list .dwn-btn {
     background: #0062FF;
     color: white;
     border: none;
@@ -92,7 +92,7 @@ form#awc-send-new-queue-list {
     font-size: 16px;
     padding: 5px 34px;
 }
-#awc-send-new-queue-list .delete-btn {
+#edpq-send-new-queue-list .delete-btn {
     background: #EA212E;
     color: white;
     border: none;
@@ -110,7 +110,7 @@ form#awc-send-new-queue-list {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-.awc-ajax-loader {
+.edpq-ajax-loader {
     border: 16px solid #FF0909;
     border-radius: 50%;
     border-top: 16px solid #0062FF;
@@ -121,7 +121,7 @@ form#awc-send-new-queue-list {
     margin: auto;
     animation: spin 2s linear infinite;
 }
-.awc-response-msg {
+.edpq-response-msg {
     max-width: 830px;
     width: 100%;
     margin: 59px auto 0 auto;
@@ -130,7 +130,7 @@ form#awc-send-new-queue-list {
     box-shadow: 0px 0px 4.33px 0px rgba(0,0,0,0.5);
     padding: 0 0 26px 0;
 }
-.awc-response-msg p {
+.edpq-response-msg p {
     text-align:
     center;
     font-family: roboto;

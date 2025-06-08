@@ -1,4 +1,4 @@
-<form id="awc-send-new-queue-list" method="POST" action="">
+<form id="edpq-send-new-queue-list" method="POST" action="">
 <table class="queue-list-table">
   <thead>
     <tr>
@@ -23,7 +23,7 @@
          die("Connection to database failed with error#: " . mysqli_connect_error()); 
          }   
          
-         $sql = "SELECT list FROM awc_net_photos_queue_order WHERE id='1';"; //----- get current queue list
+         $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';"; //----- get current queue list
          
          $result = mysqli_query($conn, $sql);
          $row = mysqli_fetch_assoc($result);
@@ -35,13 +35,13 @@
        $table_postID = $stored_queue_list_arr[$i]['postid'];
        $table_postQueueNumber = $stored_queue_list_arr[$i]['queueNumber'];
 			?>
-     <tr class="awc-row-<?php echo $table_postQueueNumber; ?>">
+     <tr class="edpq-row-<?php echo $table_postQueueNumber; ?>">
       <td>
         <?php echo $table_postQueueNumber; ?>
         <input type="hidden" value="<?php echo $table_postQueueNumber;  ?>" name="queue-value-<?php echo $table_postQueueNumber; ?>" required/>
         <input type="hidden" value="<?php echo $table_postID;  ?>" name="queue-postID-<?php echo $table_postID; ?>" required/>
        </td>
-      <td class="awc-title-<?php echo $table_postQueueNumber;  ?>"><?php echo get_the_title($table_postID); ?></td>
+      <td class="edpq-title-<?php echo $table_postQueueNumber;  ?>"><?php echo get_the_title($table_postID); ?></td>
       <td>
 	  <?php
 		if ($i > 1) {
@@ -95,6 +95,6 @@
         <?php
 		if( is_array($stored_queue_list_arr) && empty($stored_queue_list_arr) ){
 		 ?>
-				<div class="awc-response-msg"><p>No photo submissions to display in the queue list.</p>
+				<div class="edpq-response-msg"><p>No photo submissions to display in the queue list.</p>
        <?php	
 		}

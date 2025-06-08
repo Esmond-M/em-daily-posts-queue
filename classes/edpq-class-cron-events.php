@@ -36,7 +36,7 @@ if (!class_exists('initCronEvents')) {
 			 die("Connection to database failed with error#: " . mysqli_connect_error()); 
 			 }   
 
-			 $sql = "SELECT list FROM awc_net_photos_queue_order WHERE id='1';"; //----- get current queue list
+			 $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';"; //----- get current queue list
 
 			 $result = mysqli_query($conn, $sql);
 			 $row = mysqli_fetch_assoc($result);
@@ -96,7 +96,7 @@ if (!class_exists('initCronEvents')) {
 			 die("Connection to database failed with error#: " . mysqli_connect_error()); 
 			 }   
 
-			 $SubmissionConnsql = "SELECT list FROM awc_net_photos_queue_order WHERE id='1';";
+			 $SubmissionConnsql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
 			  //----- check queue list again to see if multiple tabs open or someoneelse made a request.
 
 			 $Second_result = mysqli_query($SubmissionConn, $SubmissionConnsql);
@@ -104,7 +104,7 @@ if (!class_exists('initCronEvents')) {
 
 			 if( isset($Second_row['list']) && !empty($Second_row['list']) ){
 				$Second_stored_queue_list_arr = unserialize(base64_decode($Second_row['list']));
-				$isWindowOutdated = AWCcompareMultiDimensional($Second_stored_queue_list_arr, $old_stored_queue_list_arr);
+				$isWindowOutdated = edpqcompareMultiDimensional($Second_stored_queue_list_arr, $old_stored_queue_list_arr);
 			   /* 
 			  ----- This will check if array is the same. if yes then it will be empty.----
 			  I am doing this incase another user is updating the same page on another device or if the current user is updating the page in multiple tabs.
@@ -112,7 +112,7 @@ if (!class_exists('initCronEvents')) {
 
 				if( empty($isWindowOutdated) ){
 					$serialize_queueListArray = base64_encode(serialize($reNumberBeforeSubmit)); 
-					$SubmissionConnsql = "UPDATE awc_net_photos_queue_order SET list='" . $serialize_queueListArray . "' WHERE id=1";
+					$SubmissionConnsql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialize_queueListArray . "' WHERE id=1";
 					if ($SubmissionConn->query($SubmissionConnsql) === TRUE) {
                     if(isset($idToRemove) ){
 						wp_delete_post( $idToRemove, true); // Set to False if you want to send them to Trash.

@@ -22,12 +22,12 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 		add_action( 'pre_post_update', [$this, 'intercept_publishToDraft' ] , 10, 2);
         add_action( 'publish_net_submission', [$this, 'do_updated_to_publish' ] , 10, 3 );
 
-        add_action('admin_menu', [$this, 'AWCPhotoSubmission_register_submenu_page' ] );
+        add_action('admin_menu', [$this, 'edpqPhotoSubmission_register_submenu_page' ] );
 		add_action( 'admin_enqueue_scripts', [$this, 'load_admin_net_style' ]  );
 		add_action( 'wp_enqueue_scripts', [$this, 'net_style_scripts' ]  );
 
-	    add_action( 'admin_menu', [$this, 'AWC_net_submission_remove_meta_boxes' ]  );
-		add_action( 'add_meta_boxes', [$this, 'AWC_net_submission_register_meta_boxes' ]  );
+	    add_action( 'admin_menu', [$this, 'edpq_net_submission_remove_meta_boxes' ]  );
+		add_action( 'add_meta_boxes', [$this, 'edpq_net_submission_register_meta_boxes' ]  );
 
 		add_filter( 'post_row_actions', [$this, 'my_cpt_row_actions' ] , 10, 2 );
 
@@ -38,7 +38,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 		/**
 		 * Check if multidimensional array is the same
 		 */
-		public function AWCcompareMultiDimensional($array1, $array2, $strict = true){
+		public function edpqcompareMultiDimensional($array1, $array2, $strict = true){
 			if (!is_array($array1)) {
 				throw new \InvalidArgumentException('$array1 must be an array!');
 			}
@@ -56,7 +56,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 				}
 
 				if (is_array($value) && count($value) > 0) {
-					$recursiveArrayDiff = $this->AWCcompareMultiDimensional($value, $array2[$key], $strict);
+					$recursiveArrayDiff = $this->edpqcompareMultiDimensional($value, $array2[$key], $strict);
 
 					if (count($recursiveArrayDiff) > 0) {
 						$result[$key] = $recursiveArrayDiff;
@@ -117,7 +117,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 			 die("Connection to database failed with error#: " . mysqli_connect_error()); 
 			 }   
 
-			 $SubmissionConnsql = "SELECT list FROM awc_net_photos_queue_order WHERE id='1';";
+			 $SubmissionConnsql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
 			  //----- check queue list again to see if multiple tabs open or someoneelse made a request.
 
 			 $Second_result = mysqli_query($SubmissionConn, $SubmissionConnsql);
@@ -125,7 +125,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
 			 if( isset($Second_row['list']) && !empty($Second_row['list']) ){
 				$Second_stored_queue_list_arr = unserialize(base64_decode($Second_row['list']));
-				$isWindowOutdated = $this->AWCcompareMultiDimensional($Second_stored_queue_list_arr, $old_stored_queue_list_arr);
+				$isWindowOutdated = $this->edpqcompareMultiDimensional($Second_stored_queue_list_arr, $old_stored_queue_list_arr);
 			   /* 
 			  ----- This will check if array is the same. if yes then it will be empty.----
 			  I am doing this incase another user is updating the same page on another device or if the current user is updating the page in multiple tabs.
@@ -133,19 +133,19 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
 				if( empty($isWindowOutdated) ){
 					$serialize_queueListArray = base64_encode(serialize($reNumberBeforeSubmit)); 
-					$SubmissionConnsql = "UPDATE awc_net_photos_queue_order SET list='" . $serialize_queueListArray . "' WHERE id=1";
+					$SubmissionConnsql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialize_queueListArray . "' WHERE id=1";
 					if ($SubmissionConn->query($SubmissionConnsql) === TRUE) {
 						wp_delete_post( $idToRemove, true); // Set to False if you want to send them to Trash.
 					?>
-					<div class="awc-response-msg"><p>Queue List updated. Item has been removed.<br>Page will reload soon.</p>
-					<div class="awc-ajax-loader"></div></div>
+					<div class="edpq-response-msg"><p>Queue List updated. Item has been removed.<br>Page will reload soon.</p>
+					<div class="edpq-ajax-loader"></div></div>
 					<?php
 					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );                    
 					} 
 					if ($SubmissionConn->query($SubmissionConnsql) !== TRUE) {
 					?>
-					<div class="awc-response-msg"><p><?php echo "SQL Error: " . $SubmissionConnsql . "<br>" . $SubmissionConn->error;?><br>Page will reload soon.</p>
-					<div class="awc-ajax-loader"></div></div>
+					<div class="edpq-response-msg"><p><?php echo "SQL Error: " . $SubmissionConnsql . "<br>" . $SubmissionConn->error;?><br>Page will reload soon.</p>
+					<div class="edpq-ajax-loader"></div></div>
 					<?php
 					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );					
 					}
@@ -153,8 +153,8 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
 			   else{ // If this form window is outdated do not let them submit to datbase new list.
 					?>
-					<div class="awc-response-msg"><p>This window is out of date. Please refresh and make sure you only have one tab of this page open or that no one else is editing the page at the same time as you.<br>Page will reload soon.</p>
-					<div class="awc-ajax-loader"></div></div>
+					<div class="edpq-response-msg"><p>This window is out of date. Please refresh and make sure you only have one tab of this page open or that no one else is editing the page at the same time as you.<br>Page will reload soon.</p>
+					<div class="edpq-ajax-loader"></div></div>
 					<?php 
 					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
 				 }	
@@ -165,8 +165,8 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
 			 else{ //  if row is not there do not upate
 					?>
-					<div class="awc-response-msg"><p>Database row does not exist.<br>Page will reload soon.</p>
-					<div class="awc-ajax-loader"></div></div>
+					<div class="edpq-response-msg"><p>Database row does not exist.<br>Page will reload soon.</p>
+					<div class="edpq-ajax-loader"></div></div>
 					<?php		
 					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
 			 }
@@ -206,7 +206,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 			 die("Connection to database failed with error#: " . mysqli_connect_error()); 
 			 }   
 
-			 $SubmissionConnsql = "SELECT list FROM awc_net_photos_queue_order WHERE id='1';";
+			 $SubmissionConnsql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
 			  //----- check queue list again to see if multiple tabs open or someoneelse made a request.
 
 			 $Second_result = mysqli_query($SubmissionConn, $SubmissionConnsql);
@@ -219,23 +219,23 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 			  I am doing this incase another user is updating the same page on another device or if the current user is updating the page in multiple tabs.
 				*/
 
-				$isWindowOutdated = $this->AWCcompareMultiDimensional($Second_stored_queue_list_arr, $stored_queue_list_arr);
+				$isWindowOutdated = $this->edpqcompareMultiDimensional($Second_stored_queue_list_arr, $stored_queue_list_arr);
 
 				if (empty($isWindowOutdated)){
 					// prepare to store queuelist in database
 					$serialize_queueListArray = base64_encode(serialize($updatedQueuelist)); 
-					$SubmissionConnsql = "UPDATE awc_net_photos_queue_order SET list='" . $serialize_queueListArray . "' WHERE id=1";
+					$SubmissionConnsql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialize_queueListArray . "' WHERE id=1";
 					if ($SubmissionConn->query($SubmissionConnsql) === TRUE) {
 					?>
-					<div class="awc-response-msg"><p>Queue List updated.<br>Page will reload soon.</p>
-					<div class="awc-ajax-loader"></div></div>
+					<div class="edpq-response-msg"><p>Queue List updated.<br>Page will reload soon.</p>
+					<div class="edpq-ajax-loader"></div></div>
 					<?php
 					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
 					} 
 					if ($SubmissionConn->query($SubmissionConnsql) !== TRUE) {
 					?>
-					<div class="awc-response-msg"><p><?php echo "SQL Error: " . $SubmissionConnsql . "<br>" . $SubmissionConn->error;?><br>Page will reload soon.</p>
-					<div class="awc-ajax-loader"></div></div>
+					<div class="edpq-response-msg"><p><?php echo "SQL Error: " . $SubmissionConnsql . "<br>" . $SubmissionConn->error;?><br>Page will reload soon.</p>
+					<div class="edpq-ajax-loader"></div></div>
 					<?php
 					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
 					}
@@ -244,8 +244,8 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
 				else{ // If this form window is outdated do not let them submit to datbase new list.
 					?>
-					<div class="awc-response-msg"><p>This window is out of date. Please refresh and make sure you only have one tab of this page open or that no one else is editing the page at the same time as you.<br>Page will reload soon.</p>
-					<div class="awc-ajax-loader"></div></div>
+					<div class="edpq-response-msg"><p>This window is out of date. Please refresh and make sure you only have one tab of this page open or that no one else is editing the page at the same time as you.<br>Page will reload soon.</p>
+					<div class="edpq-ajax-loader"></div></div>
 					<?php 
 					header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
 				 }	
@@ -255,8 +255,8 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
 			 else{ //  if row is not there do not upate
 					?>
-					<div class="awc-response-msg"><p>Database row does not exist.<br>Page will reload soon.</p>
-					<div class="awc-ajax-loader"></div></div>
+					<div class="edpq-response-msg"><p>Database row does not exist.<br>Page will reload soon.</p>
+					<div class="edpq-ajax-loader"></div></div>
 					<?php		
 			 }
 						 $SubmissionConn->close();
@@ -306,7 +306,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 				 die("Connection to database failed with error#: " . mysqli_connect_error()); 
 				 }   
 
-				 $sql = "SELECT list FROM awc_net_photos_queue_order WHERE id='1';"; //----- get current queue list
+				 $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';"; //----- get current queue list
 
 				 $result = mysqli_query($conn, $sql);
 				 $row = mysqli_fetch_assoc($result);
@@ -318,7 +318,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 							  $addthis = intval($highestNumber) + 1;
 							  $stored_queue_list_arr[] = array("postid" => $post_id, "queueNumber" => $addthis); 
 							   $serialized_array = base64_encode(serialize($stored_queue_list_arr)); // store jobs in database
-								 $sql_addToListDB = "UPDATE awc_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
+								 $sql_addToListDB = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
 								if ($conn->query($sql_addToListDB) === TRUE) {
 								 echo "New record created successfully";
 								 } 
@@ -333,7 +333,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 						   $create_queue_list_arr = [];
 						   $create_queue_list_arr[] = array("postid" => $post_id, "queueNumber" => 1); 
 						   $serialized_array = base64_encode(serialize($create_queue_list_arr)); // store jobs in database
-							 $sql_createToListDB = "UPDATE awc_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
+							 $sql_createToListDB = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
 							if ($conn->query($sql_createToListDB) === TRUE) {
 							 echo "New record created successfully";
 							 } 
@@ -347,7 +347,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 				   $create_queue_list_arr = [];
 				   $create_queue_list_arr[] = array("postid" => $post_id, "queueNumber" => 1); 
 				   $serialized_array = base64_encode(serialize($create_queue_list_arr)); // store jobs in database
-					 $sql_createToListDB = "UPDATE awc_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
+					 $sql_createToListDB = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
 					if ($conn->query($sql_createToListDB) === TRUE) {
 					 echo "New record created successfully";
 					 } 
@@ -363,7 +363,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
 			//admin menu callback function
 
-			public function AWCPhotoSubmission_register_submenu_page() {
+			public function edpqPhotoSubmission_register_submenu_page() {
 
 				//Add Custom Social Sharing Sub Menu
 				add_submenu_page(
@@ -372,7 +372,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 'Queue List',
                 "upload_files" ,
                 'edit_net_submissions' ,
-                [$this, 'AWCqueue_list_page'] 
+                [$this, 'edpqqueue_list_page'] 
 				);
 				//Add Custom Social Sharing Sub Menu
 				add_submenu_page(
@@ -381,27 +381,27 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 'Admin Photo Queue List',
                 "manage_options",
                 'admin-queue-list',
-                [$this, 'AWCadmin_queue_list_page']);
+                [$this, 'edpqadmin_queue_list_page']);
 
 			} // end of function
 
-			public function AWCqueue_list_page(){
+			public function edpqqueue_list_page(){
 				global $pagenow;
 				$rand = rand(1, 99999999999);
 				require_once __DIR__  . '/../templates/options-page-auto-submission.php';
 
 
-				wp_enqueue_style( 'awc-photo-submission-styles', EmDailyPostsQueue_PATH  . '/admin/assets/css/awc-photo-submission.css' , array(),  $rand );
+				wp_enqueue_style( 'edpq-photo-submission-styles', EmDailyPostsQueue_PATH  . '/admin/assets/css/edpq-photo-submission.css' , array(),  $rand );
 
-				wp_enqueue_script( 'awc-photo-submission-scripts', EmDailyPostsQueue_PATH  . '/admin/assets/js/awc-photo-submission.js', array('jquery'), $rand, true);
-					wp_localize_script('awc-photo-submission-scripts', 'ajax_net_photo_deletion_info', array(
+				wp_enqueue_script( 'edpq-photo-submission-scripts', EmDailyPostsQueue_PATH  . '/admin/assets/js/edpq-photo-submission.js', array('jquery'), $rand, true);
+					wp_localize_script('edpq-photo-submission-scripts', 'ajax_net_photo_deletion_info', array(
 					'ajaxurl_net_photo_deletion_info' => admin_url('admin-ajax.php') ,
-					'noposts' => __('No older posts found', 'awc-white') ,
+					'noposts' => __('No older posts found', 'edpq-white') ,
 				  )); 
 				return;
 			}
 
-			public function AWCadmin_queue_list_page(){
+			public function edpqadmin_queue_list_page(){
 				require_once __DIR__ . '/../templates/options-page-admin-queue-list.php';
 				return;
 			}
@@ -418,15 +418,15 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 			/**
 			 * Remove meta boxes from the post edit screens
 			 */
-			public function AWC_net_submission_remove_meta_boxes() {
+			public function edpq_net_submission_remove_meta_boxes() {
 					remove_meta_box( 'submitdiv', 'net_submission', 'normal' );
 			}
 
-			public function AWC_net_submission_register_meta_boxes() {
+			public function edpq_net_submission_register_meta_boxes() {
 			add_meta_box( 
 				"_submitdiv", 
 				__( "Publish" ), 
-				[$this, "AWC_net_submission_meta_boxes_callback"], 
+				[$this, "edpq_net_submission_meta_boxes_callback"], 
 				'net_submission', 
 				'side', 
 				'high',
@@ -434,7 +434,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 			);
 			}
 
-			public function AWC_net_submission_meta_boxes_callback( $post){
+			public function edpq_net_submission_meta_boxes_callback( $post){
 				global $action;
 
 				$post_id          = (int) $post->ID;
@@ -616,10 +616,10 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 	            global $post;
 				$rand = rand(1, 99999999999);
 					 if( has_shortcode( $post->post_content, 'EmDailyPostsQueueShortcode' ) ){
-						wp_enqueue_script( 'awc-submit-photo-submission-script', EmDailyPostsQueue_PATH . 'assets/js/awc-submit-photo-submission.js', array('jquery'), $rand, true);
-							wp_localize_script('awc-submit-photo-submission-script', 'ajax_form_post_new_net_photo_submission', array(
+						wp_enqueue_script( 'edpq-submit-photo-submission-script', EmDailyPostsQueue_PATH . 'assets/js/edpq-submit-photo-submission.js', array('jquery'), $rand, true);
+							wp_localize_script('edpq-submit-photo-submission-script', 'ajax_form_post_new_net_photo_submission', array(
 							'ajaxurl_form_post_new_net_photo_submission' => admin_url('admin-ajax.php') ,
-							'noposts' => __('No older posts found', 'awc-white') ,
+							'noposts' => __('No older posts found', 'edpq-white') ,
 						  )); 
 					 }
 
