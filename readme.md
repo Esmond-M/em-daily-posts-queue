@@ -19,5 +19,10 @@ Originally made for AWC intranet website. Being put into a plugin for future use
 3. Extract zip folder. Folder name of plugin should be "em-daily-posts-queue".
 4. Activate the plugin through the 'Plugins' menu in WordPress.
 
+![Alt text](/docs/imgs/admin-menu.png "Admin Menu Option")
+
+![Alt text](/docs/imgs/queue-list.png "Queue List")
+
+
 
 
