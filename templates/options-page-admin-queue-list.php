@@ -99,3 +99,9 @@ tr:nth-child(even) td {
 ?>
   </tbody>
 </table>
+  <?php
+  if( is_array($stored_queue_list_arr) && empty($stored_queue_list_arr) ){
+    ?>
+      <div class="edpq-response-msg"><p>No photo submissions to display in the queue list.</p>
+  <?php	
+  }
