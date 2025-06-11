@@ -527,31 +527,6 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 			public function form_post_new_net_photo_submission_ajax()
 			{
 
-			/*
-			if(isset($_FILES['net_image'])) {
-				$errors     = array();
-				$maxsize    = 10240;
-				$acceptable = array(
-					'image/jpeg',
-					'image/jpg',
-					'image/png'
-				);
-
-				if(($_FILES['uploaded_file']['size'] >= $maxsize) || ($_FILES["uploaded_file"]["size"] == 0)) {
-					$errors[] = 'File too large. File must be less than 5 megabytes.';
-				}
-
-				if((!in_array($_FILES['uploaded_file']['type'], $acceptable)) && (!empty($_FILES["uploaded_file"]["type"]))) {
-					$errors[] = 'Invalid file type. Only JPG and PNG types are accepted.';
-				}
-
-				if(count($errors) === 0) {
-					die(); //Ensure no more processing is done
-				} 
-			}
-			*/
-
-
 				// Do some minor form validation to make sure there is content
 				if (  isset($_POST['topic_headline_value']) && isset($_POST['topic_caption_value'])  ) {
 
@@ -612,6 +587,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 							'noposts' => __('No older posts found', 'edpq-white') ,
 						  )); 
 					 }
+				 
 
 			}
 
