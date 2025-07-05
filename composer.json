@@ -1,5 +1,32 @@
 {
+  "name": "wp-phpunit/em-daily-posts-queue",
+  "description": "Show daily posts on front and allow assigned user to edit queue.",
+  "type": "plugin",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "Esmond Mccain",
+      "email": "esmondmccain@gmail.com"
+    }
+  ],
+  "require": {
+    "roots/wordpress": "^6.8.1"
+  },
   "require-dev": {
-    "brain/monkey": "2.*"
+    "phpunit/phpunit": "^9.0",
+    "wp-phpunit/wp-phpunit": "^6.0",
+    "yoast/phpunit-polyfills": "^1.0"
+  },
+    "scripts": {
+    "test": "phpunit"
+  },
+  "config": {
+        "platform": {
+      "php": "8.4.4"
+    },
+    "sort-packages": true,
+    "allow-plugins": {
+      "roots/wordpress-core-installer": true
+    }
   }
 }
