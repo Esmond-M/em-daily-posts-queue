@@ -14,6 +14,7 @@ build/Release
 # Dependency directories
 node_modules/
 vendor/
+wordpress/
 # Optional npm cache directory
 .npm
 
