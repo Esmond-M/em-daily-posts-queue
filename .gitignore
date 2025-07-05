@@ -27,3 +27,5 @@ wordpress/
 # dotenv environment variables file
 .env
 
+# Output of phpunit test
+.phpunit.result.cache
