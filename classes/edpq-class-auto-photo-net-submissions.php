@@ -540,8 +540,8 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                     'post_title'    => $_POST['topic_headline_value'] . ' ' . date("m-d-y") ,
                     'post_status'   => 'draft',           // Choose: publish, preview, future, draft, etc.
                     'meta_input'   => array(
-                    'net_title' => '' . $_POST['topic_headline_value'] . '',
-                    'net_caption' => '' . $_POST['topic_caption_value'] . '',
+                    'topic_headline_value' => '' . $_POST['topic_headline_value'] . '',
+                    'topic_caption_value' => '' . $_POST['topic_caption_value'] . '',
                     ),
                     'post_type' => 'net_submission'  //'post',page' or use a custom post type if you want to
                     );
