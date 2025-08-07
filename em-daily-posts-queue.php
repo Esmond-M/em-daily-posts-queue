@@ -167,60 +167,60 @@ $result = mysqli_query($conn, $sql);
 $row = mysqli_fetch_assoc($result);
 $conn->close();
 if( isset($row['list']) && !empty($row['list']) ){ // if current queue list exists in database
-	$stored_queue_list_arr = unserialize(base64_decode($row['list']));	
-	if( is_array($stored_queue_list_arr) && !empty($stored_queue_list_arr) ){
-			for($i = 0; $i < 1; $i++) {
-			$postID = $stored_queue_list_arr[$i]['postid'];	
-			$featuredImage = get_the_post_thumbnail_url($postID,'large');
-			$netTopicHeadline = get_post_meta($postID, 'topic_headline_value', true);
-			$netTopicCaption = get_post_meta($postID, 'topic_caption_value', true);
-			?>	
-				<div class="edpq-around-edpq">
-				<div class="edpq-content-left">
-					<img src="<?php echo $featuredImage; ?>" />
-				</div>
-				<div class="edpq-content-right">
-					<p class="heading">Daily Post </p>
-			<?php
-					if( $netTopicHeadline ) {
-					?><p class="edpq-title"><?php echo $netTopicHeadline; ?></p> <?php
-					}
-					if( $netTopicCaption ) {
-					?><p class="edpq-net-caption"><?php echo $netTopicCaption; ?></p> <?php
-					}?>
-				</div>
-			</div><?php
-			}
+    $stored_queue_list_arr = unserialize(base64_decode($row['list']));	
+    if( is_array($stored_queue_list_arr) && !empty($stored_queue_list_arr) ){
+            for($i = 0; $i < 1; $i++) {
+            $postID = $stored_queue_list_arr[$i]['postid'];	
+            $featuredImage = get_the_post_thumbnail_url($postID,'large');
+            $netTopicHeadline = get_post_meta($postID, 'topic_headline_value', true);
+            $netTopicCaption = get_post_meta($postID, 'topic_caption_value', true);
+            ?>	
+                <div class="edpq-around-edpq">
+                <div class="edpq-content-left">
+                    <img src="<?php echo $featuredImage; ?>" />
+                </div>
+                <div class="edpq-content-right">
+                    <p class="heading">Daily Post </p>
+            <?php
+                    if( $netTopicHeadline ) {
+                    ?><p class="edpq-title"><?php echo $netTopicHeadline; ?></p> <?php
+                    }
+                    if( $netTopicCaption ) {
+                    ?><p class="edpq-net-caption"><?php echo $netTopicCaption; ?></p> <?php
+                    }?>
+                </div>
+            </div><?php
+            }
 
-	}
-	else{ // array of posts is empty
-	?>	
-	<div class="edpq-around-edpq">
-		<div class="edpq-content-left">
-		<img src="insertplacholderhere.png" />
-		</div>
-		<div class="edpq-content-right">
-		<p class="heading">Around edpq</p>
-		<p class="edpq-net-caption">If you would like to submit an image to be used as the .NET Intranet website banner,
-		please click the button below.</p>
-		<button class="edpq-submit-btn">Submit your photo!</button>
-		</div>
-	</div><?php							
-	}
+    }
+    else{ // array of posts is empty
+    ?>	
+    <div class="edpq-around-edpq">
+        <div class="edpq-content-left">
+        <img src="insertplacholderhere.png" />
+        </div>
+        <div class="edpq-content-right">
+        <p class="heading">Around edpq</p>
+        <p class="edpq-net-caption">If you would like to submit an image to be used as the .NET Intranet website banner,
+        please click the button below.</p>
+        <button class="edpq-submit-btn">Submit your photo!</button>
+        </div>
+    </div><?php							
+    }
 
 }
 else{ // no row in database
 ?>	
 <div class="edpq-around-edpq">
-	<div class="edpq-content-left">
-	<img src="insertplacholderhere.png" />
-	</div>
-	<div class="edpq-content-right">
-	<p class="heading">Around edpq</p>
-	<p class="edpq-net-caption">If you would like to submit an image to be used as the .NET Intranet website banner,
-	please click the button below.</p>
-	<button class="edpq-submit-btn">Submit your photo!</button>
-	</div>
+    <div class="edpq-content-left">
+    <img src="insertplacholderhere.png" />
+    </div>
+    <div class="edpq-content-right">
+    <p class="heading">Around edpq</p>
+    <p class="edpq-net-caption">If you would like to submit an image to be used as the .NET Intranet website banner,
+    please click the button below.</p>
+    <button class="edpq-submit-btn">Submit your photo!</button>
+    </div>
     </div><?php
         $shortcode_html = ob_get_clean();
         return $shortcode_html;
