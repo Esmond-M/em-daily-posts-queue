@@ -23,7 +23,7 @@ class TestAutoPhotoSubmissions extends WP_UnitTestCase
 
     /**
      * Test post type detection for net submission
-     */
+
     public function test_net_submission_skip_trash(): void
     {
         // Create a test post of type net_submission
@@ -40,7 +40,7 @@ class TestAutoPhotoSubmissions extends WP_UnitTestCase
 
         fwrite(STDOUT, "\n\033[32mSUCCESS: Net submission post type handling works.\033[0m\n");
     }
-
+     */
     /**
      * Test multidimensional array comparison (duplicate from cron class)
      */

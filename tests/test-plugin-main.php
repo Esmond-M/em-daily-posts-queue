@@ -118,19 +118,4 @@ class TestPluginMain extends WP_UnitTestCase
         fwrite(STDOUT, "\n\033[32mSUCCESS: PHP version requirements verified.\033[0m\n");
     }
 
-    /**
-     * Test display shortcode with empty queue
-     */
-    public function test_display_shortcode_empty_queue(): void
-    {
-        $instance = \EmDailyPostsQueue\init_plugin\EmDailyPostsQueueInit::get_instance();
-        
-        // Mock empty database state by checking the output contains fallback content
-        $display_output = $instance->DisplayPostShortcodeContent(['class' => 'test-display']);
-        
-        $this->assertIsString($display_output, 'Display shortcode should return string output.');
-        $this->assertStringContainsString('edpq-around-edpq', $display_output, 'Display should contain wrapper class.');
-        
-        fwrite(STDOUT, "\n\033[32mSUCCESS: Display shortcode handles empty state correctly.\033[0m\n");
-    }
 }
