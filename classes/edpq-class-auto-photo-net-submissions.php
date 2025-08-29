@@ -420,19 +420,19 @@ if (!class_exists('automatePhotoNetSubmissions')) {
              * Remove meta boxes from the post edit screens
              */
             public function edpq_net_submission_remove_meta_boxes() {
-                    remove_meta_box( 'submitdiv', 'net_submission', 'normal' );
+                remove_meta_box( 'submitdiv', 'net_submission', 'normal' );
             }
 
             public function edpq_net_submission_register_meta_boxes() {
-            add_meta_box( 
-                "_submitdiv", 
-                __( "Publish" ), 
-                [$this, "edpq_net_submission_meta_boxes_callback"], 
-                'net_submission', 
-                'side', 
-                'high',
-                [ 'show_draft_button' => false ] 
-            );
+                add_meta_box( 
+                    "_submitdiv", 
+                    __( "Publish" ), 
+                    [$this, "edpq_net_submission_meta_boxes_callback"], 
+                    'net_submission', 
+                    'side', 
+                    'high',
+                    [ 'show_draft_button' => false ] 
+                );
             }
 
             public function edpq_net_submission_meta_boxes_callback( $post){
@@ -592,18 +592,18 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 global $post;
                 $rand = rand(1, 99999999999);
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
-                     if( has_shortcode( $post->post_content, 'EmDailyPostsQueueForm' ) ){
-                        wp_enqueue_script( 'edpq-submit-photo-submission-script', $plugin_url . 'assets/js/edpq-submit-photo-submission.js', array('jquery'), $rand, true);
-                            wp_localize_script('edpq-submit-photo-submission-script', 'ajax_form_post_new_net_photo_submission', array(
-                            'ajaxurl_form_post_new_net_photo_submission' => admin_url('admin-ajax.php') ,
-                            'noposts' => __('No older posts found', 'edpq-white') ,
-                          )); 
+                if( has_shortcode( $post->post_content, 'EmDailyPostsQueueForm' ) ){
+                wp_enqueue_script( 'edpq-submit-photo-submission-script', $plugin_url . 'assets/js/edpq-submit-photo-submission.js', array('jquery'), $rand, true);
+                    wp_localize_script('edpq-submit-photo-submission-script', 'ajax_form_post_new_net_photo_submission', array(
+                    'ajaxurl_form_post_new_net_photo_submission' => admin_url('admin-ajax.php') ,
+                    'noposts' => __('No older posts found', 'edpq-white') ,
+                    )); 
 
-                        wp_enqueue_style( 'edpq-form-styles', $plugin_url . '/assets/css/form.css' , array(),  $rand );  	  
-                     }
-                     if( has_shortcode( $post->post_content, 'EmDailyPostsQueueDisplayPost' ) ){
-                        wp_enqueue_style( 'edpq-display-styles', $plugin_url . '/assets/css/display.css' , array(),  $rand ); 
-                     }
+                wp_enqueue_style( 'edpq-form-styles', $plugin_url . '/assets/css/form.css' , array(),  $rand );  	  
+                }
+                if( has_shortcode( $post->post_content, 'EmDailyPostsQueueDisplayPost' ) ){
+                wp_enqueue_style( 'edpq-display-styles', $plugin_url . '/assets/css/display.css' , array(),  $rand ); 
+                }
 
             }
 
