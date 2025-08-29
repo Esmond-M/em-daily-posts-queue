@@ -400,9 +400,18 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 global $pagenow;
                 $rand = rand(1, 99999999999);
 
-               if ( 'edit.php' === $pagenow  && 'net_submission' ===  $_GET['post_type'] ) {
+                if ( 'edit.php' === $pagenow  && 'net_submission' ===  $_GET['post_type'] ) {
                 wp_enqueue_style( 'edit_screen_css',  EmDailyPostsQueue_PATH  . '/admin/assets/css/net-submission-edit.css' , array(),  $rand );
                 }
+                // Only enqueue admin_option_css for the specific admin queue list page
+                if (
+                    'edit.php' === $pagenow &&
+                    isset($_GET['post_type']) && $_GET['post_type'] === 'net_submission' &&
+                    isset($_GET['page']) && $_GET['page'] === 'admin-queue-list'
+                ) {
+                    wp_enqueue_style( 'admin_option_css',  EmDailyPostsQueue_PATH  . '/admin/assets/css/admin-queue.css' , array(),  $rand );
+                }
+               
             }
 
             /**
