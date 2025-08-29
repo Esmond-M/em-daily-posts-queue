@@ -377,13 +377,14 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
             public function edpqqueue_list_page(){
                 global $pagenow;
+                $plugin_url = plugin_dir_url(dirname(__FILE__));
                 $rand = rand(1, 99999999999);
                 require_once __DIR__  . '/../templates/options-page-auto-submission.php';
 
 
-                wp_enqueue_style( 'edpq-photo-submission-styles', EmDailyPostsQueue_PATH  . '/admin/assets/css/edpq-photo-submission.css' , array(),  $rand );
+                wp_enqueue_style( 'edpq-photo-submission-styles', $plugin_url  . '/admin/assets/css/edpq-photo-submission.css' , array(),  $rand );
 
-                wp_enqueue_script( 'edpq-photo-submission-scripts', EmDailyPostsQueue_PATH  . '/admin/assets/js/edpq-photo-submission.js', array('jquery'), $rand, true);
+                wp_enqueue_script( 'edpq-photo-submission-scripts', $plugin_url  . '/admin/assets/js/edpq-photo-submission.js', array('jquery'), $rand, true);
                     wp_localize_script('edpq-photo-submission-scripts', 'ajax_net_photo_deletion_info', array(
                     'ajaxurl_net_photo_deletion_info' => admin_url('admin-ajax.php') ,
                     'noposts' => __('No older posts found', 'edpq-white') ,
@@ -399,9 +400,10 @@ if (!class_exists('automatePhotoNetSubmissions')) {
             public function load_admin_net_style(){
                 global $pagenow;
                 $rand = rand(1, 99999999999);
-
+                $plugin_url = plugin_dir_url(dirname(__FILE__));
+                
                 if ( 'edit.php' === $pagenow  && 'net_submission' ===  $_GET['post_type'] ) {
-                wp_enqueue_style( 'edit_screen_css',  EmDailyPostsQueue_PATH  . '/admin/assets/css/net-submission-edit.css' , array(),  $rand );
+                wp_enqueue_style( 'edit_screen_css',  $plugin_url  . '/admin/assets/css/net-submission-edit.css' , array(),  $rand );
                 }
                 // Only enqueue admin_option_css for the specific admin queue list page
                 if (
@@ -409,7 +411,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                     isset($_GET['post_type']) && $_GET['post_type'] === 'net_submission' &&
                     isset($_GET['page']) && $_GET['page'] === 'admin-queue-list'
                 ) {
-                    wp_enqueue_style( 'admin_option_css',  EmDailyPostsQueue_PATH  . '/admin/assets/css/admin-queue.css' , array(),  $rand );
+                    wp_enqueue_style( 'admin_option_css',  $plugin_url  . '/admin/assets/css/admin-queue.css' , array(),  $rand );
                 }
                
             }
@@ -589,18 +591,19 @@ if (!class_exists('automatePhotoNetSubmissions')) {
             public function net_style_scripts(){
                 global $post;
                 $rand = rand(1, 99999999999);
+                $plugin_url = plugin_dir_url(dirname(__FILE__));
                      if( has_shortcode( $post->post_content, 'EmDailyPostsQueueForm' ) ){
-                        wp_enqueue_script( 'edpq-submit-photo-submission-script', EmDailyPostsQueue_PATH . 'assets/js/edpq-submit-photo-submission.js', array('jquery'), $rand, true);
+                        wp_enqueue_script( 'edpq-submit-photo-submission-script', $plugin_url . 'assets/js/edpq-submit-photo-submission.js', array('jquery'), $rand, true);
                             wp_localize_script('edpq-submit-photo-submission-script', 'ajax_form_post_new_net_photo_submission', array(
                             'ajaxurl_form_post_new_net_photo_submission' => admin_url('admin-ajax.php') ,
                             'noposts' => __('No older posts found', 'edpq-white') ,
                           )); 
-                    
-                        wp_enqueue_style( 'edpq-form-styles', EmDailyPostsQueue_PATH  . '/assets/css/form.css' , array(),  $rand );  	  
+
+                        wp_enqueue_style( 'edpq-form-styles', $plugin_url . '/assets/css/form.css' , array(),  $rand );  	  
                      }
                      if( has_shortcode( $post->post_content, 'EmDailyPostsQueueDisplayPost' ) ){
-                        wp_enqueue_style( 'edpq-display-styles', EmDailyPostsQueue_PATH  . '/assets/css/display.css' , array(),  $rand ); 
-                     }					 
+                        wp_enqueue_style( 'edpq-display-styles', $plugin_url . '/assets/css/display.css' , array(),  $rand ); 
+                     }
 
             }
 
