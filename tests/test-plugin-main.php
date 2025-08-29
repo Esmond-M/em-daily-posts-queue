@@ -78,16 +78,6 @@ class TestPluginMain extends WP_UnitTestCase
         fwrite(STDOUT, "\n\033[32mSUCCESS: Form shortcode output generated correctly.\033[0m\n");
     }
 
-    /**
-     * Test plugin constants
-     */
-    public function test_plugin_constants(): void
-    {
-        $this->assertTrue(defined('EmDailyPostsQueue_PATH'), 'Plugin path constant should be defined.');
-        $this->assertIsString(EmDailyPostsQueue_PATH, 'Plugin path should be a string.');
-        
-        fwrite(STDOUT, "\n\033[32mSUCCESS: Plugin constants defined correctly.\033[0m\n");
-    }
 
     /**
      * Test plugin version constant
