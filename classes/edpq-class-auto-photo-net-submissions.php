@@ -375,7 +375,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
             } // end of function
 
-            public function get_admin_queue_list() {
+            public function get_queue_list() {
                 $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
                 if (!$conn) {
                     return ['error' => mysqli_connect_error()];
@@ -396,6 +396,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 global $pagenow;
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
                 $rand = rand(1, 99999999999);
+                $queue_list = $this->get_queue_list();
                 require_once __DIR__  . '/../templates/options-page-auto-submission.php';
 
 
@@ -406,11 +407,11 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                     'ajaxurl_net_photo_deletion_info' => admin_url('admin-ajax.php') ,
                     'noposts' => __('No older posts found', 'edpq-white') ,
                   )); 
-                return;
+
             }
 
             public function edpqadmin_queue_list_page(){
-                 $queue_list = $this->get_admin_queue_list();
+                 $queue_list = $this->get_queue_list();
                 require_once __DIR__ . '/../templates/options-page-admin-queue-list.php';
                // return;
             }
