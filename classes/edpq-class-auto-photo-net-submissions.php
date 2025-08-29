@@ -375,6 +375,23 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
             } // end of function
 
+            public function get_admin_queue_list() {
+                $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+                if (!$conn) {
+                    return ['error' => mysqli_connect_error()];
+                }
+                $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
+                $result = mysqli_query($conn, $sql);
+                $row = mysqli_fetch_assoc($result);
+                mysqli_close($conn);
+
+                if (isset($row['list']) && !empty($row['list'])) {
+                    $queue = unserialize(base64_decode($row['list']));
+                    return is_array($queue) ? $queue : [];
+                }
+                return [];
+            }
+
             public function edpqqueue_list_page(){
                 global $pagenow;
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
@@ -393,8 +410,9 @@ if (!class_exists('automatePhotoNetSubmissions')) {
             }
 
             public function edpqadmin_queue_list_page(){
+                 $queue_list = $this->get_admin_queue_list();
                 require_once __DIR__ . '/../templates/options-page-admin-queue-list.php';
-                return;
+               // return;
             }
 
             public function load_admin_net_style(){
