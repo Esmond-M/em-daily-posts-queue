@@ -15,8 +15,44 @@ namespace EmDailyPostsQueue\init_plugin\Classes;
 if (!class_exists('PhotoNetSubmissionQueue')) {
 
     class PhotoNetSubmissionQueue
-    // Constructor: Registers all WordPress hooks and actions for plugin functionality
     {
+
+        /**
+         * Get the queue list from the database
+         * @return array
+         */
+        private function get_queue_list_from_db() {
+            $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+            if (!$conn) {
+                return ['error' => mysqli_connect_error()];
+            }
+            $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
+            $result = mysqli_query($conn, $sql);
+            $row = mysqli_fetch_assoc($result);
+            mysqli_close($conn);
+            if (isset($row['list']) && !empty($row['list'])) {
+                $queue = unserialize(base64_decode($row['list']));
+                return is_array($queue) ? $queue : [];
+            }
+            return [];
+        }
+        
+        /**
+         * Update the queue list in the database
+         * @param array $queue_list
+         * @return bool|string True on success, error message on failure
+         */
+        private function update_queue_list_in_db($queue_list) {
+            $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+            if (!$conn) {
+                return mysqli_connect_error();
+            }
+            $serialized_array = base64_encode(serialize($queue_list));
+            $sql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
+            $result = $conn->query($sql);
+            $conn->close();
+            return $result === TRUE ? true : $conn->error;
+        }
 
         /**
         Declaring constructor
@@ -41,8 +77,6 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
         add_action( 'add_meta_boxes', [$this, 'edpq_net_submission_register_meta_boxes' ]  );
 
         add_filter( 'post_row_actions', [$this, 'my_cpt_row_actions' ] , 10, 2 );
-
-
 
         }
 
@@ -308,73 +342,26 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
      */
     public function do_updated_to_publish( $post_id, $post , $old_status  ) {
 
-                if($old_status == 'publish'){
-                    return;
-                }
-                else{
+        if ($old_status == 'publish') {
+            return;
+        }
+        $queue_list = $this->get_queue_list_from_db();
+        if (is_array($queue_list) && !empty($queue_list)) {
+            $getHighestNumberInQueueDatabase = array_key_last($queue_list);
+            $highestNumber = $queue_list[$getHighestNumberInQueueDatabase]['queueNumber'];
+            $addthis = intval($highestNumber) + 1;
+            $queue_list[] = array("postid" => $post_id, "queueNumber" => $addthis);
+        } else {
+            $queue_list = [array("postid" => $post_id, "queueNumber" => 1)];
+        }
+        $result = $this->update_queue_list_in_db($queue_list);
+        if ($result !== true) {
+            echo "SQL Error: " . $result;
+        } else {
+            echo "New record created successfully";
+        }
 
-                //$post_id = $post->ID; // Get the current posts ID
-                 $conn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
-
-                 if (!$conn)
-                 { 
-                 die("Connection to database failed with error#: " . mysqli_connect_error()); 
-                 }   
-
-                 $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';"; //----- get current queue list
-
-                 $result = mysqli_query($conn, $sql);
-                 $row = mysqli_fetch_assoc($result);
-                 if( isset($row['list']) && !empty($row['list']) ){ // if current queue list exists add to array with new post that was published
-                         $stored_queue_list_arr = unserialize(base64_decode($row['list']));	
-                        if( is_array($stored_queue_list_arr) && !empty($stored_queue_list_arr) ){
-                              $getHighestNumberInQueueDatabase = array_key_last($stored_queue_list_arr);
-                              $highestNumber =  $stored_queue_list_arr[$getHighestNumberInQueueDatabase]['queueNumber'];
-                              $addthis = intval($highestNumber) + 1;
-                              $stored_queue_list_arr[] = array("postid" => $post_id, "queueNumber" => $addthis); 
-                               $serialized_array = base64_encode(serialize($stored_queue_list_arr)); // store jobs in database
-                                 $sql_addToListDB = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
-                                if ($conn->query($sql_addToListDB) === TRUE) {
-                                 echo "New record created successfully";
-                                 } 
-                                 if ($conn->query($sql_addToListDB) !== TRUE) {
-                                 echo "SQL Error: " . $sql_addToListDB . "<br>" . $conn->error;
-                                 }
-
-
-                            //  echo"if loaded";
-                        }
-                        else{ // array is empty so no queue list are there do same as if no row is in database.
-                           $create_queue_list_arr = [];
-                           $create_queue_list_arr[] = array("postid" => $post_id, "queueNumber" => 1); 
-                           $serialized_array = base64_encode(serialize($create_queue_list_arr)); // store jobs in database
-                             $sql_createToListDB = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
-                            if ($conn->query($sql_createToListDB) === TRUE) {
-                             echo "New record created successfully";
-                             } 
-                             if ($conn->query($sql_createToListDB) !== TRUE) {
-                             echo "SQL Error: " . $sql_createToListDB . "<br>" . $conn->error;
-                             }					
-                        }
-
-                 }
-                 else{ // if queue list is empty create it
-                   $create_queue_list_arr = [];
-                   $create_queue_list_arr[] = array("postid" => $post_id, "queueNumber" => 1); 
-                   $serialized_array = base64_encode(serialize($create_queue_list_arr)); // store jobs in database
-                     $sql_createToListDB = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
-                    if ($conn->query($sql_createToListDB) === TRUE) {
-                     echo "New record created successfully";
-                     } 
-                     if ($conn->query($sql_createToListDB) !== TRUE) {
-                     echo "SQL Error: " . $sql_createToListDB . "<br>" . $conn->error;
-                     }
-                 }
-
-                     $conn->close();					
-                }
-
-            } // end of function
+            } 
 
 
     /**
