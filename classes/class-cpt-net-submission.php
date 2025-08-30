@@ -26,12 +26,11 @@ if (!class_exists('CPT_NetSubmission')) {
             add_action( 'init', [$this, 'net_submission_cap' ]  );
             add_action( 'template_redirect', [$this, 'restrict_net_submission_access'] );
             add_filter( 'template_include', [$this, 'net_submission_template_override'] );
-
         }
 
 
         /**
-         * Use plugin templates for net_submission single and archive views
+         * Use plugin template for net_submission single view only
          */
         public static function net_submission_template_override($template) {
             $plugin_dir = plugin_dir_path(__FILE__) . '../templates/';
@@ -41,14 +40,8 @@ if (!class_exists('CPT_NetSubmission')) {
                     return $single_template;
                 }
             }
-            if (is_post_type_archive('net_submission')) {
-                $archive_template = $plugin_dir . 'archive-net_submission.php';
-                if (file_exists($archive_template)) {
-                    return $archive_template;
-                }
-            }
             return $template;
-       }
+        }
         public static function em_daily_posts_register_cpts() {
 
             $labels = array(
@@ -73,7 +66,7 @@ if (!class_exists('CPT_NetSubmission')) {
                 'rest_base'             => '',
                 'rest_controller_class' => 'WP_REST_Posts_Controller',
                 'rest_namespace'        => 'wp/v2',
-                'has_archive'           => 'net_submission',
+                'has_archive'           => false,
                 'show_in_menu'          => true,
                 'show_in_nav_menus'     => true,
                 'delete_with_user'      => false,
