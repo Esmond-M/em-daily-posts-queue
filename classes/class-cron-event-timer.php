@@ -26,28 +26,29 @@ if (!class_exists('CronEventTimer')) {
 
         public function eg_schedule_1_weekdays_log() {
             if ( false === as_has_scheduled_action( 'eg_1_weekdays_log' ) ) {
-            $str1Weekdays = strtotime( '+1 weekday 10pm America/Chicago' );
-            $strToday = strtotime( 'Now America/Chicago' );
-            $startDate = new \DateTime( gmdate("Y-m-d H:i:s", $strToday) );//start time
-            $nextDate = new \DateTime( gmdate("Y-m-d H:i:s", $str1Weekdays));//end time
-            $oneWeekDayInterval = $nextDate->getTimestamp() - $startDate->getTimestamp();
+                $str1Weekdays = strtotime( '+1 weekday 10pm America/Chicago' );
+                $strToday = strtotime( 'Now America/Chicago' );
+                $startDate = new \DateTime( gmdate("Y-m-d H:i:s", $strToday) );//start time
+                $nextDate = new \DateTime( gmdate("Y-m-d H:i:s", $str1Weekdays));//end time
+                $oneWeekDayInterval = $nextDate->getTimestamp() - $startDate->getTimestamp();
 
-            if($oneWeekDayInterval < 86400){ // this number is seconds to hours
-                $oneWeekDayInterval = 86400;
-                $emailto = get_option('admin_email');
-                $subject = 'Auto timer not working';
-                $message = 'Had to set default 1 days<br>' . 'timer:' . $oneWeekDayInterval ;
-                wp_mail( $emailto, $subject, $message );
+                if($oneWeekDayInterval < 86400){ // this number is seconds to hours
+                    $oneWeekDayInterval = 86400;
+                    $this->send_admin_email('Auto timer not working', 'Had to set default 1 days<br>timer:' . $oneWeekDayInterval);
+                } else {
+                    $this->send_admin_email('Run timer value', 'timer:' . $oneWeekDayInterval);
+                }
+                as_schedule_recurring_action( strtotime( '+1 weekdays 10pm America/Chicago' ), $oneWeekDayInterval, 'eg_1_weekdays_log' );
             }
-            else {
-                $emailto = get_option('admin_email');
-                $subject = 'Run timer value';
-                $message = 'timer:' . $oneWeekDayInterval ;
-                wp_mail( $emailto, $subject, $message );
-            }
-           as_schedule_recurring_action( strtotime( '+1 weekdays 10pm America/Chicago' ), $oneWeekDayInterval, 'eg_1_weekdays_log' );
-           }
-       } 
+        }
+
+        /**
+         * Helper to send notification email to admin
+         */
+        private function send_admin_email($subject, $message) {
+            $emailto = get_option('admin_email');
+            wp_mail($emailto, $subject, $message);
+        }
 
     }
 
