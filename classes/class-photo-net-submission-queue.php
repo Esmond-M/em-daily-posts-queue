@@ -36,7 +36,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
             }
             return [];
         }
-        
+
         /**
          * Update the queue list in the database
          * @param array $queue_list
@@ -136,205 +136,208 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
      */
     public function net_photo_deletion_info_ajax() {
             
-            $stored_queue_list_arr =  json_decode(stripslashes($_POST['checkWindowAge']),true);
-            if(isset($_POST['remove_postid'])){
-            $idToRemove =  $_POST['remove_postid'];
-            $queueNumberToRemove =  $_POST['remove_queue'];
-            $old_stored_queue_list_arr = $stored_queue_list_arr; // using this to verify before updating database. I am unsetting the -idToRemove- in array in the code below.
-            for($i = 0; $i < count($stored_queue_list_arr); $i++) {
-                if($stored_queue_list_arr[$i]['postid'] == $idToRemove){
-                    unset($stored_queue_list_arr[$i]);
-                } 		
-            }
+        $stored_queue_list_arr =  json_decode(stripslashes($_POST['checkWindowAge']),true);
+        if(isset($_POST['remove_postid'])){
+        $idToRemove =  $_POST['remove_postid'];
+        $queueNumberToRemove =  $_POST['remove_queue'];
+        $old_stored_queue_list_arr = $stored_queue_list_arr; // using this to verify before updating database. I am unsetting the -idToRemove- in array in the code below.
+        for($i = 0; $i < count($stored_queue_list_arr); $i++) {
+        if($stored_queue_list_arr[$i]['postid'] == $idToRemove){
+        unset($stored_queue_list_arr[$i]);
+        } 		
+        }
 
-            $reNumberBeforeSubmit = array_values($stored_queue_list_arr); // re-number an array
+        $reNumberBeforeSubmit = array_values($stored_queue_list_arr); // re-number an array
 
-            for($i = 0; $i < count($reNumberBeforeSubmit); $i++) {
-            if( intval($reNumberBeforeSubmit[$i]['queueNumber']) > $queueNumberToRemove  ){
-                $reNumberBeforeSubmit[$i]['queueNumber'] = $reNumberBeforeSubmit[$i]['queueNumber'] - 1;
-            }
+        for($i = 0; $i < count($reNumberBeforeSubmit); $i++) {
+        if( intval($reNumberBeforeSubmit[$i]['queueNumber']) > $queueNumberToRemove  ){
+        $reNumberBeforeSubmit[$i]['queueNumber'] = $reNumberBeforeSubmit[$i]['queueNumber'] - 1;
+        }
 
-            }
+        }
 
-             $SubmissionConn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
+        $SubmissionConn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
 
-             if (!$SubmissionConn)
-             { 
-             die("Connection to database failed with error#: " . mysqli_connect_error()); 
-             }   
+        if (!$SubmissionConn)
+        { 
+        die("Connection to database failed with error#: " . mysqli_connect_error()); 
+        }   
 
-             $SubmissionConnsql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
-              //----- check queue list again to see if multiple tabs open or someoneelse made a request.
+        $SubmissionConnsql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
+        //----- check queue list again to see if multiple tabs open or someoneelse made a request.
 
-             $Second_result = mysqli_query($SubmissionConn, $SubmissionConnsql);
-             $Second_row = mysqli_fetch_assoc($Second_result);
+        $Second_result = mysqli_query($SubmissionConn, $SubmissionConnsql);
+        $Second_row = mysqli_fetch_assoc($Second_result);
 
-             if( isset($Second_row['list']) && !empty($Second_row['list']) ){
-                $Second_stored_queue_list_arr = unserialize(base64_decode($Second_row['list']));
-                $isWindowOutdated = $this->edpqcompareMultiDimensional($Second_stored_queue_list_arr, $old_stored_queue_list_arr);
-               /* 
-              ----- This will check if array is the same. if yes then it will be empty.----
-              I am doing this incase another user is updating the same page on another device or if the current user is updating the page in multiple tabs.
-                */
+        if( isset($Second_row['list']) && !empty($Second_row['list']) ){
+        $Second_stored_queue_list_arr = unserialize(base64_decode($Second_row['list']));
+        $isWindowOutdated = $this->edpqcompareMultiDimensional($Second_stored_queue_list_arr, $old_stored_queue_list_arr);
+        /* 
+        ----- This will check if array is the same. if yes then it will be empty.----
+        I am doing this incase another user is updating the same page on another device or if the current user is updating the page in multiple tabs.
+        */
 
-                if( empty($isWindowOutdated) ){
-                    $serialize_queueListArray = base64_encode(serialize($reNumberBeforeSubmit)); 
-                    $SubmissionConnsql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialize_queueListArray . "' WHERE id=1";
-                    if ($SubmissionConn->query($SubmissionConnsql) === TRUE) {
-                        wp_delete_post( $idToRemove, true); // Set to False if you want to send them to Trash.
-                    ?>
-                    <div class="edpq-response-msg"><p>Queue List updated. Item has been removed.<br>Page will reload soon.</p>
-                    <div class="edpq-ajax-loader"></div></div>
-                    <?php
-                    header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );                    
-                    } 
-                    if ($SubmissionConn->query($SubmissionConnsql) !== TRUE) {
-                    ?>
-                    <div class="edpq-response-msg"><p><?php echo "SQL Error: " . $SubmissionConnsql . "<br>" . $SubmissionConn->error;?><br>Page will reload soon.</p>
-                    <div class="edpq-ajax-loader"></div></div>
-                    <?php
-                    header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );					
-                    }
-                }
-
-               else{ // If this form window is outdated do not let them submit to datbase new list.
-                    ?>
-                    <div class="edpq-response-msg"><p>This window is out of date. Please refresh and make sure you only have one tab of this page open or that no one else is editing the page at the same time as you.<br>Page will reload soon.</p>
-                    <div class="edpq-ajax-loader"></div></div>
-                    <?php 
-                    header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
-                 }	
-
-
-             }
-
-
-             else{ //  if row is not there do not upate
-                    ?>
-                    <div class="edpq-response-msg"><p>Database row does not exist.<br>Page will reload soon.</p>
-                    <div class="edpq-ajax-loader"></div></div>
-                    <?php		
-                    header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
-             }
-
-
-                $SubmissionConn->close();
-
-             }
-
-
-         else{
-                $tempArrayFromPageForm = [];
-            $postID_count = -1;
-            $queueLoop_count = 0;
-
-            foreach($_POST as $k => $v) {
-                if(strpos($k, 'queue-postID-') === 0) {
-                $tempArrayFromPageForm[$postID_count] = array("postid" => intval($v));    
-                }
-            $postID_count++;
-            }
-
-            foreach($_POST as $inputname => $inputvalue) {
-                if(strpos($inputname, 'queue-value-') === 0) {
-                 $tempArrayFromPageForm[$queueLoop_count]['queueNumber'] = intval($inputvalue) ;  
-                }
-            $queueLoop_count++;
-            }
-            $FixedTempArrayFromPageForm = array_values($tempArrayFromPageForm); // re-number an array because for some reason it skips keys
-
-             $updatedQueuelist = array_replace($stored_queue_list_arr, $FixedTempArrayFromPageForm);
-
-             $SubmissionConn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
-
-             if (!$SubmissionConn)
-             { 
-             die("Connection to database failed with error#: " . mysqli_connect_error()); 
-             }   
-
-             $SubmissionConnsql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
-              //----- check queue list again to see if multiple tabs open or someoneelse made a request.
-
-             $Second_result = mysqli_query($SubmissionConn, $SubmissionConnsql);
-             $Second_row = mysqli_fetch_assoc($Second_result);
-
-             if( isset($Second_row['list']) && !empty($Second_row['list']) ){
-                $Second_stored_queue_list_arr = unserialize(base64_decode($Second_row['list']));
-               /* 
-              ----- This will check if array is the same. if yes then it will be empty.----
-              I am doing this incase another user is updating the same page on another device or if the current user is updating the page in multiple tabs.
-                */
-
-                $isWindowOutdated = $this->edpqcompareMultiDimensional($Second_stored_queue_list_arr, $stored_queue_list_arr);
-
-                if (empty($isWindowOutdated)){
-                    // prepare to store queuelist in database
-                    $serialize_queueListArray = base64_encode(serialize($updatedQueuelist)); 
-                    $SubmissionConnsql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialize_queueListArray . "' WHERE id=1";
-                    if ($SubmissionConn->query($SubmissionConnsql) === TRUE) {
-                    ?>
-                    <div class="edpq-response-msg"><p>Queue List updated.<br>Page will reload soon.</p>
-                    <div class="edpq-ajax-loader"></div></div>
-                    <?php
-                    header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
-                    } 
-                    if ($SubmissionConn->query($SubmissionConnsql) !== TRUE) {
-                    ?>
-                    <div class="edpq-response-msg"><p><?php echo "SQL Error: " . $SubmissionConnsql . "<br>" . $SubmissionConn->error;?><br>Page will reload soon.</p>
-                    <div class="edpq-ajax-loader"></div></div>
-                    <?php
-                    header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
-                    }
-
-                }
-
-                else{ // If this form window is outdated do not let them submit to datbase new list.
-                    ?>
-                    <div class="edpq-response-msg"><p>This window is out of date. Please refresh and make sure you only have one tab of this page open or that no one else is editing the page at the same time as you.<br>Page will reload soon.</p>
-                    <div class="edpq-ajax-loader"></div></div>
-                    <?php 
-                    header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
-                 }	
-
-             }
-
-
-             else{ //  if row is not there do not upate
-                    ?>
-                    <div class="edpq-response-msg"><p>Database row does not exist.<br>Page will reload soon.</p>
-                    <div class="edpq-ajax-loader"></div></div>
-                    <?php		
-             }
-                         $SubmissionConn->close();
-         }
-         wp_die();
+        if( empty($isWindowOutdated) ){
+        $serialize_queueListArray = base64_encode(serialize($reNumberBeforeSubmit)); 
+        $SubmissionConnsql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialize_queueListArray . "' WHERE id=1";
+        if ($SubmissionConn->query($SubmissionConnsql) === TRUE) {
+            wp_delete_post( $idToRemove, true); // Set to False if you want to send them to Trash.
+        ?>
+        <div class="edpq-response-msg"><p>Queue List updated. Item has been removed.<br>Page will reload soon.</p>
+        <div class="edpq-ajax-loader"></div></div>
+        <?php
+        header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );                    
         } 
+        if ($SubmissionConn->query($SubmissionConnsql) !== TRUE) {
+        ?>
+        <div class="edpq-response-msg"><p><?php echo "SQL Error: " . $SubmissionConnsql . "<br>" . $SubmissionConn->error;?><br>Page will reload soon.</p>
+        <div class="edpq-ajax-loader"></div></div>
+        <?php
+        header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );					
+        }
+        }
+
+        else{ // If this form window is outdated do not let them submit to datbase new list.
+        ?>
+        <div class="edpq-response-msg"><p>This window is out of date. Please refresh and make sure you only have one tab of this page open or that no one else is editing the page at the same time as you.<br>Page will reload soon.</p>
+        <div class="edpq-ajax-loader"></div></div>
+        <?php 
+        header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
+        }	
+
+
+        }
+
+
+        else{ //  if row is not there do not upate
+        ?>
+        <div class="edpq-response-msg"><p>Database row does not exist.<br>Page will reload soon.</p>
+        <div class="edpq-ajax-loader"></div></div>
+        <?php		
+        header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
+        }
+
+
+        $SubmissionConn->close();
+
+        }
+
+
+        else{
+        $tempArrayFromPageForm = [];
+        $postID_count = -1;
+        $queueLoop_count = 0;
+
+        foreach($_POST as $k => $v) {
+        if(strpos($k, 'queue-postID-') === 0) {
+        $tempArrayFromPageForm[$postID_count] = array("postid" => intval($v));    
+        }
+        $postID_count++;
+        }
+
+        foreach($_POST as $inputname => $inputvalue) {
+        if(strpos($inputname, 'queue-value-') === 0) {
+        $tempArrayFromPageForm[$queueLoop_count]['queueNumber'] = intval($inputvalue) ;  
+        }
+        $queueLoop_count++;
+        }
+        $FixedTempArrayFromPageForm = array_values($tempArrayFromPageForm); // re-number an array because for some reason it skips keys
+
+        $updatedQueuelist = array_replace($stored_queue_list_arr, $FixedTempArrayFromPageForm);
+
+        $SubmissionConn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
+
+        if (!$SubmissionConn)
+        { 
+        die("Connection to database failed with error#: " . mysqli_connect_error()); 
+        }   
+
+        $SubmissionConnsql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
+        //----- check queue list again to see if multiple tabs open or someoneelse made a request.
+
+        $Second_result = mysqli_query($SubmissionConn, $SubmissionConnsql);
+        $Second_row = mysqli_fetch_assoc($Second_result);
+
+        if( isset($Second_row['list']) && !empty($Second_row['list']) ){
+        $Second_stored_queue_list_arr = unserialize(base64_decode($Second_row['list']));
+        /* 
+        ----- This will check if array is the same. if yes then it will be empty.----
+        I am doing this incase another user is updating the same page on another device or if the current user is updating the page in multiple tabs.
+        */
+
+        $isWindowOutdated = $this->edpqcompareMultiDimensional($Second_stored_queue_list_arr, $stored_queue_list_arr);
+
+        if (empty($isWindowOutdated)){
+        // prepare to store queuelist in database
+        $serialize_queueListArray = base64_encode(serialize($updatedQueuelist)); 
+        $SubmissionConnsql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialize_queueListArray . "' WHERE id=1";
+        if ($SubmissionConn->query($SubmissionConnsql) === TRUE) {
+        ?>
+        <div class="edpq-response-msg"><p>Queue List updated.<br>Page will reload soon.</p>
+        <div class="edpq-ajax-loader"></div></div>
+        <?php
+        header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
+        } 
+        if ($SubmissionConn->query($SubmissionConnsql) !== TRUE) {
+        ?>
+        <div class="edpq-response-msg"><p><?php echo "SQL Error: " . $SubmissionConnsql . "<br>" . $SubmissionConn->error;?><br>Page will reload soon.</p>
+        <div class="edpq-ajax-loader"></div></div>
+        <?php
+        header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
+        }
+
+        }
+
+        else{ // If this form window is outdated do not let them submit to datbase new list.
+        ?>
+        <div class="edpq-response-msg"><p>This window is out of date. Please refresh and make sure you only have one tab of this page open or that no one else is editing the page at the same time as you.<br>Page will reload soon.</p>
+        <div class="edpq-ajax-loader"></div></div>
+        <?php 
+        header( "refresh:5; url=". site_url() ."/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions" );
+        }	
+
+        }
+
+
+        else{ //  if row is not there do not upate
+        ?>
+        <div class="edpq-response-msg"><p>Database row does not exist.<br>Page will reload soon.</p>
+        <div class="edpq-ajax-loader"></div></div>
+        <?php		
+        }
+                $SubmissionConn->close();
+        }
+        wp_die();
+    } 
 
     /**
      * Hook: Force delete net_submission posts instead of sending to trash
      */
     public function net_submission_skip_trash($post_id) {
-            if (get_post_type($post_id) == 'net_submission') {
-                // Force delete
-                wp_delete_post( $post_id, true );
-            }
-        } 
+
+        if (get_post_type($post_id) == 'net_submission') {
+            // Force delete
+            wp_delete_post( $post_id, true );
+        }
+
+    } 
 
     /**
      * Hook: Prevent publishing/drafting net_submission posts in unsupported states
      */
     public function intercept_publishToDraft ($post_ID, $data ) {
-                if (get_post_type($post_ID) !== 'net_submission') {
-                    return;
-                }
-                $post = get_post($post_ID);
 
-                if ( ( $data['post_status'] !== 'publish' ) && ( $data['post_status'] !== 'trash' ) && ( $post->post_type == 'net_submission' ) ) {
+        if (get_post_type($post_ID) !== 'net_submission') {
+            return;
+        }
+        $post = get_post($post_ID);
 
-                    wp_die( 'not allowed');
-                }
+        if ( ( $data['post_status'] !== 'publish' ) && ( $data['post_status'] !== 'trash' ) && ( $post->post_type == 'net_submission' ) ) {
 
-        } 
+            wp_die( 'not allowed');
+        }
+
+    } 
 
 
     /**
@@ -361,7 +364,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
             echo "New record created successfully";
         }
 
-            } 
+    } 
 
 
     /**
