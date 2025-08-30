@@ -393,27 +393,20 @@ if (!class_exists('automatePhotoNetSubmissions')) {
             }
 
             public function edpqqueue_list_page(){
+
                 global $pagenow;
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
                 $rand = rand(1, 99999999999);
                 $queue_list = $this->get_queue_list();
                 require_once __DIR__  . '/../templates/options-page-auto-submission.php';
 
-
-                wp_enqueue_style( 'edpq-photo-submission-styles', $plugin_url  . '/admin/assets/css/edpq-photo-submission.css' , array(),  $rand );
-
-                wp_enqueue_script( 'edpq-photo-submission-scripts', $plugin_url  . '/admin/assets/js/edpq-photo-submission.js', array('jquery'), $rand, true);
-                    wp_localize_script('edpq-photo-submission-scripts', 'ajax_net_photo_deletion_info', array(
-                    'ajaxurl_net_photo_deletion_info' => admin_url('admin-ajax.php') ,
-                    'noposts' => __('No older posts found', 'edpq-white') ,
-                  )); 
-
             }
 
             public function edpqadmin_queue_list_page(){
-                 $queue_list = $this->get_queue_list();
+
+                $queue_list = $this->get_queue_list();
                 require_once __DIR__ . '/../templates/options-page-admin-queue-list.php';
-               // return;
+
             }
 
             public function load_admin_net_style(){
@@ -432,7 +425,20 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 ) {
                     wp_enqueue_style( 'admin_option_css',  $plugin_url  . '/admin/assets/css/admin-queue.css' , array(),  $rand );
                 }
-               
+                // Only enqueue styles and scripts for the edit_net_submissions page
+                if (
+                    'edit.php' === $pagenow &&
+                    isset($_GET['post_type']) && $_GET['post_type'] === 'net_submission' &&
+                    isset($_GET['page']) && $_GET['page'] === 'edit_net_submissions'
+                ) {
+                    wp_enqueue_style( 'edpq-photo-submission-styles', $plugin_url  . '/admin/assets/css/edpq-photo-submission.css' , array(),  $rand );
+                    wp_enqueue_script( 'edpq-photo-submission-scripts', $plugin_url  . '/admin/assets/js/edpq-photo-submission.js', array('jquery'), $rand, true);
+                    wp_localize_script('edpq-photo-submission-scripts', 'ajax_net_photo_deletion_info', array(
+                        'ajaxurl_net_photo_deletion_info' => admin_url('admin-ajax.php'),
+                        'noposts' => __('No older posts found', 'edpq-white'),
+                    )); 
+                }
+      
             }
 
             /**
