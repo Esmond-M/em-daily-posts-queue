@@ -596,9 +596,17 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
             // Email subject, "New {post_type_label}"
             $subject = 'New Photo Submission for: ' . $_POST['topic_headline_value'] . ' ' . date("m-d-y");
 
-            wp_set_current_user(604); // get user that can edit posts so edit link function will work
+            // Dynamically get a user who can edit posts (administrator)
+            $admin_user = get_users([
+                'role'    => 'administrator',
+                'number'  => 1,
+                'fields'  => 'ID'
+            ]);
+            if (!empty($admin_user)) {
+                wp_set_current_user($admin_user[0]);
+            }
             // Email body
-            $message = 'View it: ' . get_permalink( $pid ) . "<br><br>Edit it: " . get_edit_post_link( $pid, "&" );
+                $message = 'View it: ' . get_permalink( $pid ) . "<br><br>Edit it: " . get_edit_post_link( $pid, 'display' );
                 wp_set_current_user(0);  // turn off get user after get link function
 
             wp_mail( $emailto, $subject, $message, $headers );
