@@ -18,7 +18,7 @@ class TestAutoPhotoSubmissions extends WP_UnitTestCase
         require_once __DIR__ . '/../classes/edpq-class-auto-photo-net-submissions.php';
         
         // Create an instance of the class for testing
-        $this->auto_photo_instance = new \EmDailyPostsQueue\init_plugin\Classes\automatePhotoNetSubmissions();
+        $this->auto_photo_instance = new \EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionQueue();
     }
 
     /**

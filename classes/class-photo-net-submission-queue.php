@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 /**
- * automatePhotoNetSubmissions Class
+ * PhotoNetSubmissionQueue Class
  *
  * Handles photo submission queue management for the plugin, including:
  * - AJAX handlers for queue updates and new submissions
@@ -692,4 +692,4 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
 }
 
-new automatePhotoNetSubmissions;
+new PhotoNetSubmissionQueue();

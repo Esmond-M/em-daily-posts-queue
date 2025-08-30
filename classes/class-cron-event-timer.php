@@ -4,9 +4,9 @@ declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 
 
-if (!class_exists('initEventTimers')) {
+if (!class_exists('CronEventTimer')) {
 
-    class initEventTimers
+    class CronEventTimer
     {
 
         /**
@@ -64,4 +64,4 @@ if (!class_exists('initEventTimers')) {
 
 }
 
-new initEventTimers;
+new CronEventTimer();
