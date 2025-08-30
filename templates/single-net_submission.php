@@ -1,3 +1,4 @@
+
 <?php
 /**
  * Template for single Net Submission post
@@ -13,12 +14,26 @@ get_header();
             <h1 class="entry-title"><?php the_title(); ?></h1>
         </header>
         <div class="entry-content">
-            <?php if ( has_post_thumbnail() ) : ?>
-                <div class="post-thumbnail">
-                    <?php the_post_thumbnail('large'); ?>
+            <?php
+            $postID = get_the_ID();
+            $featuredImage = get_the_post_thumbnail_url($postID,'large');
+            $netTopicHeadline = get_post_meta($postID, 'topic_headline_value', true);
+            $netTopicCaption = get_post_meta($postID, 'topic_caption_value', true);
+            ?>
+            <div class="edpq-around-edpq">
+                <div class="edpq-content-left">
+                    <img src="<?php echo esc_url($featuredImage); ?>" />
                 </div>
-            <?php endif; ?>
-            <?php the_content(); ?>
+                <div class="edpq-content-right">
+                    <p class="heading">Daily Post </p>
+                    <?php if( $netTopicHeadline ) { ?>
+                        <p class="edpq-title"><?php echo esc_html($netTopicHeadline); ?></p>
+                    <?php } ?>
+                    <?php if( $netTopicCaption ) { ?>
+                        <p class="edpq-net-caption"><?php echo esc_html($netTopicCaption); ?></p>
+                    <?php } ?>
+                </div>
+            </div>
         </div>
     </article>
 </main>
