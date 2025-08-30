@@ -6,6 +6,14 @@ namespace EmDailyPostsQueue\init_plugin\Classes;
 
 if (!class_exists('CronEventTimer')) {
 
+    /**
+     * CronEventTimer Class
+     *
+     * Handles scheduling of recurring cron events for the plugin.
+     * - Schedules a custom action hook to run at a specific weekday/time interval
+     * - Notifies the WordPress admin if the timer interval is set to a default value
+     * - Used to trigger queue and post-processing logic in other plugin classes
+     */
     class CronEventTimer
     {
 
@@ -20,7 +28,7 @@ if (!class_exists('CronEventTimer')) {
         }
 
         /**
-         * Schedule an action with the hook 'eg_[insert time here]_log' to run every 15 mins 
+         * Schedule an action with the hook 'eg_[insert time here]_log' to run every x amount of time
          * so that our callbacks in the class cron events is run then.
          */
 
