@@ -4,27 +4,35 @@ namespace EmDailyPostsQueue\init_plugin\Classes;
 
 if (!class_exists('CPT_NetSubmission')) {
 
+    /**
+     * CPT_NetSubmission Class
+     *
+     * Registers and manages the custom post type 'net_submission' for photo submissions.
+     * - Registers the post type and its capabilities
+     * - Sets up custom roles and permissions for submitters and administrators
+     * - Ensures only authorized users can manage net submissions
+     * - Supports featured images (thumbnails) for submissions
+     */
     class CPT_NetSubmission
     {
 
-        /** Declaring constructor
-         */
+        /**
+        *  Declaring constructor
+        */
         public function __construct()
         {
 
             add_action( 'init', [$this, 'em_daily_posts_register_cpts' ]  );
             add_action( 'init', [$this, 'net_submission_role' ]  );
             add_action( 'init', [$this, 'net_submission_cap' ]  );
-
-    
+            add_action( 'template_redirect', [$this, 'restrict_net_submission_access'] );
 
         }
 
+        /**
+         * Post Type: Net submissions.
+        */
         public static function em_daily_posts_register_cpts() {
-
-            /**
-             * Post Type: Net submissions.
-             */
         
             $labels = array(
                 'name'          => esc_html__( 'Net submissions', 'net_submission' ),
@@ -41,8 +49,8 @@ if (!class_exists('CPT_NetSubmission')) {
                 'label'                 => esc_html__( 'Net submissions', 'net_submission' ),
                 'labels'                => $labels,
                 'description'           => '',
-                'public'                => false,
-                'publicly_queryable'    => false,
+                'public'                => true,
+                'publicly_queryable'    => true,
                 'show_ui'               => true,
                 'show_in_rest'          => true,
                 'rest_base'             => '',
@@ -144,7 +152,21 @@ if (!class_exists('CPT_NetSubmission')) {
 
     }	
 
-} // Closing bracket for classes
+    /**
+    * Restrict front-end access to net_submission posts and archives to admins and net_submission_role users
+    */
+    public static function restrict_net_submission_access() {
+        if (is_singular('net_submission') || is_post_type_archive('net_submission')) {
+            if (
+                !current_user_can('administrator') &&
+                !current_user_can('net_submission_role')
+            ) {
+                wp_die('You do not have permission to view this page.');
+            }
+        }
+    }
+
+} 
 
 }
 
