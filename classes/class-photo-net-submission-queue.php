@@ -17,44 +17,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
     class PhotoNetSubmissionQueue
     {
 
-        /**
-         * Get the queue list from the database
-         * @return array
-         */
-        private function get_queue_list_from_db() {
-            $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
-            if (!$conn) {
-                return ['error' => mysqli_connect_error()];
-            }
-            $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
-            $result = mysqli_query($conn, $sql);
-            $row = mysqli_fetch_assoc($result);
-            mysqli_close($conn);
-            if (isset($row['list']) && !empty($row['list'])) {
-                $queue = unserialize(base64_decode($row['list']));
-                return is_array($queue) ? $queue : [];
-            }
-            return [];
-        }
-
-        /**
-         * Update the queue list in the database
-         * @param array $queue_list
-         * @return bool|string True on success, error message on failure
-         */
-        private function update_queue_list_in_db($queue_list) {
-            $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
-            if (!$conn) {
-                return mysqli_connect_error();
-            }
-            $serialized_array = base64_encode(serialize($queue_list));
-            $sql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
-            $result = $conn->query($sql);
-            $conn->close();
-            return $result === TRUE ? true : $conn->error;
-        }
-
-        /**
+              /**
          * Declaring constructor
          */
         public function __construct()
@@ -154,19 +117,23 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
         };
 
         // Helper: Get queue list from DB
-        $get_queue_list_db = function($conn) {
-            $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
-            $result = mysqli_query($conn, $sql);
-            $row = mysqli_fetch_assoc($result);
-            return isset($row['list']) && !empty($row['list']) ? unserialize(base64_decode($row['list'])) : null;
-        };
+            $get_queue_list_db = function($conn) {
+                global $wpdb;
+                $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+                $sql = "SELECT list FROM $table_name WHERE id='1';";
+                $result = mysqli_query($conn, $sql);
+                $row = mysqli_fetch_assoc($result);
+                return isset($row['list']) && !empty($row['list']) ? unserialize(base64_decode($row['list'])) : null;
+            };
 
         // Helper: Update queue list in DB
-        $update_queue_list_db = function($conn, $queue) {
-            $serialize_queueListArray = base64_encode(serialize($queue));
-            $sql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialize_queueListArray . "' WHERE id=1";
-            return $conn->query($sql);
-        };
+            $update_queue_list_db = function($conn, $queue) {
+                global $wpdb;
+                $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+                $serialize_queueListArray = base64_encode(serialize($queue));
+                $sql = "UPDATE $table_name SET list='" . $serialize_queueListArray . "' WHERE id=1";
+                return $conn->query($sql);
+            };
 
         // Helper: Renumber queue
         $renumber_queue = function($queue, $removedQueueNumber) {
@@ -346,7 +313,9 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 if (!$conn) {
                     return ['error' => mysqli_connect_error()];
                 }
-                $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
+                global $wpdb;
+                $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+                $sql = "SELECT list FROM $table_name WHERE id='1';";
                 $result = mysqli_query($conn, $sql);
                 $row = mysqli_fetch_assoc($result);
                 mysqli_close($conn);
@@ -369,7 +338,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 $queue_list = $this->get_queue_list();
                 require_once __DIR__  . '/../templates/options-page-auto-submission.php';
 
-            }
+        }
 
     /**
      * Render the admin queue list page (read-only, no editing)
@@ -414,7 +383,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                     )); 
                 }
       
-            }
+        }
 
 
     /**
@@ -422,7 +391,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
      */
         public function edpq_net_submission_remove_meta_boxes() {
                 remove_meta_box( 'submitdiv', 'net_submission', 'normal' );
-            }
+        }
 
     /**
      * Register custom meta boxes for net_submission post type
@@ -437,7 +406,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                     'high',
                     [ 'show_draft_button' => false ] 
                 );
-            }
+        }
 
     /**
      * Render custom meta box UI for net_submission post editing
@@ -530,7 +499,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
             </div>
                 <?php
-            }
+        }
 
     /**
      * Customize row actions for net_submission posts (removes quick edit/trash)
@@ -543,7 +512,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                     unset( $actions['trash'] );
                 }
                 return $actions;
-            }
+        }
 
     /**
      * AJAX handler: Processes new photo submission form and creates new net_submission post
@@ -636,7 +605,50 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
             }
 
+        /**
+         * Get the queue list from the database
+         * @return array
+         */
+        private function get_queue_list_from_db() {
+            $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+            if (!$conn) {
+                return ['error' => mysqli_connect_error()];
+            }
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+            $sql = "SELECT list FROM $table_name WHERE id='1';";
+            $result = mysqli_query($conn, $sql);
+            $row = mysqli_fetch_assoc($result);
+            mysqli_close($conn);
+            if (isset($row['list']) && !empty($row['list'])) {
+                $queue = unserialize(base64_decode($row['list']));
+                return is_array($queue) ? $queue : [];
+            }
+            return [];
+        }
+
+        /**
+         * Update the queue list in the database
+         * @param array $queue_list
+         * @return bool|string True on success, error message on failure
+         */
+        private function update_queue_list_in_db($queue_list) {
+            $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+            if (!$conn) {
+                return mysqli_connect_error();
+            }
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+            $serialized_array = base64_encode(serialize($queue_list));
+            $sql = "UPDATE $table_name SET list='" . $serialized_array . "' WHERE id=1";
+            $result = $conn->query($sql);
+            $conn->close();
+            return $result === TRUE ? true : $conn->error;
+        }
+
+
     } 
+    
 
 }
 
