@@ -6,6 +6,32 @@ if (!class_exists('CronEvents')) {
 
     class CronEvents
     {
+        /**
+         * Helper to get the queue list from DB.
+         */
+        private function get_queue_list_from_db($conn) {
+            $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
+            $result = mysqli_query($conn, $sql);
+            $row = mysqli_fetch_assoc($result);
+            return $row['list'] ?? '';
+        }
+
+        /**
+         * Helper to update the queue list in DB.
+         */
+        private function update_queue_list_in_db($conn, $queueList) {
+            $serialized = base64_encode(serialize($queueList));
+            $sql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized . "' WHERE id=1";
+            return $conn->query($sql);
+        }
+
+        /**
+         * Helper to send notification email.
+         */
+        private function send_admin_email($subject, $message) {
+            $emailto = get_option('admin_email');
+            wp_mail($emailto, $subject, $message);
+        }
 
     /**
      * Constructor: Sets up cron event action for weekly net_submission update.
@@ -80,105 +106,66 @@ if (!class_exists('CronEvents')) {
      * @return void
      */
         public function eg_action_net_submission_weekly_update() {
-    
-             $conn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
-
-             if (!$conn)
-             { 
-             die("Connection to database failed with error#: " . mysqli_connect_error()); 
-             }   
-
-             $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';"; //----- get current queue list
-
-             $result = mysqli_query($conn, $sql);
-             $row = mysqli_fetch_assoc($result);
-             $conn->close();
-             if( isset($row['list']) && !empty($row['list']) ){ // if current queue list exists in database
-             $stored_queue_list_arr = unserialize(base64_decode($row['list']));
-                 
-             $old_stored_queue_list_arr = $stored_queue_list_arr; /* using this to verify before updating database. This will be different to my other code because i am unsetting the first aray in the code below.*/		
-                 
-            $idToRemove = $stored_queue_list_arr[0]['postid'];	//grab id to delete post.
-            unset($stored_queue_list_arr[0]); // remove first entry from queue    
-          
-            
-             }
-
-            $reNumberBeforeSubmit = array_values($stored_queue_list_arr); // re-number an array
-            // loop and subtract all by one to move list up
-            for($i = 0; $i < count($reNumberBeforeSubmit); $i++) {
-                $reNumberBeforeSubmit[$i]['queueNumber'] = $reNumberBeforeSubmit[$i]['queueNumber'] - 1;
+            // Connect to DB
+            $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+            if (!$conn) {
+                error_log("Connection to database failed: " . mysqli_connect_error());
+                return;
             }
 
+            $list = $this->get_queue_list_from_db($conn);
+            $conn->close();
+            if (empty($list)) {
+                echo 'Database row does not exist.';
+                return;
+            }
 
-             $SubmissionConn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
+            $stored_queue_list_arr = unserialize(base64_decode($list));
+            $old_stored_queue_list_arr = $stored_queue_list_arr;
+            $idToRemove = $stored_queue_list_arr[0]['postid'] ?? null;
+            unset($stored_queue_list_arr[0]);
+            $reNumberBeforeSubmit = array_values($stored_queue_list_arr);
+            foreach ($reNumberBeforeSubmit as &$item) {
+                $item['queueNumber'] = $item['queueNumber'] - 1;
+            }
+            unset($item);
 
-             if (!$SubmissionConn)
-             { 
-             die("Connection to database failed with error#: " . mysqli_connect_error()); 
-             }   
+            // Reconnect for update/check
+            $conn2 = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+            if (!$conn2) {
+                error_log("Connection to database failed: " . mysqli_connect_error());
+                return;
+            }
+            $list2 = $this->get_queue_list_from_db($conn2);
+            if (empty($list2)) {
+                echo 'Database row does not exist.';
+                $conn2->close();
+                return;
+            }
+            $Second_stored_queue_list_arr = unserialize(base64_decode($list2));
+            $isWindowOutdated = $this->edpqcompareMultiDimensional($Second_stored_queue_list_arr, $old_stored_queue_list_arr);
 
-             $SubmissionConnsql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
-              //----- check queue list again to see if multiple tabs open or someoneelse made a request.
-
-             $Second_result = mysqli_query($SubmissionConn, $SubmissionConnsql);
-             $Second_row = mysqli_fetch_assoc($Second_result);
-
-             if( isset($Second_row['list']) && !empty($Second_row['list']) ){
-                $Second_stored_queue_list_arr = unserialize(base64_decode($Second_row['list']));
-                $isWindowOutdated = $this->edpqcompareMultiDimensional($Second_stored_queue_list_arr, $old_stored_queue_list_arr);
-               /* 
-              ----- This will check if array is the same. if yes then it will be empty.----
-              I am doing this incase another user is updating the same page on another device or if the current user is updating the page in multiple tabs.
-                */
-
-                if( empty($isWindowOutdated) ){
-                    $serialize_queueListArray = base64_encode(serialize($reNumberBeforeSubmit)); 
-                    $SubmissionConnsql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialize_queueListArray . "' WHERE id=1";
-                    if ($SubmissionConn->query($SubmissionConnsql) === TRUE) {
-                    if(isset($idToRemove) ){
-                        wp_delete_post( $idToRemove, true); 
+            if (empty($isWindowOutdated)) {
+                $updateSuccess = $this->update_queue_list_in_db($conn2, $reNumberBeforeSubmit);
+                if ($updateSuccess) {
+                    if ($idToRemove) {
+                        wp_delete_post($idToRemove, true);
                     }
-                        
-                        echo 'Queue List updated. Item has been removed. Next weekly post active.';
-                    // send email of queue having run
-                    $emailto = get_option('admin_email');
-                    // Email subject, "New {post_type_label}"
-                    $subject = 'Next submission Live: Check Status - '. ' ' . date("m-d-y");
-                    // Email body
+                    echo 'Queue List updated. Item has been removed. Next weekly post active.';
+                    $subject = 'Next submission Live: Check Status - ' . date('m-d-y');
                     $message = '<a href="' . site_url() . '/wp-admin/tools.php?page=action-scheduler&status=pending">View it</a>';
-                    wp_mail( $emailto, $subject, $message );                   
-                    } 
-                    if ($SubmissionConn->query($SubmissionConnsql) !== TRUE) {
-                    echo "SQL Error: " . $SubmissionConnsql . "<br>" . $SubmissionConn->error;
-                    }
+                    $this->send_admin_email($subject, $message);
+                } else {
+                    echo "SQL Error: Could not update queue list.";
                 }
-
-               else{ // If this form window is outdated do not let them submit to datbase new list.
-                     echo 'This window is out of date. Weekly update failed.';
-                        // send email of new post
-                        // Recipient, in this case the administrator email
-                        $emailto = get_option('admin_email');
-
-                        // Email subject, "New {post_type_label}"
-                        $subject = 'Weekly update failed: Someone was editing ' . ' ' . date("m-d-y");
-
-                        // Email body
-                        $message = 'Window was out of date when cron event ran.';
-
-                        wp_mail( $emailto, $subject, $message );
-                 }	
-
-
-             }
-
-
-             else{ //  if row is not there do not upate		
-                    echo 'Database row does not exist.';
-             }
-
-                $SubmissionConn->close();		
-        } 
+            } else {
+                echo 'This window is out of date. Weekly update failed.';
+                $subject = 'Weekly update failed: Someone was editing ' . date('m-d-y');
+                $message = 'Window was out of date when cron event ran.';
+                $this->send_admin_email($subject, $message);
+            }
+            $conn2->close();
+        }
     
 
     } 
