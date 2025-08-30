@@ -2,9 +2,9 @@
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 
-if (!class_exists('cpt_meta_net_submission')) {
+if (!class_exists('CPT_NetSubmissionMeta')) {
 
-    class cpt_meta_net_submission
+    class CPT_NetSubmissionMeta
     {
 
       /**
@@ -169,4 +169,4 @@ if (!class_exists('cpt_meta_net_submission')) {
 }
 
 
-new cpt_meta_net_submission;
+new CPT_NetSubmissionMeta;

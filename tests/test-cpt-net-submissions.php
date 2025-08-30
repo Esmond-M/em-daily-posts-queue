@@ -14,11 +14,11 @@ class TestCptNetSubmissions extends WP_UnitTestCase
     {
         parent::setUp();
         
-        // Include the class file
-        require_once __DIR__ . '/../classes/cpt-net-submissions.php';
+    // Include the class file
+    require_once __DIR__ . '/../classes/class-cpt-net-submission.php';
         
-        // Create an instance of the class for testing
-        $this->cpt_instance = new \EmDailyPostsQueue\init_plugin\Classes\cpt_net_submission();
+    // Create an instance of the class for testing
+    $this->cpt_instance = new \EmDailyPostsQueue\init_plugin\Classes\CPT_NetSubmission();
     }
 
     /**

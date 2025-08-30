@@ -15,9 +15,9 @@
 */
 namespace EmDailyPostsQueue\init_plugin;
 
-use EmDailyPostsQueue\init_plugin\Classes\cpt_net_submission_Class;
-use EmDailyPostsQueue\init_plugin\Classes\cpt_meta_net_submission;
-use EmDailyPostsQueue\init_plugin\Classes\initCronEvents;
+use EmDailyPostsQueue\init_plugin\Classes\CPT_NetSubmission;
+use EmDailyPostsQueue\init_plugin\Classes\CPT_NetSubmissionMeta;
+use EmDailyPostsQueue\init_plugin\Classes\CronEvents;
 use EmDailyPostsQueue\init_plugin\Classes\CronEventTimer;
 use EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionQueue;
 
@@ -228,10 +228,10 @@ if ( ! defined( 'ABSPATH' ) ) {
         public function init_class() {
 
             require_once __DIR__ . '/classes/class-photo-net-submission-queue.php';
-            require_once __DIR__ . '/classes/edpq-class-cron-events.php';
+            require_once __DIR__ . '/classes/class-cron-events.php';
             require_once __DIR__ . '/classes/class-cron-event-timer.php';
-            require_once __DIR__ . '/classes/cpt-net-submissions.php';
-            require_once __DIR__ . '/classes/cpt-meta-net-submissions.php';
+            require_once __DIR__ . '/classes/class-cpt-net-submission.php';
+            require_once __DIR__ . '/classes/class-cpt-net-submission-meta.php';
 
         }
 

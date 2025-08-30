@@ -14,11 +14,11 @@ class TestAutoPhotoSubmissions extends WP_UnitTestCase
     {
         parent::setUp();
         
-        // Include the class file
-        require_once __DIR__ . '/../classes/edpq-class-auto-photo-net-submissions.php';
+    // Include the class file
+    require_once __DIR__ . '/../classes/class-photo-net-submission-queue.php';
         
-        // Create an instance of the class for testing
-        $this->auto_photo_instance = new \EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionQueue();
+    // Create an instance of the class for testing
+    $this->auto_photo_instance = new \EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionQueue();
     }
 
     /**
