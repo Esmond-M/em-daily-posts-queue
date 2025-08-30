@@ -2,9 +2,9 @@
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 
-if (!class_exists('cpt_net_submission')) {
+if (!class_exists('CPT_NetSubmission')) {
 
-    class cpt_net_submission
+    class CPT_NetSubmission
     {
 
         /** Declaring constructor
@@ -148,4 +148,4 @@ if (!class_exists('cpt_net_submission')) {
 
 }
 
-new cpt_net_submission;
+new CPT_NetSubmission;

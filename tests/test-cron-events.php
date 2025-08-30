@@ -14,11 +14,11 @@ class TestCronEvents extends WP_UnitTestCase
     {
         parent::setUp();
         
-        // Include the class file
-        require_once __DIR__ . '/../classes/edpq-class-cron-events.php';
+    // Include the class file
+    require_once __DIR__ . '/../classes/class-cron-events.php';
         
-        // Create an instance of the class for testing
-        $this->cron_instance = new \EmDailyPostsQueue\init_plugin\Classes\initCronEvents();
+    // Create an instance of the class for testing
+    $this->cron_instance = new \EmDailyPostsQueue\init_plugin\Classes\CronEvents();
     }
 
     /**

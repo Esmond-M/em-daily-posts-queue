@@ -2,9 +2,9 @@
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 
-if (!class_exists('initCronEvents')) {
+if (!class_exists('CronEvents')) {
 
-    class initCronEvents
+    class CronEvents
     {
 
         /**
@@ -172,4 +172,4 @@ if (!class_exists('initCronEvents')) {
 
 }
 
-new initCronEvents;
+new CronEvents;

@@ -1,11 +1,58 @@
 <?php
 declare(strict_types=1);
+/**
+ * PhotoNetSubmissionQueue Class
+ *
+ * Handles photo submission queue management for the plugin, including:
+ * - AJAX handlers for queue updates and new submissions
+ * - Database logic for queue storage and retrieval
+ * - Admin and frontend asset loading
+ * - Custom post type hooks and meta box management
+ * - Utility functions for queue comparison and manipulation
+ */
 namespace EmDailyPostsQueue\init_plugin\Classes;
 
-if (!class_exists('automatePhotoNetSubmissions')) {
+if (!class_exists('PhotoNetSubmissionQueue')) {
 
-    class automatePhotoNetSubmissions
+    class PhotoNetSubmissionQueue
     {
+
+        /**
+         * Get the queue list from the database
+         * @return array
+         */
+        private function get_queue_list_from_db() {
+            $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+            if (!$conn) {
+                return ['error' => mysqli_connect_error()];
+            }
+            $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
+            $result = mysqli_query($conn, $sql);
+            $row = mysqli_fetch_assoc($result);
+            mysqli_close($conn);
+            if (isset($row['list']) && !empty($row['list'])) {
+                $queue = unserialize(base64_decode($row['list']));
+                return is_array($queue) ? $queue : [];
+            }
+            return [];
+        }
+        
+        /**
+         * Update the queue list in the database
+         * @param array $queue_list
+         * @return bool|string True on success, error message on failure
+         */
+        private function update_queue_list_in_db($queue_list) {
+            $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+            if (!$conn) {
+                return mysqli_connect_error();
+            }
+            $serialized_array = base64_encode(serialize($queue_list));
+            $sql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
+            $result = $conn->query($sql);
+            $conn->close();
+            return $result === TRUE ? true : $conn->error;
+        }
 
         /**
         Declaring constructor
@@ -31,14 +78,17 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
         add_filter( 'post_row_actions', [$this, 'my_cpt_row_actions' ] , 10, 2 );
 
-
-
         }
 
-        /**
-         * Check if multidimensional array is the same
-         */
-        public function edpqcompareMultiDimensional($array1, $array2, $strict = true){
+
+    /**
+     * Compare two multidimensional arrays and return differences
+     * @param array $array1
+     * @param array $array2
+     * @param bool $strict
+     * @return array
+     */
+    public function edpqcompareMultiDimensional($array1, $array2, $strict = true){
             if (!is_array($array1)) {
                 throw new \InvalidArgumentException('$array1 must be an array!');
             }
@@ -79,12 +129,12 @@ if (!class_exists('automatePhotoNetSubmissions')) {
             }
 
             return $result;
-        } // end function
+        } 
 
-        /**
-         * Queue List photo deletion ajax submission
-         */
-        public function net_photo_deletion_info_ajax() {
+    /**
+     * AJAX handler: Processes queue item deletion and updates the queue in the database
+     */
+    public function net_photo_deletion_info_ajax() {
             
             $stored_queue_list_arr =  json_decode(stripslashes($_POST['checkWindowAge']),true);
             if(isset($_POST['remove_postid'])){
@@ -258,16 +308,22 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                          $SubmissionConn->close();
          }
          wp_die();
-        } // end function
+        } 
 
-        public function net_submission_skip_trash($post_id) {
+    /**
+     * Hook: Force delete net_submission posts instead of sending to trash
+     */
+    public function net_submission_skip_trash($post_id) {
             if (get_post_type($post_id) == 'net_submission') {
                 // Force delete
                 wp_delete_post( $post_id, true );
             }
-        } // end function
+        } 
 
-        public function intercept_publishToDraft ($post_ID, $data ) {
+    /**
+     * Hook: Prevent publishing/drafting net_submission posts in unsupported states
+     */
+    public function intercept_publishToDraft ($post_ID, $data ) {
                 if (get_post_type($post_ID) !== 'net_submission') {
                     return;
                 }
@@ -278,82 +334,40 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                     wp_die( 'not allowed');
                 }
 
-        } // end function
+        } 
 
 
-        public function do_updated_to_publish( $post_id, $post , $old_status  ) {
+    /**
+     * Hook: Add newly published net_submission post to the queue list in the database
+     */
+    public function do_updated_to_publish( $post_id, $post , $old_status  ) {
 
-                if($old_status == 'publish'){
-                    return;
-                }
-                else{
+        if ($old_status == 'publish') {
+            return;
+        }
+        $queue_list = $this->get_queue_list_from_db();
+        if (is_array($queue_list) && !empty($queue_list)) {
+            $getHighestNumberInQueueDatabase = array_key_last($queue_list);
+            $highestNumber = $queue_list[$getHighestNumberInQueueDatabase]['queueNumber'];
+            $addthis = intval($highestNumber) + 1;
+            $queue_list[] = array("postid" => $post_id, "queueNumber" => $addthis);
+        } else {
+            $queue_list = [array("postid" => $post_id, "queueNumber" => 1)];
+        }
+        $result = $this->update_queue_list_in_db($queue_list);
+        if ($result !== true) {
+            echo "SQL Error: " . $result;
+        } else {
+            echo "New record created successfully";
+        }
 
-                //$post_id = $post->ID; // Get the current posts ID
-                 $conn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
-
-                 if (!$conn)
-                 { 
-                 die("Connection to database failed with error#: " . mysqli_connect_error()); 
-                 }   
-
-                 $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';"; //----- get current queue list
-
-                 $result = mysqli_query($conn, $sql);
-                 $row = mysqli_fetch_assoc($result);
-                 if( isset($row['list']) && !empty($row['list']) ){ // if current queue list exists add to array with new post that was published
-                         $stored_queue_list_arr = unserialize(base64_decode($row['list']));	
-                        if( is_array($stored_queue_list_arr) && !empty($stored_queue_list_arr) ){
-                              $getHighestNumberInQueueDatabase = array_key_last($stored_queue_list_arr);
-                              $highestNumber =  $stored_queue_list_arr[$getHighestNumberInQueueDatabase]['queueNumber'];
-                              $addthis = intval($highestNumber) + 1;
-                              $stored_queue_list_arr[] = array("postid" => $post_id, "queueNumber" => $addthis); 
-                               $serialized_array = base64_encode(serialize($stored_queue_list_arr)); // store jobs in database
-                                 $sql_addToListDB = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
-                                if ($conn->query($sql_addToListDB) === TRUE) {
-                                 echo "New record created successfully";
-                                 } 
-                                 if ($conn->query($sql_addToListDB) !== TRUE) {
-                                 echo "SQL Error: " . $sql_addToListDB . "<br>" . $conn->error;
-                                 }
+            } 
 
 
-                            //  echo"if loaded";
-                        }
-                        else{ // array is empty so no queue list are there do same as if no row is in database.
-                           $create_queue_list_arr = [];
-                           $create_queue_list_arr[] = array("postid" => $post_id, "queueNumber" => 1); 
-                           $serialized_array = base64_encode(serialize($create_queue_list_arr)); // store jobs in database
-                             $sql_createToListDB = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
-                            if ($conn->query($sql_createToListDB) === TRUE) {
-                             echo "New record created successfully";
-                             } 
-                             if ($conn->query($sql_createToListDB) !== TRUE) {
-                             echo "SQL Error: " . $sql_createToListDB . "<br>" . $conn->error;
-                             }					
-                        }
-
-                 }
-                 else{ // if queue list is empty create it
-                   $create_queue_list_arr = [];
-                   $create_queue_list_arr[] = array("postid" => $post_id, "queueNumber" => 1); 
-                   $serialized_array = base64_encode(serialize($create_queue_list_arr)); // store jobs in database
-                     $sql_createToListDB = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
-                    if ($conn->query($sql_createToListDB) === TRUE) {
-                     echo "New record created successfully";
-                     } 
-                     if ($conn->query($sql_createToListDB) !== TRUE) {
-                     echo "SQL Error: " . $sql_createToListDB . "<br>" . $conn->error;
-                     }
-                 }
-
-                     $conn->close();					
-                }
-
-            } // end of function
-
-            //admin menu callback function
-
-            public function edpqPhotoSubmission_register_submenu_page() {
+    /**
+     * Admin: Register submenu pages for queue list and admin queue list
+     */
+        public function edpqPhotoSubmission_register_submenu_page() {
 
                 //Add Custom Social Sharing Sub Menu
                 add_submenu_page(
@@ -373,9 +387,13 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 'admin-queue-list',
                 [$this, 'edpqadmin_queue_list_page']);
 
-            } // end of function
+            } 
 
-            public function get_queue_list() {
+    /**
+     * Retrieve the current photo submission queue list from the database
+     * @return array
+     */
+        public function get_queue_list() {
                 $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
                 if (!$conn) {
                     return ['error' => mysqli_connect_error()];
@@ -392,7 +410,10 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 return [];
             }
 
-            public function edpqqueue_list_page(){
+    /**
+     * Render the auto submission queue list page (with reorder/delete UI)
+     */
+        public function edpqqueue_list_page(){
 
                 global $pagenow;
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
@@ -402,14 +423,20 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
             }
 
-            public function edpqadmin_queue_list_page(){
+    /**
+     * Render the admin queue list page (read-only, no editing)
+     */
+        public function edpqadmin_queue_list_page(){
 
                 $queue_list = $this->get_queue_list();
                 require_once __DIR__ . '/../templates/options-page-admin-queue-list.php';
 
             }
 
-            public function load_admin_net_style(){
+    /**
+     * Conditionally enqueue styles/scripts for admin pages based on context
+     */
+        public function load_admin_net_style(){
                 global $pagenow;
                 $rand = rand(1, 99999999999);
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
@@ -441,14 +468,18 @@ if (!class_exists('automatePhotoNetSubmissions')) {
       
             }
 
-            /**
-             * Remove meta boxes from the post edit screens
-             */
-            public function edpq_net_submission_remove_meta_boxes() {
+
+    /**
+     * Remove default meta boxes from net_submission post edit screens
+     */
+        public function edpq_net_submission_remove_meta_boxes() {
                 remove_meta_box( 'submitdiv', 'net_submission', 'normal' );
             }
 
-            public function edpq_net_submission_register_meta_boxes() {
+    /**
+     * Register custom meta boxes for net_submission post type
+     */
+        public function edpq_net_submission_register_meta_boxes() {
                 add_meta_box( 
                     "_submitdiv", 
                     __( "Publish" ), 
@@ -460,7 +491,10 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 );
             }
 
-            public function edpq_net_submission_meta_boxes_callback( $post){
+    /**
+     * Render custom meta box UI for net_submission post editing
+     */
+        public function edpq_net_submission_meta_boxes_callback( $post){
                 global $action;
 
                 $post_id          = (int) $post->ID;
@@ -550,7 +584,10 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 <?php
             }
 
-            public function my_cpt_row_actions( $actions, $post ) {
+    /**
+     * Customize row actions for net_submission posts (removes quick edit/trash)
+     */
+        public function my_cpt_row_actions( $actions, $post ) {
                 if ( 'net_submission' === $post->post_type ) {
                     // Removes the "Quick Edit" action.
                     // Removes the "Trash" action.
@@ -560,7 +597,10 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 return $actions;
             }
 
-            public function form_post_new_net_photo_submission_ajax()
+    /**
+     * AJAX handler: Processes new photo submission form and creates new net_submission post
+     */
+        public function form_post_new_net_photo_submission_ajax()
             {
 
                 // Do some minor form validation to make sure there is content
@@ -613,7 +653,10 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 wp_die();
             }
 
-            public function net_style_scripts(){
+    /**
+     * Conditionally enqueue styles/scripts for frontend shortcodes
+     */
+        public function net_style_scripts(){
                 global $post;
                 $rand = rand(1, 99999999999);
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
@@ -632,8 +675,8 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
             }
 
-    } // Closing bracket for classes
+    } 
 
 }
 
-new automatePhotoNetSubmissions;
+new PhotoNetSubmissionQueue();
