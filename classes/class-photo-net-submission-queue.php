@@ -332,7 +332,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 $queue_list = $this->get_queue_list();
                 require_once __DIR__  . '/../templates/options-page-auto-submission.php';
 
-            }
+        }
 
     /**
      * Render the admin queue list page (read-only, no editing)
@@ -377,7 +377,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                     )); 
                 }
       
-            }
+        }
 
 
     /**
@@ -385,7 +385,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
      */
         public function edpq_net_submission_remove_meta_boxes() {
                 remove_meta_box( 'submitdiv', 'net_submission', 'normal' );
-            }
+        }
 
     /**
      * Register custom meta boxes for net_submission post type
@@ -400,7 +400,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                     'high',
                     [ 'show_draft_button' => false ] 
                 );
-            }
+        }
 
     /**
      * Render custom meta box UI for net_submission post editing
@@ -493,7 +493,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
             </div>
                 <?php
-            }
+        }
 
     /**
      * Customize row actions for net_submission posts (removes quick edit/trash)
@@ -506,7 +506,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                     unset( $actions['trash'] );
                 }
                 return $actions;
-            }
+        }
 
     /**
      * AJAX handler: Processes new photo submission form and creates new net_submission post
