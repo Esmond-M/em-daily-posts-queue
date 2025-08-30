@@ -630,7 +630,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
                 wp_enqueue_style( 'edpq-form-styles', $plugin_url . '/assets/css/form.css' , array(),  $rand );  	  
                 }
-                if( has_shortcode( $post->post_content, 'EmDailyPostsQueueDisplayPost' ) ){
+                if( has_shortcode( $post->post_content, 'EmDailyPostsQueueDisplayPost' ) || is_singular('net_submission')){
                 wp_enqueue_style( 'edpq-display-styles', $plugin_url . '/assets/css/display.css' , array(),  $rand ); 
                 }
 
