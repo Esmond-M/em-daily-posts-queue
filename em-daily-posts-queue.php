@@ -1,18 +1,21 @@
 <?php
 /**
- * Plugin Name: Esmond Daily Posts Queue
- * Plugin URI: https://github.com/Esmond-M
- * Author: Esmond Mccain
- * Author URI: https://esmondmccain.com/
- * Description: Show daily posts on front and allow assigned user to edit queue.
+ * Plugin Name:       Esmond Daily Posts Queue
+ * Plugin URI:        https://github.com/Esmond-M/em-daily-posts-queue
+ * Author:            Esmond Mccain
+ * Author URI:        https://esmondmccain.com/
+ * Description:       Display daily posts on the front end and allow assigned users to manage the post queue via a custom admin interface. Includes photo submission, queue reordering, and integration with custom post types.
  * Requires at least: 6.1
  * Requires PHP:      7.4.33
- * Requires Plugins: action-scheduler
- * Version: 0.1.0
- * License: 0.1.0
- * License URL: http://www.gnu.org/licenses/gpl-2.0.txt
- * text-domain: em-daily-posts-queue
-*/
+ * Requires Plugins:  action-scheduler
+ * Version:           0.1.0
+ * License:           GPL-2.0-or-later
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain:       em-daily-posts-queue
+ * Domain Path:       /languages
+ *
+ * This plugin provides a daily post queue system for WordPress, allowing users to submit photos, edit post metadata, and manage the display order of posts. Admins can review, reorder, and delete submissions. Frontend shortcodes are available for both submission and display. Database tables are created on activation and all queries use the WordPress table prefix for compatibility.
+ */
 namespace EmDailyPostsQueue\init_plugin;
 
 use EmDailyPostsQueue\init_plugin\Classes\CPT_NetSubmission;
