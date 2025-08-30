@@ -6,32 +6,7 @@ if (!class_exists('CronEvents')) {
 
     class CronEvents
     {
-        /**
-         * Helper to get the queue list from DB.
-         */
-        private function get_queue_list_from_db($conn) {
-            $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
-            $result = mysqli_query($conn, $sql);
-            $row = mysqli_fetch_assoc($result);
-            return $row['list'] ?? '';
-        }
 
-        /**
-         * Helper to update the queue list in DB.
-         */
-        private function update_queue_list_in_db($conn, $queueList) {
-            $serialized = base64_encode(serialize($queueList));
-            $sql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized . "' WHERE id=1";
-            return $conn->query($sql);
-        }
-
-        /**
-         * Helper to send notification email.
-         */
-        private function send_admin_email($subject, $message) {
-            $emailto = get_option('admin_email');
-            wp_mail($emailto, $subject, $message);
-        }
 
     /**
      * Constructor: Sets up cron event action for weekly net_submission update.
@@ -167,7 +142,32 @@ if (!class_exists('CronEvents')) {
             $conn2->close();
         }
     
+        /**
+         * Helper to get the queue list from DB.
+         */
+        private function get_queue_list_from_db($conn) {
+            $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
+            $result = mysqli_query($conn, $sql);
+            $row = mysqli_fetch_assoc($result);
+            return $row['list'] ?? '';
+        }
 
+        /**
+         * Helper to update the queue list in DB.
+         */
+        private function update_queue_list_in_db($conn, $queueList) {
+            $serialized = base64_encode(serialize($queueList));
+            $sql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized . "' WHERE id=1";
+            return $conn->query($sql);
+        }
+
+        /**
+         * Helper to send notification email.
+         */
+        private function send_admin_email($subject, $message) {
+            $emailto = get_option('admin_email');
+            wp_mail($emailto, $subject, $message);
+        }
     } 
 
 }
