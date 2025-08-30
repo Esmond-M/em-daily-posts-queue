@@ -4,6 +4,14 @@ namespace EmDailyPostsQueue\init_plugin\Classes;
 
 if (!class_exists('CPT_NetSubmissionMeta')) {
 
+    /**
+     * CPT_NetSubmissionMeta Class
+     *
+     * Handles custom meta box functionality for the 'net_submission' post type.
+     * - Registers and renders custom fields for headline and caption
+     * - Saves custom field data securely to post meta
+     * - Integrates with WordPress hooks for meta box display and saving
+     */
     class CPT_NetSubmissionMeta
     {
 
@@ -54,7 +62,7 @@ if (!class_exists('CPT_NetSubmissionMeta')) {
         public function netSubmissionCustomFields($post)
         {
             $get_topic_headline = get_post_meta($post->ID, 'topic_headline_value', true);
-			$get_topic_caption = get_post_meta($post->ID, 'topic_caption_value', true);
+            $get_topic_caption = get_post_meta($post->ID, 'topic_caption_value', true);
             wp_nonce_field(
                 'net_submission_post_metabox',
                 'net_submission_post_metabox_nonce'
@@ -62,33 +70,25 @@ if (!class_exists('CPT_NetSubmissionMeta')) {
             ?>
             <div class="post_meta_extras">
                 <p>
-				<label>Topic Headline <input
-                               type="text"
-                               name="topic_headline_value"
-                               value="<?php 
-							   if (is_string($get_topic_headline) ) {
-                             	echo $get_topic_headline;
-                               }?>"
-                            />
-
+                    <label>Topic Headline
+                        <input
+                            type="text"
+                            name="topic_headline_value"
+                            value="<?php echo esc_attr(is_string($get_topic_headline) ? $get_topic_headline : ''); ?>"
+                        />
                     </label>
                 </p>
-				<p>
-				<label>Topic Caption
-                    <textarea cols="40" rows="10" name="topic_caption_value"  required>
-                     <?php 
-							   if (is_string($get_topic_caption) ) {
-                             	echo $get_topic_caption;
-                               }?>   
-                   </textarea>
-                </label>
+                <p>
+                    <label>Topic Caption
+                        <textarea cols="40" rows="10" name="topic_caption_value" required><?php echo esc_textarea(is_string($get_topic_caption) ? $get_topic_caption : ''); ?></textarea>
+                    </label>
                 </p>
-            <style>
-            .post_meta_extras textarea {
-                display:block;
-                text-align:left;
-            }    
-                        </style>    
+                <style>
+                    .post_meta_extras textarea {
+                        display: block;
+                        text-align: left;
+                    }
+                </style>
             </div>
             <?php
         }
@@ -101,66 +101,55 @@ if (!class_exists('CPT_NetSubmissionMeta')) {
      */
         public function netSubmissionMetaboxSave($post_id)
         {
-            /*
-            * We need to verify this came from the
-            *  our screen and with proper authorization,
-            * because save_post can be triggered at
-            *  other times. Add as many nonces, as you
-            * have metaboxes.
-               */
-            if (!isset($_POST['net_submission_post_metabox_nonce'])
-                || !wp_verify_nonce(
-                    sanitize_key(
-                        $_POST['net_submission_post_metabox_nonce']
-                    ),
-                    'net_submission_post_metabox'
-                )
-            ) { // Input var okay.
-                return $post_id;
-            }
+        /**
+         * Handles saving of custom meta box fields for net_submission post type.
+         *
+         * @param int $post_id The ID of the WordPress post.
+         * @return int Returns post ID.
+         */
+        // Verify nonce for security
+        if (
+            !isset($_POST['net_submission_post_metabox_nonce']) ||
+            !wp_verify_nonce(
+                sanitize_key($_POST['net_submission_post_metabox_nonce']),
+                'net_submission_post_metabox'
+            )
+        ) {
+            return $post_id;
+        }
 
+        // Check user permissions
+        $post_type = $_POST['post_type'] ?? '';
+        if (
+            ($post_type === 'page' && !current_user_can('edit_page', $post_id)) ||
+            ($post_type !== 'page' && !current_user_can('edit_post', $post_id))
+        ) {
+            return $post_id;
+        }
 
-            // Check the user's permissions.
-            if (isset($_POST['post_type'])
-                && 'page' === $_POST['post_type']
-            ) { // Input var okay.
-                if (!current_user_can(
-                    'edit_page', $post_id
-                )
-                ) {
-                    return $post_id;
-                }
-            } else {
-                if (!current_user_can('edit_post', $post_id)) {
-                    return $post_id;
-                }
-            }
+        // Prevent autosave from saving meta
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return $post_id;
+        }
 
-            /*
-               * If this is an autosave, our form has not been submitted,
-               * so we don't want to do anything.
-               */
-            if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-                return $post_id;
-            }
-
-            /* Ok to save */
-
-            $topic_headline_value = $_POST['topic_headline_value']; // Input var okay.
+        // Save custom fields if set
+        if (isset($_POST['topic_headline_value'])) {
             update_post_meta(
                 $post_id,
                 'topic_headline_value',
-                esc_attr($topic_headline_value)
+                sanitize_text_field($_POST['topic_headline_value'])
             );
-            $topic_caption_value = $_POST['topic_caption_value']; // Input var okay.
-
+        }
+        if (isset($_POST['topic_caption_value'])) {
             update_post_meta(
                 $post_id,
                 'topic_caption_value',
-                esc_attr($topic_caption_value)
+                sanitize_textarea_field($_POST['topic_caption_value'])
             );
-
         }
+
+        return $post_id;
+    }
 
 
     }
