@@ -1,10 +1,21 @@
 <?php
 declare(strict_types=1);
+/**
+ * automatePhotoNetSubmissions Class
+ *
+ * Handles photo submission queue management for the plugin, including:
+ * - AJAX handlers for queue updates and new submissions
+ * - Database logic for queue storage and retrieval
+ * - Admin and frontend asset loading
+ * - Custom post type hooks and meta box management
+ * - Utility functions for queue comparison and manipulation
+ */
 namespace EmDailyPostsQueue\init_plugin\Classes;
 
 if (!class_exists('automatePhotoNetSubmissions')) {
 
     class automatePhotoNetSubmissions
+    // Constructor: Registers all WordPress hooks and actions for plugin functionality
     {
 
         /**
@@ -35,10 +46,15 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
         }
 
-        /**
-         * Check if multidimensional array is the same
-         */
-        public function edpqcompareMultiDimensional($array1, $array2, $strict = true){
+
+    /**
+     * Compare two multidimensional arrays and return differences
+     * @param array $array1
+     * @param array $array2
+     * @param bool $strict
+     * @return array
+     */
+    public function edpqcompareMultiDimensional($array1, $array2, $strict = true){
             if (!is_array($array1)) {
                 throw new \InvalidArgumentException('$array1 must be an array!');
             }
@@ -79,12 +95,12 @@ if (!class_exists('automatePhotoNetSubmissions')) {
             }
 
             return $result;
-        } // end function
+        } 
 
-        /**
-         * Queue List photo deletion ajax submission
-         */
-        public function net_photo_deletion_info_ajax() {
+    /**
+     * AJAX handler: Processes queue item deletion and updates the queue in the database
+     */
+    public function net_photo_deletion_info_ajax() {
             
             $stored_queue_list_arr =  json_decode(stripslashes($_POST['checkWindowAge']),true);
             if(isset($_POST['remove_postid'])){
@@ -258,16 +274,22 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                          $SubmissionConn->close();
          }
          wp_die();
-        } // end function
+        } 
 
-        public function net_submission_skip_trash($post_id) {
+    /**
+     * Hook: Force delete net_submission posts instead of sending to trash
+     */
+    public function net_submission_skip_trash($post_id) {
             if (get_post_type($post_id) == 'net_submission') {
                 // Force delete
                 wp_delete_post( $post_id, true );
             }
-        } // end function
+        } 
 
-        public function intercept_publishToDraft ($post_ID, $data ) {
+    /**
+     * Hook: Prevent publishing/drafting net_submission posts in unsupported states
+     */
+    public function intercept_publishToDraft ($post_ID, $data ) {
                 if (get_post_type($post_ID) !== 'net_submission') {
                     return;
                 }
@@ -278,10 +300,13 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                     wp_die( 'not allowed');
                 }
 
-        } // end function
+        } 
 
 
-        public function do_updated_to_publish( $post_id, $post , $old_status  ) {
+    /**
+     * Hook: Add newly published net_submission post to the queue list in the database
+     */
+    public function do_updated_to_publish( $post_id, $post , $old_status  ) {
 
                 if($old_status == 'publish'){
                     return;
@@ -351,9 +376,11 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
             } // end of function
 
-            //admin menu callback function
 
-            public function edpqPhotoSubmission_register_submenu_page() {
+    /**
+     * Admin: Register submenu pages for queue list and admin queue list
+     */
+        public function edpqPhotoSubmission_register_submenu_page() {
 
                 //Add Custom Social Sharing Sub Menu
                 add_submenu_page(
@@ -373,9 +400,13 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 'admin-queue-list',
                 [$this, 'edpqadmin_queue_list_page']);
 
-            } // end of function
+            } 
 
-            public function get_queue_list() {
+    /**
+     * Retrieve the current photo submission queue list from the database
+     * @return array
+     */
+        public function get_queue_list() {
                 $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
                 if (!$conn) {
                     return ['error' => mysqli_connect_error()];
@@ -392,7 +423,10 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 return [];
             }
 
-            public function edpqqueue_list_page(){
+    /**
+     * Render the auto submission queue list page (with reorder/delete UI)
+     */
+        public function edpqqueue_list_page(){
 
                 global $pagenow;
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
@@ -402,14 +436,20 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
             }
 
-            public function edpqadmin_queue_list_page(){
+    /**
+     * Render the admin queue list page (read-only, no editing)
+     */
+        public function edpqadmin_queue_list_page(){
 
                 $queue_list = $this->get_queue_list();
                 require_once __DIR__ . '/../templates/options-page-admin-queue-list.php';
 
             }
 
-            public function load_admin_net_style(){
+    /**
+     * Conditionally enqueue styles/scripts for admin pages based on context
+     */
+        public function load_admin_net_style(){
                 global $pagenow;
                 $rand = rand(1, 99999999999);
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
@@ -441,14 +481,18 @@ if (!class_exists('automatePhotoNetSubmissions')) {
       
             }
 
-            /**
-             * Remove meta boxes from the post edit screens
-             */
-            public function edpq_net_submission_remove_meta_boxes() {
+
+    /**
+     * Remove default meta boxes from net_submission post edit screens
+     */
+        public function edpq_net_submission_remove_meta_boxes() {
                 remove_meta_box( 'submitdiv', 'net_submission', 'normal' );
             }
 
-            public function edpq_net_submission_register_meta_boxes() {
+    /**
+     * Register custom meta boxes for net_submission post type
+     */
+        public function edpq_net_submission_register_meta_boxes() {
                 add_meta_box( 
                     "_submitdiv", 
                     __( "Publish" ), 
@@ -460,7 +504,10 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 );
             }
 
-            public function edpq_net_submission_meta_boxes_callback( $post){
+    /**
+     * Render custom meta box UI for net_submission post editing
+     */
+        public function edpq_net_submission_meta_boxes_callback( $post){
                 global $action;
 
                 $post_id          = (int) $post->ID;
@@ -550,7 +597,10 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 <?php
             }
 
-            public function my_cpt_row_actions( $actions, $post ) {
+    /**
+     * Customize row actions for net_submission posts (removes quick edit/trash)
+     */
+        public function my_cpt_row_actions( $actions, $post ) {
                 if ( 'net_submission' === $post->post_type ) {
                     // Removes the "Quick Edit" action.
                     // Removes the "Trash" action.
@@ -560,7 +610,10 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 return $actions;
             }
 
-            public function form_post_new_net_photo_submission_ajax()
+    /**
+     * AJAX handler: Processes new photo submission form and creates new net_submission post
+     */
+        public function form_post_new_net_photo_submission_ajax()
             {
 
                 // Do some minor form validation to make sure there is content
@@ -613,7 +666,10 @@ if (!class_exists('automatePhotoNetSubmissions')) {
                 wp_die();
             }
 
-            public function net_style_scripts(){
+    /**
+     * Conditionally enqueue styles/scripts for frontend shortcodes
+     */
+        public function net_style_scripts(){
                 global $post;
                 $rand = rand(1, 99999999999);
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
@@ -632,7 +688,7 @@ if (!class_exists('automatePhotoNetSubmissions')) {
 
             }
 
-    } // Closing bracket for classes
+    } 
 
 }
 
