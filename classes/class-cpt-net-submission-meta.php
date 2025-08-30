@@ -7,9 +7,9 @@ if (!class_exists('CPT_NetSubmissionMeta')) {
     class CPT_NetSubmissionMeta
     {
 
-      /**
-      Declaring constructor
-      */
+    /**
+     * Constructor: Sets up meta box actions for net_submission post type.
+     */
         public function __construct()
         {
 
@@ -25,11 +25,11 @@ if (!class_exists('CPT_NetSubmissionMeta')) {
         }
 
 
-        /**
-         Adding meta box for post
-
-        @return void
-         */
+    /**
+     * Adds the custom meta box to the net_submission post type.
+     *
+     * @return void
+     */
         public function netSubmissionMetabox()
         {
             $screens = ['net_submission']; // post type to display one
@@ -45,13 +45,12 @@ if (!class_exists('CPT_NetSubmissionMeta')) {
 
             }
         }
-        /**
-        Styles for custom metabox on backend
-
-        @param $post callback
-
-        @return callable
-         */
+    /**
+     * Renders the custom fields inside the meta box for net_submission.
+     *
+     * @param WP_Post $post The current post object.
+     * @return void
+     */
         public function netSubmissionCustomFields($post)
         {
             $get_topic_headline = get_post_meta($post->ID, 'topic_headline_value', true);
@@ -94,13 +93,12 @@ if (!class_exists('CPT_NetSubmissionMeta')) {
             <?php
         }
     
-        /**
-        Save meta box value to database
-
-        @param $post_id of wordpress post
-
-        @return string
-         */
+    /**
+     * Saves the custom meta box values to the database when the post is saved.
+     *
+     * @param int $post_id The ID of the WordPress post.
+     * @return int|string Returns post ID or string on failure.
+     */
         public function netSubmissionMetaboxSave($post_id)
         {
             /*
@@ -165,7 +163,7 @@ if (!class_exists('CPT_NetSubmissionMeta')) {
         }
 
 
-    }// Closing bracket for classes
+    }
 }
 
 
