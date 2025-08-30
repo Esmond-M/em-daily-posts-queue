@@ -77,68 +77,47 @@ if ( ! defined( 'ABSPATH' ) ) {
 
         public function FormShortcodeContent($atts)
         {
-            $a = shortcode_atts(
-                [
-                    'class' => ' '
-                ],
-                $atts
-            );
-            ob_start();
-            ?>
-            <div class="<?php echo  $a['class']; ?>">
-                <!-- New Post Form -->
-                <form id="new_post" name="new_post" method="post" action="" enctype="multipart/form-data">
-                <?php 
-                $current_user = wp_get_current_user();
-                date_default_timezone_set("America/Chicago");
-                ?>
-
-                <!-- Topic Healine -->
+        $a = shortcode_atts([
+            'class' => ' '
+        ], $atts);
+        ob_start();
+        ?>
+        <div class="<?php echo esc_attr($a['class']); ?>">
+            <!-- New Post Form -->
+            <form id="new_post" name="new_post" method="post" action="" enctype="multipart/form-data">
+                <!-- Topic Headline -->
                 <label for="topic_headline_value">Topic Headline</label><br />
-                <input type="text" value="" tabindex="1" size="20" name="topic_headline_value" required/>
+                <input type="text" value="" tabindex="1" size="20" name="topic_headline_value" required />
                 <br />
-                <!-- --------- -->
-                
-                <!-- > Topic Caption-->
+                <!-- Topic Caption -->
                 <br /><label for="topic_caption_value">Please write a short description of the photo and include the full names of those pictured so they may be credited.</label><br />
-                <textarea cols="40" rows="10" name="topic_caption_value" required>
-                </textarea>
-                <!-- --------- -->
-
+                <textarea cols="40" rows="10" name="topic_caption_value" required></textarea>
                 <!-- Photo -->
                 <label for="net_image">Photo</label><br />
                 <input type="file"
                     id="net_image" name="net_image"
-                    accept=".png, .jpg, .jpeg" required>
-                <!-- --------- -->
-
+                    accept=".png, .jpg, .jpeg" required />
                 <!-- Hidden inputs -->
                 <input type="hidden" name="action" value="form_post_new_net_photo_submission_ajax" />
-                <!-- --------- -->
                 <input type="submit" value="Submit" tabindex="6" id="submit" name="submit" />
-                <?php wp_nonce_field( 'new-post' ); ?>
-                </form>
-                <script>
-
+                <?php wp_nonce_field('new-post'); ?>
+            </form>
+            <script>
                 jQuery(document).ready(function($) {
-
-                var uploadField = document.getElementById("net_image");
-
-                uploadField.onchange = function() {
-                    if(this.files[0].size > 8388608){
-                    alert("File is too big!");
-                    this.value = "";
+                    var uploadField = document.getElementById("net_image");
+                    uploadField.onchange = function() {
+                        if (this.files[0].size > 8388608) {
+                            alert("File is too big!");
+                            this.value = "";
+                        }
                     };
-                };
-
                 });
-
-                </script>
-            </div>
-            <?php
-            $shortcode_html = ob_get_clean();
-            return $shortcode_html;
-        }
+            </script>
+        </div>
+        <?php
+        $shortcode_html = ob_get_clean();
+        return $shortcode_html;
+    }
 
         public function DisplayPostShortcodeContent($atts)
         {
