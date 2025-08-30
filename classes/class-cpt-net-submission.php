@@ -21,19 +21,36 @@ if (!class_exists('CPT_NetSubmission')) {
         */
         public function __construct()
         {
-
             add_action( 'init', [$this, 'em_daily_posts_register_cpts' ]  );
             add_action( 'init', [$this, 'net_submission_role' ]  );
             add_action( 'init', [$this, 'net_submission_cap' ]  );
             add_action( 'template_redirect', [$this, 'restrict_net_submission_access'] );
+            add_filter( 'template_include', [$this, 'net_submission_template_override'] );
 
         }
 
+
         /**
-         * Post Type: Net submissions.
-        */
+         * Use plugin templates for net_submission single and archive views
+         */
+        public static function net_submission_template_override($template) {
+            $plugin_dir = plugin_dir_path(__FILE__) . '../templates/';
+            if (is_singular('net_submission')) {
+                $single_template = $plugin_dir . 'single-net_submission.php';
+                if (file_exists($single_template)) {
+                    return $single_template;
+                }
+            }
+            if (is_post_type_archive('net_submission')) {
+                $archive_template = $plugin_dir . 'archive-net_submission.php';
+                if (file_exists($archive_template)) {
+                    return $archive_template;
+                }
+            }
+            return $template;
+       }
         public static function em_daily_posts_register_cpts() {
-        
+
             $labels = array(
                 'name'          => esc_html__( 'Net submissions', 'net_submission' ),
                 'singular_name' => esc_html__( 'Net submission', 'net_submission' ),
@@ -44,7 +61,7 @@ if (!class_exists('CPT_NetSubmission')) {
                 'view_item'     => esc_html__( 'View Net submission', 'net_submission' ),
                 'all_items'     => esc_html__( 'All Net submissions', 'net_submission' ),
             );
-        
+
             $args = array(
                 'label'                 => esc_html__( 'Net submissions', 'net_submission' ),
                 'labels'                => $labels,
@@ -91,11 +108,11 @@ if (!class_exists('CPT_NetSubmission')) {
                 //'taxonomies'            => array( 'category' ),
                 'show_in_graphql'       => false,
             );
-        
+
             register_post_type( 'net_submission', $args );
-    
+
     }
-    
+
     public function net_submission_role() {
 
         add_role('net_submission_role', 'Net Submitter', array(
@@ -108,49 +125,49 @@ if (!class_exists('CPT_NetSubmission')) {
             'manage_categories' => false,
 
         ));
-        
+
     }
-    
+
     public function net_submission_cap() {
 
         $net_submission_role = get_role( 'net_submission_role' );
         $admins = get_role( 'administrator' );
 
-        $admins->add_cap( 'edit_net_submission' ); 
-        $admins->add_cap( 'edit_net_submission' ); 
-        $admins->add_cap( 'read_net_submission' ); 
-        $admins->add_cap( 'delete_net_submission' ); 
-        $admins->add_cap( 'edit_net_submissions' ); 
-        $admins->add_cap( 'edit_others_net_submissions' ); 
-        $admins->add_cap( 'delete_net_submissions' ); 
-        $admins->add_cap( 'publish_net_submissions' ); 
-        $admins->add_cap( 'read_private_net_submissions' ); 
-        $admins->add_cap( 'delete_private_net_submissions' ); 
-        $admins->add_cap( 'read_private_net_submissions' ); 
-        $admins->add_cap( 'delete_published_net_submissions' ); 
-        $admins->add_cap( 'delete_others_net_submissions' ); 
-        $admins->add_cap( 'edit_private_net_submissions' ); 
-        $admins->add_cap( 'edit_published_net_submissions' ); 
+        $admins->add_cap( 'edit_net_submission' );
+        $admins->add_cap( 'edit_net_submission' );
+        $admins->add_cap( 'read_net_submission' );
+        $admins->add_cap( 'delete_net_submission' );
+        $admins->add_cap( 'edit_net_submissions' );
+        $admins->add_cap( 'edit_others_net_submissions' );
+        $admins->add_cap( 'delete_net_submissions' );
+        $admins->add_cap( 'publish_net_submissions' );
+        $admins->add_cap( 'read_private_net_submissions' );
+        $admins->add_cap( 'delete_private_net_submissions' );
+        $admins->add_cap( 'read_private_net_submissions' );
+        $admins->add_cap( 'delete_published_net_submissions' );
+        $admins->add_cap( 'delete_others_net_submissions' );
+        $admins->add_cap( 'edit_private_net_submissions' );
+        $admins->add_cap( 'edit_published_net_submissions' );
 
-        $net_submission_role->add_cap( 'edit_net_submission' ); 
-        $net_submission_role->add_cap( 'edit_net_submission' ); 
-        $net_submission_role->add_cap( 'read_net_submission' ); 
-        $net_submission_role->add_cap( 'delete_net_submission' ); 
-        $net_submission_role->add_cap( 'edit_net_submissions' ); 
-        $net_submission_role->add_cap( 'edit_others_net_submissions' ); 
-        $net_submission_role->add_cap( 'delete_net_submissions' ); 
-        $net_submission_role->add_cap( 'publish_net_submissions' ); 
-        $net_submission_role->add_cap( 'read_private_net_submissions' ); 
-        $net_submission_role->add_cap( 'delete_private_net_submissions' ); 
-        $net_submission_role->add_cap( 'read_private_net_submissions' ); 
-        $net_submission_role->add_cap( 'delete_published_net_submissions' ); 
-        $net_submission_role->add_cap( 'delete_others_net_submissions' ); 
-        $net_submission_role->add_cap( 'edit_private_net_submissions' ); 
-        $net_submission_role->add_cap( 'edit_published_net_submissions' ); 
+        $net_submission_role->add_cap( 'edit_net_submission' );
+        $net_submission_role->add_cap( 'edit_net_submission' );
+        $net_submission_role->add_cap( 'read_net_submission' );
+        $net_submission_role->add_cap( 'delete_net_submission' );
+        $net_submission_role->add_cap( 'edit_net_submissions' );
+        $net_submission_role->add_cap( 'edit_others_net_submissions' );
+        $net_submission_role->add_cap( 'delete_net_submissions' );
+        $net_submission_role->add_cap( 'publish_net_submissions' );
+        $net_submission_role->add_cap( 'read_private_net_submissions' );
+        $net_submission_role->add_cap( 'delete_private_net_submissions' );
+        $net_submission_role->add_cap( 'read_private_net_submissions' );
+        $net_submission_role->add_cap( 'delete_published_net_submissions' );
+        $net_submission_role->add_cap( 'delete_others_net_submissions' );
+        $net_submission_role->add_cap( 'edit_private_net_submissions' );
+        $net_submission_role->add_cap( 'edit_published_net_submissions' );
         $net_submission_role->add_cap( 'upload_files' ); // for featured images
-        
 
-    }	
+
+    }
 
     /**
     * Restrict front-end access to net_submission posts and archives to admins and net_submission_role users
@@ -166,7 +183,7 @@ if (!class_exists('CPT_NetSubmission')) {
         }
     }
 
-} 
+}
 
 }
 
