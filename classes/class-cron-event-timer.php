@@ -10,7 +10,7 @@ if (!class_exists('CronEventTimer')) {
     {
 
         /**
-        Declaring constructor
+         * Declaring constructor
          */
         public function __construct()
         {
@@ -34,27 +34,16 @@ if (!class_exists('CronEventTimer')) {
 
             if($oneWeekDayInterval < 86400){ // this number is seconds to hours
                 $oneWeekDayInterval = 86400;
-                        $emailto = 'esmondmccain@gmail.com';
-
-                        // Email subject, "New {post_type_label}"
-                        $subject = 'Auto timer not working';
-
-                        // Email body
-                        $message = 'Had to set default 1 days<br>' . 'timer:' . $oneWeekDayInterval ;
-
-                        wp_mail( $emailto, $subject, $message );
+                $emailto = get_option('admin_email');
+                $subject = 'Auto timer not working';
+                $message = 'Had to set default 1 days<br>' . 'timer:' . $oneWeekDayInterval ;
+                wp_mail( $emailto, $subject, $message );
             }
-            
             else {
-                       $emailto = 'esmondmccain@gmail.com';
-
-                        // Email subject, "New {post_type_label}"
-                        $subject = 'Run timer value';
-
-                        // Email body
-                        $message = 'timer:' . $oneWeekDayInterval ;
-
-                        wp_mail( $emailto, $subject, $message );	
+                $emailto = get_option('admin_email');
+                $subject = 'Run timer value';
+                $message = 'timer:' . $oneWeekDayInterval ;
+                wp_mail( $emailto, $subject, $message );
             }
            as_schedule_recurring_action( strtotime( '+1 weekdays 10pm America/Chicago' ), $oneWeekDayInterval, 'eg_1_weekdays_log' );
            }
