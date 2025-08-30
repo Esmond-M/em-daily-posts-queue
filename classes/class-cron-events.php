@@ -142,7 +142,7 @@ if (!class_exists('CronEvents')) {
                         
                         echo 'Queue List updated. Item has been removed. Next weekly post active.';
                     // send email of queue having run
-                    $emailto = 'esmondmccain@gmail.com';
+                    $emailto = get_option('admin_email');
                     // Email subject, "New {post_type_label}"
                     $subject = 'Next submission Live: Check Status - '. ' ' . date("m-d-y");
                     // Email body
@@ -158,7 +158,7 @@ if (!class_exists('CronEvents')) {
                      echo 'This window is out of date. Weekly update failed.';
                         // send email of new post
                         // Recipient, in this case the administrator email
-                        $emailto = 'esmondmccain@gmail.com';
+                        $emailto = get_option('admin_email');
 
                         // Email subject, "New {post_type_label}"
                         $subject = 'Weekly update failed: Someone was editing ' . ' ' . date("m-d-y");
