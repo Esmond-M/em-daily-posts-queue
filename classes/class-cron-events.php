@@ -7,18 +7,24 @@ if (!class_exists('CronEvents')) {
     class CronEvents
     {
 
-        /**
-        Declaring constructor
-         */
+    /**
+     * Constructor: Sets up cron event action for weekly net_submission update.
+     */
         public function __construct()
         {
 
         add_action( 'eg_1_weekdays_log',[$this, 'eg_action_net_submission_weekly_update' ]  ); // this action "eg_1_weekdays_log" is also called in another file edpq-class-cron-events.php
 
         }
-        /**
-         * Check if multidimensional array is the same
-         */
+    /**
+     * Compares two multidimensional arrays and returns differences.
+     *
+     * @param array $array1 First array to compare.
+     * @param array $array2 Second array to compare.
+     * @param bool $strict Whether to use strict comparison.
+     * @return array Differences found in $array1 compared to $array2.
+     * @throws \InvalidArgumentException If $array1 is not an array.
+     */
         public function edpqcompareMultiDimensional($array1, $array2, $strict = true){
             if (!is_array($array1)) {
                 throw new \InvalidArgumentException('$array1 must be an array!');
@@ -60,11 +66,19 @@ if (!class_exists('CronEvents')) {
             }
 
             return $result;
-        } // end function
+        } 
 
-        /**
-         * Get jobs info for careers page.
-         */
+    /**
+     * Handles the weekly update for net_submission queue via cron event.
+     *
+     * - Removes the first item in the queue
+     * - Renumbers the queue
+     * - Updates the database
+     * - Deletes the corresponding post
+     * - Sends notification emails
+     *
+     * @return void
+     */
         public function eg_action_net_submission_weekly_update() {
     
              $conn = mysqli_connect( DB_HOST, DB_USER, DB_PASSWORD,DB_NAME);
@@ -164,11 +178,10 @@ if (!class_exists('CronEvents')) {
              }
 
                 $SubmissionConn->close();		
-        } // end of function
-
+        } 
     
 
-    } // Closing bracket for classes
+    } 
 
 }
 
