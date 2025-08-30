@@ -55,7 +55,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
         }
 
         /**
-        Declaring constructor
+         * Declaring constructor
          */
         public function __construct()
         {
@@ -604,57 +604,62 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
      * AJAX handler: Processes new photo submission form and creates new net_submission post
      */
         public function form_post_new_net_photo_submission_ajax()
-            {
+        {
 
-                // Do some minor form validation to make sure there is content
-                if (  isset($_POST['topic_headline_value']) && isset($_POST['topic_caption_value'])  ) {
+            // Do some minor form validation to make sure there is content
+            if (  isset($_POST['topic_headline_value']) && isset($_POST['topic_caption_value'])  ) {
 
-                }
-                else{
-                        wp_die('<p class="newpost-fail">Server error please resubmit.</p>');
-                }
-
-                // Add the content of the form to $post as an array
-                $new_post = array(
-                    'post_title'    => $_POST['topic_headline_value'] . ' ' . date("m-d-y") ,
-                    'post_status'   => 'draft',           // Choose: publish, preview, future, draft, etc.
-                    'meta_input'   => array(
-                    'topic_headline_value' => '' . $_POST['topic_headline_value'] . '',
-                    'topic_caption_value' => '' . $_POST['topic_caption_value'] . '',
-                    ),
-                    'post_type' => 'net_submission'  //'post',page' or use a custom post type if you want to
-                    );
-                    //save the new post
-                $pid = wp_insert_post($new_post); 
-
-                // The nonce was valid and the user has the capabilities, it is safe to continue.
-
-                // These files need to be included as dependencies when on the front end.
-                require_once( ABSPATH . 'wp-admin/includes/image.php' );
-                require_once( ABSPATH . 'wp-admin/includes/file.php' );
-                require_once( ABSPATH . 'wp-admin/includes/media.php' );
-
-                $attachment_id = media_handle_upload( 'net_image', $pid );
-                //Set Image as thumbnail
-                set_post_thumbnail($pid, $attachment_id);
-
-                $headers = array('Content-Type: text/html; charset=UTF-8','From: Esmond Mccain <esmondmccain@gmail.com>', 'Reply-To: Esmond Mccain <esmondmccain@gmail.com>');// this does not work but also does not hinder
-                // send email of new post
-                // Recipient, in this case the administrator email
-                $emailto = 'esmondmccain@gmail.com';
-
-                // Email subject, "New {post_type_label}"
-                $subject = 'New Photo Submission for: ' . $_POST['topic_headline_value'] . ' ' . date("m-d-y");
-
-                wp_set_current_user(604); // get user that can edit posts so edit link function will work
-                // Email body
-                $message = 'View it: ' . get_permalink( $pid ) . "<br><br>Edit it: " . get_edit_post_link( $pid, "&" );
-                 wp_set_current_user(0);  // turn off get user after get link function
-
-                wp_mail( $emailto, $subject, $message, $headers );
-                echo '<p class="newpost-success">Thank you for your submission!</p>';
-                wp_die();
             }
+            else{
+                    wp_die('<p class="newpost-fail">Server error please resubmit.</p>');
+            }
+
+            // Add the content of the form to $post as an array
+            $new_post = array(
+                'post_title'    => $_POST['topic_headline_value'] . ' ' . date("m-d-y") ,
+                'post_status'   => 'draft',           // Choose: publish, preview, future, draft, etc.
+                'meta_input'   => array(
+                'topic_headline_value' => '' . $_POST['topic_headline_value'] . '',
+                'topic_caption_value' => '' . $_POST['topic_caption_value'] . '',
+                ),
+                'post_type' => 'net_submission'  //'post',page' or use a custom post type if you want to
+                );
+                //save the new post
+            $pid = wp_insert_post($new_post); 
+
+            // The nonce was valid and the user has the capabilities, it is safe to continue.
+
+            // These files need to be included as dependencies when on the front end.
+            require_once( ABSPATH . 'wp-admin/includes/image.php' );
+            require_once( ABSPATH . 'wp-admin/includes/file.php' );
+            require_once( ABSPATH . 'wp-admin/includes/media.php' );
+
+            $attachment_id = media_handle_upload( 'net_image', $pid );
+            //Set Image as thumbnail
+            set_post_thumbnail($pid, $attachment_id);
+
+                // Get admin email dynamically
+                $admin_email = get_option('admin_email');
+                $headers = array(
+                    'Content-Type: text/html; charset=UTF-8',
+                    'From: "Admin" <' . $admin_email . '>',
+                    'Reply-To: "Admin" <' . $admin_email . '>'
+                );
+                // Recipient, in this case the administrator email
+                $emailto = $admin_email;
+
+            // Email subject, "New {post_type_label}"
+            $subject = 'New Photo Submission for: ' . $_POST['topic_headline_value'] . ' ' . date("m-d-y");
+
+            wp_set_current_user(604); // get user that can edit posts so edit link function will work
+            // Email body
+            $message = 'View it: ' . get_permalink( $pid ) . "<br><br>Edit it: " . get_edit_post_link( $pid, "&" );
+                wp_set_current_user(0);  // turn off get user after get link function
+
+            wp_mail( $emailto, $subject, $message, $headers );
+            echo '<p class="newpost-success">Thank you for your submission!</p>';
+            wp_die();
+        }
 
     /**
      * Conditionally enqueue styles/scripts for frontend shortcodes
