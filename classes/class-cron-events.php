@@ -146,7 +146,9 @@ if (!class_exists('CronEvents')) {
          * Helper to get the queue list from DB.
          */
         private function get_queue_list_from_db($conn) {
-            $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+            $sql = "SELECT list FROM $table_name WHERE id='1';";
             $result = mysqli_query($conn, $sql);
             $row = mysqli_fetch_assoc($result);
             return $row['list'] ?? '';
@@ -156,8 +158,10 @@ if (!class_exists('CronEvents')) {
          * Helper to update the queue list in DB.
          */
         private function update_queue_list_in_db($conn, $queueList) {
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
             $serialized = base64_encode(serialize($queueList));
-            $sql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized . "' WHERE id=1";
+            $sql = "UPDATE $table_name SET list='" . $serialized . "' WHERE id=1";
             return $conn->query($sql);
         }
 

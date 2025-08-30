@@ -309,7 +309,9 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 if (!$conn) {
                     return ['error' => mysqli_connect_error()];
                 }
-                $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
+                global $wpdb;
+                $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+                $sql = "SELECT list FROM $table_name WHERE id='1';";
                 $result = mysqli_query($conn, $sql);
                 $row = mysqli_fetch_assoc($result);
                 mysqli_close($conn);
@@ -608,7 +610,9 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
             if (!$conn) {
                 return ['error' => mysqli_connect_error()];
             }
-            $sql = "SELECT list FROM edpq_net_photos_queue_order WHERE id='1';";
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+            $sql = "SELECT list FROM $table_name WHERE id='1';";
             $result = mysqli_query($conn, $sql);
             $row = mysqli_fetch_assoc($result);
             mysqli_close($conn);
@@ -629,8 +633,10 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
             if (!$conn) {
                 return mysqli_connect_error();
             }
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
             $serialized_array = base64_encode(serialize($queue_list));
-            $sql = "UPDATE edpq_net_photos_queue_order SET list='" . $serialized_array . "' WHERE id=1";
+            $sql = "UPDATE $table_name SET list='" . $serialized_array . "' WHERE id=1";
             $result = $conn->query($sql);
             $conn->close();
             return $result === TRUE ? true : $conn->error;

@@ -48,32 +48,37 @@ if ( ! defined( 'ABSPATH' ) ) {
         }
 
         public function EmDailyPostsQueue_install() {
-            global $wpdb;
-            global $EmDailyPostsQueueDbVersion;
-            //$wpdb->prefix .
-            $table_name =  'edpq_net_photos_queue_order';
-            
-            $charset_collate = $wpdb->get_charset_collate();
+        global $wpdb;
+        global $EmDailyPostsQueueDbVersion;
+        $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+        $charset_collate = $wpdb->get_charset_collate();
 
-            $sql = "CREATE TABLE $table_name (
-                id INT UNIQUE AUTO_INCREMENT,
-                list longtext  NOT NULL,
-                PRIMARY KEY  (id)
-            ) $charset_collate;";
+        $sql = "CREATE TABLE $table_name (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            list longtext NOT NULL
+        ) $charset_collate;";
 
-            require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-            dbDelta( $sql );
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        dbDelta($sql);
 
-            add_option( 'EmDailyPostsQueueDbVersion', $EmDailyPostsQueueDbVersion );
-            $welcome_text = 'Congratulations, you just completed the installation!';
-            $wpdb->insert( 
-                $table_name, 
-                array( 
+        add_option('EmDailyPostsQueueDbVersion', $EmDailyPostsQueueDbVersion);
+        $welcome_text = 'Congratulations, you just completed the installation!';
+
+        // Check if row exists before inserting
+        $existing = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE id = 1");
+        if (!$existing) {
+            $inserted = $wpdb->insert(
+                $table_name,
+                array(
                     'id' => 1,
-                    'list' => $welcome_text 
-                ) 
+                    'list' => $welcome_text
+                )
             );
+            if ($inserted === false) {
+                error_log('Failed to insert initial row into ' . $table_name . ': ' . $wpdb->last_error);
+            }
         }
+    }
 
         public function FormShortcodeContent($atts)
         {
@@ -126,9 +131,9 @@ if ( ! defined( 'ABSPATH' ) ) {
         ], $atts);
         ob_start();
 
-        global $wpdb;
-        $table_name = 'edpq_net_photos_queue_order';
-        $row = $wpdb->get_row("SELECT list FROM {$table_name} WHERE id = 1", ARRAY_A);
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+    $row = $wpdb->get_row("SELECT list FROM {$table_name} WHERE id = 1", ARRAY_A);
 
         $placeholder_img = esc_url(plugins_url('assets/imgs/placeholder.png', __FILE__));
 
