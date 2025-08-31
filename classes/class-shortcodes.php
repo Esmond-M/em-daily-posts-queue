@@ -106,30 +106,36 @@ class Shortcodes {
                 ?>
                 <div class="edpq-around-edpq">
                     <div class="edpq-content-left">
-                        <img src="<?php echo $placeholder_img; ?>" alt="Placeholder" />
+                        <img src="<?php echo $placeholder_img; ?>" alt="No posts yet" />
                     </div>
                     <div class="edpq-content-right">
-                        <p class="heading">Around edpq</p>
-                        <p class="edpq-net-caption">If you would like to submit an image to be used as the .NET Intranet website banner, please click the button below.</p>
-                        <button class="edpq-submit-btn">Submit your photo!</button>
+                        <p class="heading">No Posts in Queue</p>
+                        <p class="edpq-net-caption">There are currently no posts in the queue.<br>
+                        Be the first to share your story, photo, or announcement with the community!<br>
+                        Submitted posts will be reviewed and displayed in the daily queue.</p>
+                        <a href="#" class="edpq-submit-btn" onclick="document.getElementById('new_post').scrollIntoView({behavior: 'smooth'});return false;">Submit a Post</a>
                     </div>
                 </div>
                 <?php
+                echo do_shortcode('[EmDailyPostsQueueForm]');
             }
         } else {
             // No row in database
             ?>
-            <div class="edpq-around-edpq">
-                <div class="edpq-content-left">
-                    <img src="<?php echo $placeholder_img; ?>" alt="Placeholder" />
+                <div class="edpq-around-edpq">
+                    <div class="edpq-content-left">
+                        <img src="<?php echo $placeholder_img; ?>" alt="No posts yet" />
+                    </div>
+                    <div class="edpq-content-right">
+                        <p class="heading">No Posts in Queue</p>
+                        <p class="edpq-net-caption">There are currently no posts in the queue.<br>
+                        Be the first to share your story, photo, or announcement with the community!<br>
+                        Submitted posts will be reviewed and displayed in the daily queue.</p>
+                        <a href="#" class="edpq-submit-btn" onclick="document.getElementById('new_post').scrollIntoView({behavior: 'smooth'});return false;">Submit a Post</a>
+                    </div>
                 </div>
-                <div class="edpq-content-right">
-                    <p class="heading">Around edpq</p>
-                    <p class="edpq-net-caption">If you would like to submit an image to be used as the .NET Intranet website banner, please click the button below.</p>
-                    <button class="edpq-submit-btn">Submit your photo!</button>
-                </div>
-            </div>
             <?php
+            echo do_shortcode('[EmDailyPostsQueueForm]');
         }
 
         $shortcode_html = ob_get_clean();

@@ -595,20 +595,18 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 global $post;
                 $rand = rand(1, 99999999999);
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
-                if( has_shortcode( $post->post_content, 'EmDailyPostsQueueForm' ) ){
+
+                if( has_shortcode( $post->post_content, 'EmDailyPostsQueueDisplayPost' ) || is_singular('net_submission') || has_shortcode( $post->post_content, 'EmDailyPostsQueueForm' )){
+                wp_enqueue_style( 'edpq-display-styles', $plugin_url . '/assets/css/main.css' , array(),  $rand ); 
+                
                 wp_enqueue_script( 'edpq-submit-photo-submission-script', $plugin_url . 'assets/js/edpq-submit-photo-submission.js', array('jquery'), $rand, true);
                     wp_localize_script('edpq-submit-photo-submission-script', 'ajax_form_post_new_net_photo_submission', array(
                     'ajaxurl_form_post_new_net_photo_submission' => admin_url('admin-ajax.php') ,
                     'noposts' => __('No older posts found', 'edpq-white') ,
                     )); 
-
-                wp_enqueue_style( 'edpq-form-styles', $plugin_url . '/assets/css/form.css' , array(),  $rand );  	  
-                }
-                if( has_shortcode( $post->post_content, 'EmDailyPostsQueueDisplayPost' ) || is_singular('net_submission')){
-                wp_enqueue_style( 'edpq-display-styles', $plugin_url . '/assets/css/display.css' , array(),  $rand ); 
                 }
 
-            }
+        }
 
         /**
          * Get the queue list from the database
