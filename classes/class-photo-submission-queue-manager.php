@@ -579,7 +579,12 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 wp_set_current_user(0);  // turn off get user after get link function
 
             wp_mail( $emailto, $subject, $message, $headers );
-            echo '<p class="newpost-success">Thank you for your submission!</p>';
+                        echo '<div class="edpq-success-message">
+                                        <svg class="edpq-success-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#28a745"/><path d="M10 17l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        <h3>Thank you for your submission!</h3>
+                                        <p>Your photo and caption have been received.<br>We appreciate your contribution. An admin will review your submission soon.</p>
+                                        <a href="' . esc_url(home_url('/')) . '" class="edpq-success-home-btn">Return to Homepage</a>
+                                    </div>';
             wp_die();
         }
 
