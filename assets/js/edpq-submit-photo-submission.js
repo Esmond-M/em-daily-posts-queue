@@ -33,7 +33,17 @@ jQuery(document).ready(function ($) {
             error: function (jqXHR, textStatus, errorThrown) {
                 $loader.css("display", "none");
                 $form.find("button, input[type='submit']").prop("disabled", false);
-                $form.append('<div id="edpq-connect-error">Connection Error</div>');
+                $form.append(`
+                    <div class="edpq-success-message edpq-error-message">
+                        <svg class="edpq-success-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="16" fill="#dc3545"/>
+                            <path d="M10 22L22 10" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M22 22L10 10" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <h3>Submission Failed</h3>
+                        <p>We couldn't submit your photo due to a connection error.<br>
+                        <strong>Troubleshooting tips:</strong></p>
+                        <ul style="margin: 0 0 1em 1.5em; color: #dc3545;">
                             <li>Check your internet connection.</li>
                             <li>Try reloading the page and submitting again.</li>
                             <li>If the problem persists, contact support or try later.</li>
