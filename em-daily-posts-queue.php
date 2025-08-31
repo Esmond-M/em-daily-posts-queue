@@ -49,37 +49,38 @@ if ( ! defined( 'ABSPATH' ) ) {
         }
 
         public function EmDailyPostsQueue_install() {
-        global $wpdb;
-        global $EmDailyPostsQueueDbVersion;
-        $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-        $charset_collate = $wpdb->get_charset_collate();
+            global $wpdb;
+            global $EmDailyPostsQueueDbVersion;
+            $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+            $charset_collate = $wpdb->get_charset_collate();
 
-        $sql = "CREATE TABLE $table_name (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            list longtext NOT NULL
-        ) $charset_collate;";
+            $sql = "CREATE TABLE $table_name (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                list LONGTEXT NOT NULL
+            ) $charset_collate;";
 
-        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-        dbDelta($sql);
+            require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+            dbDelta($sql);
 
-        add_option('EmDailyPostsQueueDbVersion', $EmDailyPostsQueueDbVersion);
-        $welcome_text = 'Congratulations, you just completed the installation!';
+            add_option('EmDailyPostsQueueDbVersion', $EmDailyPostsQueueDbVersion);
 
-        // Check if row exists before inserting
-        $existing = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE id = 1");
-        if (!$existing) {
-            $inserted = $wpdb->insert(
-                $table_name,
-                array(
-                    'id' => 1,
-                    'list' => $welcome_text
-                )
-            );
-            if ($inserted === false) {
-                error_log('Failed to insert initial row into ' . $table_name . ': ' . $wpdb->last_error);
+            // Use JSON for initial value
+            $initial_list = json_encode(['message' => 'Congratulations, you just completed the installation!']);
+
+            // Only insert if table is empty
+            $existing = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table_name"));
+            if ($existing == 0) {
+                $inserted = $wpdb->insert(
+                    $table_name,
+                    array(
+                        'list' => $initial_list
+                    )
+                );
+                if ($inserted === false) {
+                    error_log('Failed to insert initial row into ' . $table_name . ': ' . $wpdb->last_error);
+                }
             }
         }
-    }
 
     public function init_class() {
 
