@@ -240,17 +240,19 @@ jQuery( "#edpq-send-new-queue-list" ).submit(function( event ) {
             dataType: "html",
             data: serializedData,
             success: function(responseText){ 
-               setTimeout( // timeout function to transition from loader icon to content less abruptly
+                setTimeout( // timeout function to transition from loader icon to content less abruptly
                     function() {
-                            jQuery(".edpq-ajax-loader").remove();
-                            jQuery('#edpq-send-new-queue-list').append(responseText); // initial loader icon for all users request
+                        jQuery(".edpq-ajax-loader").remove();
+                        jQuery('#edpq-send-new-queue-list').append(responseText);
                     },
                     0
                 );
-				setTimeout(function () {
-					window.location.href= 'https://site.test/em-site/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions'; // the redirect goes here
-
-				},3000); // 5 seconds
+                setTimeout(function () {
+                    var basePath = window.location.origin + window.location.pathname.split('/wp-content')[0];
+                    if (!basePath.endsWith('/')) basePath += '/';
+                    var adminUrl = basePath + 'wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions';
+                    window.location.href = adminUrl;
+                }, 3000); // 3 seconds
 
 
           },
