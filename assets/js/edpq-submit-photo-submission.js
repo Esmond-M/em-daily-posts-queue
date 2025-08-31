@@ -34,6 +34,15 @@ jQuery(document).ready(function ($) {
                 $loader.css("display", "none");
                 $form.find("button, input[type='submit']").prop("disabled", false);
                 $form.append('<div id="edpq-connect-error">Connection Error</div>');
+                            <li>Check your internet connection.</li>
+                            <li>Try reloading the page and submitting again.</li>
+                            <li>If the problem persists, contact support or try later.</li>
+                        </ul>
+                        <a href="" class="edpq-success-home-btn" onclick="location.reload();return false;">Try Again</a>
+                        <a href="/" class="edpq-success-home-btn" style="margin-left:10px;">Return to Homepage</a>
+                        <div style="font-size:0.9em;color:#888;margin-top:1em;">Error details: <code>${textStatus}</code></div>
+                    </div>
+                `);
                 console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
             }
         });
