@@ -26,32 +26,32 @@ class Shortcodes {
         ], $atts);
         ob_start();
         ?>
-        <div class="<?php echo esc_attr($a['class']); ?>">
-            <!-- New Post Form -->
-            <form id="new_post" name="new_post" method="post" action="" enctype="multipart/form-data">
-                <!-- Topic Headline -->
-                <label for="topic_headline_value">Topic Headline</label><br />
-                <input type="text" value="" tabindex="1" size="20" name="topic_headline_value" required />
-                <br />
-                <!-- Topic Caption -->
-                <br /><label for="topic_caption_value">Please write a short description of the photo and include the full names of those pictured so they may be credited.</label><br />
-                <textarea cols="40" rows="10" name="topic_caption_value" required></textarea>
-                <!-- Photo -->
-                <label for="net_image">Photo</label><br />
-                <input type="file"
-                    id="net_image" name="net_image"
-                    accept=".png, .jpg, .jpeg" required />
-                <!-- Hidden inputs -->
+        <div class="edpq-form-wrapper <?php echo esc_attr($a['class']); ?>">
+            <form id="new_post" name="new_post" method="post" action="" enctype="multipart/form-data" class="edpq-form">
+                <h2 class="edpq-form-title">Submit a Photo</h2>
+                <div class="edpq-form-group">
+                    <label for="topic_headline_value" class="edpq-label">Topic Headline</label>
+                    <input type="text" class="edpq-input" id="topic_headline_value" name="topic_headline_value" placeholder="Enter headline" required />
+                </div>
+                <div class="edpq-form-group">
+                    <label for="topic_caption_value" class="edpq-label">Photo Caption</label>
+                    <textarea class="edpq-textarea" id="topic_caption_value" name="topic_caption_value" rows="5" placeholder="Write a short description and include full names for credit." required></textarea>
+                </div>
+                <div class="edpq-form-group">
+                    <label for="net_image" class="edpq-label">Photo Upload</label>
+                    <input type="file" class="edpq-file" id="net_image" name="net_image" accept=".png, .jpg, .jpeg" required />
+                    <small class="edpq-help">Max file size: 8MB. Accepted formats: JPG, JPEG, PNG.</small>
+                </div>
                 <input type="hidden" name="action" value="form_post_new_net_photo_submission_ajax" />
-                <input type="submit" value="Submit" tabindex="6" id="submit" name="submit" />
                 <?php wp_nonce_field('new-post'); ?>
+                <button type="submit" class="edpq-submit-btn" id="submit" name="submit">Submit Photo</button>
             </form>
             <script>
                 jQuery(document).ready(function($) {
                     var uploadField = document.getElementById("net_image");
                     uploadField.onchange = function() {
                         if (this.files[0].size > 8388608) {
-                            alert("File is too big!");
+                            alert("File is too big! Maximum allowed size is 8MB.");
                             this.value = "";
                         }
                     };
