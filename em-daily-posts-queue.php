@@ -83,7 +83,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     public function init_class() {
 
-        require_once __DIR__ . '/classes/class-photo-net-submission-queue.php';
+        require_once __DIR__ . '/classes/class-photo-submission-queue-manager.php';
         require_once __DIR__ . '/classes/class-cron-events.php';
         require_once __DIR__ . '/classes/class-cron-event-timer.php';
         require_once __DIR__ . '/classes/class-cpt-net-submission.php';
