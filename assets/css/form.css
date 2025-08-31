@@ -1,3 +1,46 @@
+/* Success message homepage button */
+.edpq-success-home-btn {
+    display: inline-block;
+    margin-top: 1.2em;
+    padding: 10px 24px;
+    background: #0073aa;
+    color: #fff;
+    font-size: 1em;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: background 0.2s;
+}
+.edpq-success-home-btn:hover {
+    background: #005a8c;
+}
+/* Success message styling */
+.edpq-success-message {
+    max-width: 500px;
+    margin: 30px auto;
+    padding: 24px 18px;
+    background: #f6fff7;
+    border: 2px solid #28a745;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(40,167,69,0.10);
+    text-align: center;
+    color: #222;
+}
+.edpq-success-icon {
+    display: block;
+    margin: 0 auto 12px auto;
+}
+.edpq-success-message h3 {
+    color: #28a745;
+    font-size: 1.4em;
+    margin-bottom: 0.5em;
+}
+.edpq-success-message p {
+    font-size: 1em;
+    color: #222;
+    margin: 0;
+}
 form#new_post,
 .edpq-form {
     max-width: 600px;
@@ -68,4 +111,22 @@ form#new_post,
 }
 .edpq-submit-btn:hover {
     background: #005a8c;
+}
+/* Loader animation for form submission */
+.edpq-ajax-loader {
+    display: block;
+    margin: 24px auto;
+    width: 48px;
+    height: 48px;
+    border: 6px solid #e0e0e0;
+    border-top: 6px solid #0073aa;
+    border-radius: 50%;
+    animation: edpq-spin 1s linear infinite;
+    background: transparent;
+    z-index: 10;
+}
+
+@keyframes edpq-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

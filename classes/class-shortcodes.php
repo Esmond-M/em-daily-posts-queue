@@ -45,6 +45,7 @@ class Shortcodes {
                 <input type="hidden" name="action" value="form_post_new_net_photo_submission_ajax" />
                 <?php wp_nonce_field('new-post'); ?>
                 <button type="submit" class="edpq-submit-btn" id="submit" name="submit">Submit Photo</button>
+                    <div class="edpq-ajax-loader" style="display:none;"></div>
             </form>
             <script>
                 jQuery(document).ready(function($) {
@@ -73,7 +74,7 @@ class Shortcodes {
         $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
         $row = $wpdb->get_row("SELECT list FROM {$table_name} WHERE id = 1", ARRAY_A);
 
-        $placeholder_img = esc_url(plugins_url('assets/imgs/placeholder.png', __FILE__));
+    $placeholder_img = esc_url(plugin_dir_url(__DIR__) . 'assets/imgs/placeholder.png');
 
         if (isset($row['list']) && !empty($row['list'])) {
             $stored_queue_list_arr = @unserialize(base64_decode($row['list']));
