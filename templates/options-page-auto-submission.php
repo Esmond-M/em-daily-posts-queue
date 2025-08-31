@@ -53,14 +53,13 @@
         </td>
       </tr>
       <?php endforeach; ?>
-    <?php else: ?>
-      <!-- No submissions message -->
-      <tr>
-        <td colspan="5">No photo submissions to display in the queue list.</td>
-      </tr>
-    <?php endif; ?>
+  <?php endif; ?>
   </tbody>
+    </tbody>
 </table>
+<?php if (empty($queue_list) || !is_array($queue_list)): ?>
+  <div class="edpq-no-submissions-message">No photo submissions to display in the queue list.</div>
+<?php endif; ?>
 <!-- Security nonce and hidden fields for AJAX -->
 <?php wp_nonce_field('update-photo-queue-list'); ?>
 <?php if (!empty($queue_list) && is_array($queue_list)): ?>

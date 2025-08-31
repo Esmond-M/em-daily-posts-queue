@@ -1,8 +1,71 @@
-form#new_post {
-    max-width: 1100px;
+form#new_post,
+.edpq-form {
+    max-width: 600px;
     width: 100%;
-    margin: 20px auto;
-    padding: 20px;
-    border: gray solid 1px;
-    box-shadow: 0px 3px 10px rgba(0,0,0,.8);
+    margin: 30px auto;
+    padding: 30px 24px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.edpq-form-title {
+    text-align: center;
+    font-size: 2em;
+    margin-bottom: 1em;
+    color: #222;
+}
+
+.edpq-form-group {
+    margin-bottom: 1.5em;
+}
+
+.edpq-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5em;
+    color: #333;
+}
+
+.edpq-input,
+.edpq-textarea,
+.edpq-file {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    font-size: 1em;
+    box-sizing: border-box;
+    margin-bottom: 0.25em;
+}
+
+.edpq-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.edpq-help {
+    display: block;
+    font-size: 0.95em;
+    color: #888;
+    margin-top: 0.25em;
+}
+
+.edpq-submit-btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    background: #0073aa;
+    color: #fff;
+    font-size: 1.1em;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 1em;
+}
+.edpq-submit-btn:hover {
+    background: #005a8c;
 }

@@ -35,7 +35,7 @@ if (!class_exists('CPT_NetSubmission')) {
         public static function net_submission_template_override($template) {
             $plugin_dir = plugin_dir_path(__FILE__) . '../templates/';
             if (is_singular('net_submission')) {
-                $single_template = $plugin_dir . 'single-net_submission.php';
+                $single_template = $plugin_dir . 'single-net-submission.php';
                 if (file_exists($single_template)) {
                     return $single_template;
                 }

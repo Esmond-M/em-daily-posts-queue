@@ -27,11 +27,10 @@
           <td><?php echo htmlspecialchars($item['queueNumber']); ?></td>
         </tr>
       <?php endforeach; ?>
-    <?php else: ?>
-      <!-- No submissions message -->
-      <tr>
-        <td colspan="2">No photo submissions to display in the queue list.</td>
-      </tr>
-    <?php endif; ?>
+  <?php endif; ?>
   </tbody>
+    </tbody>
 </table>
+<?php if (empty($queue_list) && !isset($queue_list['error'])): ?>
+  <div class="edpq-no-submissions-message">No photo submissions to display in the queue list.</div>
+<?php endif; ?>
