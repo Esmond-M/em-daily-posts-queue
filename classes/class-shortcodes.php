@@ -45,6 +45,7 @@ class Shortcodes {
                 <input type="hidden" name="action" value="form_post_new_net_photo_submission_ajax" />
                 <?php wp_nonce_field('new-post'); ?>
                 <button type="submit" class="edpq-submit-btn" id="submit" name="submit">Submit Photo</button>
+                    <div class="edpq-ajax-loader" style="display:none;"></div>
             </form>
             <script>
                 jQuery(document).ready(function($) {

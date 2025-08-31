@@ -1,9 +1,9 @@
 jQuery(document).ready(function ($) {
-jQuery( "#new_post" ).submit(function( event ) {
-    event.preventDefault();
-    jQuery("#new_post button").prop( "disabled", true ); // disable all form buttons
-    jQuery("#new_post button input[type='submit']").prop( "disabled", true ); // disable all form buttons
-    jQuery('#new_post').append('<div class="edpq-ajax-loader"></div>'); // initial loader icon for all users request
+    jQuery( "#new_post" ).submit(function( event ) {
+        event.preventDefault();
+        jQuery("#new_post button").prop( "disabled", true ); // disable all form buttons
+        jQuery("#new_post button input[type='submit']").prop( "disabled", true ); // disable all form buttons
+        jQuery('.edpq-ajax-loader').css('display', 'block'); // show existing loader
 
     // Serialize the data in the form
     var formData = new FormData(jQuery("#new_post")[0]); 
@@ -16,20 +16,20 @@ jQuery( "#new_post" ).submit(function( event ) {
 			contentType: false,
             data: formData,
             success: function(responseText){ 
-               setTimeout( // timeout function to transition from loader icon to content less abruptly
+                setTimeout(
                     function() {
-                            jQuery(".edpq-ajax-loader").remove();
-                            jQuery('#new_post').after(responseText); // initial loader icon for all users request
-                            jQuery("#new_post").remove();
-                            var $modal = jQuery(".newpost-success");
-                            jQuery([window.top.document.documentElement, window.top.document.body]).animate({scrollTop: $modal.offset().top - ($modal.width() / 2)}, 500);
+                        jQuery('.edpq-ajax-loader').css('display', 'none'); // hide loader
+                        jQuery('#new_post').after(responseText);
+                        jQuery('#new_post').remove();
+                        var $modal = jQuery('.newpost-success');
+                        jQuery([window.top.document.documentElement, window.top.document.body]).animate({scrollTop: $modal.offset().top - ($modal.width() / 2)}, 500);
                     },
                     0
                 );
 
           },
             error: function(jqXHR, textStatus, errorThrown) {
-                jQuery(".edpq-ajax-loader").remove();
+                jQuery('.edpq-ajax-loader').css('display', 'none'); // hide loader
 				jQuery("#new_post button").prop( "disabled", false ); // enable all form buttons
 				jQuery("#new_post input[type='submit']").prop( "disabled", false ); // enable all form buttons
                 jQuery("#new_post").append('<div id="edpq-connect-error">Connection Error</div>');
