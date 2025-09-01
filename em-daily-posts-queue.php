@@ -8,7 +8,7 @@
  * Requires at least: 6.1
  * Requires PHP:      7.4.33
  * Requires Plugins:  action-scheduler
- * Version:           0.1.0
+ * Version:           0.1.1
  * License:           GPL-2.0-or-later
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       em-daily-posts-queue
