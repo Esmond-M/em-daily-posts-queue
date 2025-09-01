@@ -8,7 +8,7 @@ if (!isset($queue_list) || !is_array($queue_list)) {
     $queue_list = [];
 }
 ?>
-<div class="wrap">
+<div class="edpq-admin-queue-wrap">
     <h1>Edit Photo Submission Queue</h1>
     <form id="admin-queue-edit-form" method="post">
         <div id="queue-list">
