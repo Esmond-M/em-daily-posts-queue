@@ -19,7 +19,7 @@ if (!isset($queue_list) || !is_array($queue_list)) {
             <!-- Conflict warning will be injected by JS as .edpq-conflict-warning -->    
                 <?php $post_title = get_the_title($item['postid']); ?>
                 <div class="queue-row" data-postid="<?php echo esc_attr($item['postid']); ?>" data-queuenumber="<?php echo esc_attr($item['queueNumber']); ?>" data-posttitle="<?php echo esc_attr($post_title); ?>">
-                    <span class="queue-title"><?php echo esc_html($post_title); ?> (Post ID: <?php echo esc_html($item['postid']); ?>)</span>
+                    <span class="queue-title"><?php echo esc_html($post_title); ?> (Queue Order: <?php echo esc_html($item['queueNumber']); ?>)</span>
                     <button type="button" class="queue-up">&#8593; Up</button>
                     <button type="button" class="queue-down">&#8595; Down</button>
                     <button type="button" class="queue-delete">Delete</button>
