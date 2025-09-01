@@ -10,6 +10,9 @@ if (!isset($queue_list) || !is_array($queue_list)) {
 ?>
 <div class="edpq-admin-queue-wrap">
     <h1>Edit Photo Submission Queue</h1>
+    <?php if (current_user_can('manage_options')): ?>
+    <a href="<?php echo esc_url(add_query_arg('import_demo', '1')); ?>" class="button" style="margin-bottom:15px;">Import Demo Submissions</a>
+    <?php endif; ?>
     <form id="admin-queue-edit-form" method="post">
         <div id="queue-list">
             <?php foreach ($queue_list as $item): ?>

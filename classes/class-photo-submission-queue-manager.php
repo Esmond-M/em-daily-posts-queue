@@ -386,11 +386,6 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
         }
         unset($item);
         $result = $this->update_queue_list_in_db($queue_list);
-        if ($result !== true) {
-            echo "SQL Error: " . $result;
-        } else {
-            echo "New record created successfully";
-        }
 
     }
 
@@ -429,10 +424,33 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
             }
 
+     /**
+     * Import demo net_submission posts (4 demo posts)
+     */
+    public function import_demo_net_submissions() {
+        for ($i = 1; $i <= 4; $i++) {
+            wp_insert_post([
+                'post_title'   => "Demo Submission $i",
+                'post_content' => "This is demo content for submission $i.",
+                'post_status'  => 'publish',
+                'post_type'    => 'net_submission',
+                'meta_input'   => [
+                    'topic_headline_value' => "Demo Headline $i",
+                    'topic_caption_value'  => "Demo Caption $i"
+                ]
+            ]);
+        }
+    }           
+
     /**
      * Render the admin queue edit page (with reorder/delete UI)
      */
     public function edpqadmin_queue_edit_page(){
+        // Handle demo import trigger
+        if (isset($_GET['import_demo']) && $_GET['import_demo'] === '1' && current_user_can('manage_options')) {
+            $this->import_demo_net_submissions();
+            echo '<div class="notice notice-success"><p>Demo net_submission posts imported!</p></div>';
+        }
         $queue_list = $this->get_queue_list();
         require_once __DIR__ . '/../templates/options-page-admin-queue-edit.php';
     }
