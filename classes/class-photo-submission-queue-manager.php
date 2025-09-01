@@ -359,32 +359,31 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
      */
     public function edpqPhotoSubmission_register_submenu_page() {
 
-                //Add Custom Social Sharing Sub Menu
-                add_submenu_page(
-                'edit.php?post_type=net_submission',
-                'Photo Submission Queue List',
-                'Queue List',
-                "upload_files" ,
-                'edit_net_submissions' ,
-                [$this, 'edpqqueue_list_page']
-                );
-                //Add Custom Social Sharing Sub Menu
-                add_submenu_page(
-                'edit.php?post_type=net_submission',
-                'Admin Photo Queue List',
-                'Admin Photo Queue List',
-                "manage_options",
-                'admin-queue-list',
-                [$this, 'edpqadmin_queue_list_page']);
-                // Add new submenu for admin queue edit page
-                add_submenu_page(
-                    'edit.php?post_type=net_submission',
-                    'Edit Photo Queue',
-                    'Edit Photo Queue',
-                    'manage_options',
-                    'admin-queue-edit',
-                    [$this, 'edpqadmin_queue_edit_page']
-                );
+        // Register custom admin submenu pages for photo submission queue management
+
+        // Submenu: Admin Photo Queue List (read-only view)
+        // - Appears under the "net_submission" post type menu
+        // - Allows admins to view the current photo submission queue
+        add_submenu_page(
+            'edit.php?post_type=net_submission', // Parent menu (custom post type)
+            'Admin Photo Queue List',            // Page title (shown in browser tab)
+            'Admin Photo Queue List',            // Menu title (shown in WP admin menu)
+            'manage_options',                    // Capability required to access
+            'admin-queue-list',                  // Menu slug
+            [$this, 'edpqadmin_queue_list_page'] // Callback to render the page
+        );
+
+        // Submenu: Edit Photo Queue (reorder/delete UI)
+        // - Appears under the "net_submission" post type menu
+        // - Allows admins to reorder or delete items in the queue
+        add_submenu_page(
+            'edit.php?post_type=net_submission', // Parent menu (custom post type)
+            'Edit Photo Queue',                  // Page title (shown in browser tab)
+            'Edit Photo Queue',                  // Menu title (shown in WP admin menu)
+            'manage_options',                    // Capability required to access
+            'admin-queue-edit',                  // Menu slug
+            [$this, 'edpqadmin_queue_edit_page'] // Callback to render the page
+        );
 
 
 
@@ -421,18 +420,6 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 return [];
             }
 
-    /**
-     * Render the auto submission queue list page (with reorder/delete UI)
-     */
-    public function edpqqueue_list_page(){
-
-                global $pagenow;
-                $plugin_url = plugin_dir_url(dirname(__FILE__));
-                $rand = rand(1, 99999999999);
-                $queue_list = $this->get_queue_list();
-               // require_once __DIR__  . '/../templates/options-page-auto-submission.php';
-
-        }
 
     /**
      * Render the admin queue list page (read-only, no editing)
