@@ -147,7 +147,12 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 $queue[$num]['queueNumber'] = intval($value);
             }
         }
+        // Reindex queueNumber sequentially (no gaps)
         $queue = array_values($queue);
+        foreach ($queue as $i => &$item) {
+            $item['queueNumber'] = $i + 1;
+        }
+        unset($item);
 
         // Get current queue from DB to find removed post IDs
         $old_queue = $this->get_queue_list();
@@ -235,7 +240,11 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 }
             }
             $reNumberBeforeSubmit = array_values($stored_queue_list_arr);
-            $reNumberBeforeSubmit = $renumber_queue($reNumberBeforeSubmit, $queueNumberToRemove);
+            // Reindex queueNumber sequentially (no gaps)
+            foreach ($reNumberBeforeSubmit as $i => &$item) {
+                $item['queueNumber'] = $i + 1;
+            }
+            unset($item);
 
             $conn = $db_connect();
             $db_queue = $get_queue_list_db($conn);
@@ -276,6 +285,11 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
             $queueLoop_count++;
         }
         $FixedTempArrayFromPageForm = array_values($tempArrayFromPageForm);
+        // Reindex queueNumber sequentially (no gaps)
+        foreach ($FixedTempArrayFromPageForm as $i => &$item) {
+            $item['queueNumber'] = $i + 1;
+        }
+        unset($item);
         $updatedQueuelist = array_replace($stored_queue_list_arr, $FixedTempArrayFromPageForm);
 
         $conn = $db_connect();
@@ -338,13 +352,15 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
         }
         $queue_list = $this->get_queue_list_from_db();
         if (is_array($queue_list) && !empty($queue_list)) {
-            $getHighestNumberInQueueDatabase = array_key_last($queue_list);
-            $highestNumber = $queue_list[$getHighestNumberInQueueDatabase]['queueNumber'];
-            $addthis = intval($highestNumber) + 1;
-            $queue_list[] = array("postid" => $post_id, "queueNumber" => $addthis);
+            $queue_list[] = array("postid" => $post_id, "queueNumber" => 0); // temp value
         } else {
-            $queue_list = [array("postid" => $post_id, "queueNumber" => 1)];
+            $queue_list = [array("postid" => $post_id, "queueNumber" => 0)];
         }
+        // Reindex queueNumber sequentially (no gaps)
+        foreach ($queue_list as $i => &$item) {
+            $item['queueNumber'] = $i + 1;
+        }
+        unset($item);
         $result = $this->update_queue_list_in_db($queue_list);
         if ($result !== true) {
             echo "SQL Error: " . $result;
