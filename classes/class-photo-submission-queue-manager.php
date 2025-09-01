@@ -15,14 +15,19 @@ namespace EmDailyPostsQueue\init_plugin\Classes;
 if (!class_exists('PhotoNetSubmissionQueue')) {
 
     class PhotoNetSubmissionQueue
+
     {
 
     /**
      * Declaring constructor
      */
     public function __construct()
-    {
 
+    {
+    // Remove bulk actions for net_submission
+    add_filter('bulk_actions-edit-net_submission', [$this, 'remove_bulk_actions']);
+    // Hide bulk actions dropdown for net_submission
+    add_action('admin_head', [$this, 'hide_bulk_actions_dropdown']);
     // AJAX handler for photo deletion info (admin and public)
     add_action('wp_ajax_net_photo_deletion_info_ajax', [$this, 'net_photo_deletion_info_ajax' ] );
     add_action('wp_ajax_nopriv_net_photo_deletion_info_ajax', [$this, 'net_photo_deletion_info_ajax' ]);
@@ -54,6 +59,25 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
     }
 
+
+    /**
+     * Remove bulk actions for net_submission post type
+     */
+    public function remove_bulk_actions($actions) {
+        unset($actions['edit']); // Remove Bulk Edit
+        unset($actions['trash']); // Optionally remove Trash
+        return $actions;
+    }
+
+    /**
+     * Hide bulk actions dropdown for net_submission post type using plugin style
+     */
+    public function hide_bulk_actions_dropdown() {
+        $screen = get_current_screen();
+        if ($screen->post_type === 'net_submission') {
+            echo '<style>.bulkactions { display: none !important; }</style>';
+        }
+    }
     /**
      * AJAX handler: Full wipe of queue and all net_submission posts
      */
@@ -610,13 +634,15 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
      * Customize row actions for net_submission posts (removes quick edit/trash)
      */
     public function my_cpt_row_actions( $actions, $post ) {
-                if ( 'net_submission' === $post->post_type ) {
-                    // Removes the "Quick Edit" action.
-                    // Removes the "Trash" action.
-                    unset( $actions['inline hide-if-no-js'] );
-                    unset( $actions['trash'] );
-                }
-                return $actions;
+        if ( 'net_submission' === $post->post_type ) {
+            // Removes the "Quick Edit" action.
+            // Removes the "Trash" action.
+            // Removes the "Bulk Edit" action.
+            unset( $actions['inline hide-if-no-js'] );
+            unset( $actions['trash'] );
+            unset( $actions['bulk_edit'] );
+        }
+        return $actions;
     }
 
     /**
