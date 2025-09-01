@@ -81,48 +81,36 @@ if (!class_exists('CronEvents')) {
      * @return void
      */
         public function eg_action_net_submission_weekly_update() {
-            // Connect to DB
-            $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
-            if (!$conn) {
-                error_log("Connection to database failed: " . mysqli_connect_error());
-                return;
-            }
-
-            $list = $this->get_queue_list_from_db($conn);
-            $conn->close();
-            if (empty($list)) {
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+            $row = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
+            if (empty($row) || empty($row['list'])) {
                 echo 'Database row does not exist.';
                 return;
             }
-
-            $stored_queue_list_arr = unserialize(base64_decode($list));
+            $stored_queue_list_arr = unserialize(base64_decode($row['list']));
             $old_stored_queue_list_arr = $stored_queue_list_arr;
             $idToRemove = $stored_queue_list_arr[0]['postid'] ?? null;
             unset($stored_queue_list_arr[0]);
             $reNumberBeforeSubmit = array_values($stored_queue_list_arr);
-            foreach ($reNumberBeforeSubmit as &$item) {
-                $item['queueNumber'] = $item['queueNumber'] - 1;
+            foreach ($reNumberBeforeSubmit as $i => &$item) {
+                $item['queueNumber'] = $i + 1;
             }
             unset($item);
 
-            // Reconnect for update/check
-            $conn2 = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
-            if (!$conn2) {
-                error_log("Connection to database failed: " . mysqli_connect_error());
-                return;
-            }
-            $list2 = $this->get_queue_list_from_db($conn2);
-            if (empty($list2)) {
+            // Check for update/conflict
+            $row2 = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
+            if (empty($row2) || empty($row2['list'])) {
                 echo 'Database row does not exist.';
-                $conn2->close();
                 return;
             }
-            $Second_stored_queue_list_arr = unserialize(base64_decode($list2));
+            $Second_stored_queue_list_arr = unserialize(base64_decode($row2['list']));
             $isWindowOutdated = $this->edpqcompareMultiDimensional($Second_stored_queue_list_arr, $old_stored_queue_list_arr);
 
             if (empty($isWindowOutdated)) {
-                $updateSuccess = $this->update_queue_list_in_db($conn2, $reNumberBeforeSubmit);
-                if ($updateSuccess) {
+                $serialized = base64_encode(serialize($reNumberBeforeSubmit));
+                $result = $wpdb->query($wpdb->prepare("UPDATE $table_name SET list=%s WHERE id=1", $serialized));
+                if ($result !== false && $result > 0) {
                     if ($idToRemove) {
                         wp_delete_post($idToRemove, true);
                     }
@@ -139,30 +127,27 @@ if (!class_exists('CronEvents')) {
                 $message = 'Window was out of date when cron event ran.';
                 $this->send_admin_email($subject, $message);
             }
-            $conn2->close();
         }
     
         /**
          * Helper to get the queue list from DB.
          */
-        private function get_queue_list_from_db($conn) {
+        private function get_queue_list_from_db() {
             global $wpdb;
             $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-            $sql = "SELECT list FROM $table_name WHERE id='1';";
-            $result = mysqli_query($conn, $sql);
-            $row = mysqli_fetch_assoc($result);
+            $row = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
             return $row['list'] ?? '';
         }
 
         /**
          * Helper to update the queue list in DB.
          */
-        private function update_queue_list_in_db($conn, $queueList) {
+        private function update_queue_list_in_db($queueList) {
             global $wpdb;
             $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
             $serialized = base64_encode(serialize($queueList));
-            $sql = "UPDATE $table_name SET list='" . $serialized . "' WHERE id=1";
-            return $conn->query($sql);
+            $result = $wpdb->query($wpdb->prepare("UPDATE $table_name SET list=%s WHERE id=1", $serialized));
+            return ($result !== false && $result > 0);
         }
 
         /**
