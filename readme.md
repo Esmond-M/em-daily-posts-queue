@@ -16,6 +16,7 @@ Originally made for AWC intranet website. Being put into a plugin for future use
 
 ## Features & Guidelines
 
+• Demo content import button added to the admin queue edit page for quick sample post creation.  
 • This plugin is used in conjunction with the "Action Scheduler" plugin. The number one post in the queue will get deleted once every weekday. The next post will then move up and be displayed on the front-end using the short-code `[EmDailyPostsQueueDisplayPost]`.  
 • This plugin adds a Custom Post type "Net Submissions".  
 • Adds WordPress user role "Net Submitter". Only this role and administrators can edit the new post type and queue system.  
@@ -180,6 +181,11 @@ Show the current daily post:
 - `post_row_actions` - Custom row actions for net submissions
 
 ## Changelog
+### Version 0.1.1
+- Queue system now guarantees sequential queue numbers (no gaps)
+- Changed admin queue container class name for uniqueness
+- Removed bulk edit options for net_submission post type
+- Added demo content import button to admin queue edit page
 
 ### Version 0.1.0
 - Initial release
