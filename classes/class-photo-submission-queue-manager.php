@@ -41,6 +41,12 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
         add_filter( 'post_row_actions', [$this, 'my_cpt_row_actions' ] , 10, 2 );
 
+    // Register AJAX handler for admin queue edit
+    add_action('wp_ajax_admin_queue_edit', [$this, 'handle_admin_queue_edit_ajax']);
+    /**
+     * AJAX handler: Save queue order and deletions from admin edit page
+     */
+
         }
 
 
@@ -93,6 +99,34 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
             return $result;
         } 
+
+            public function handle_admin_queue_edit_ajax() {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Permission denied.']);
+        }
+        if (!isset($_POST['form_data'])) {
+            wp_send_json_error(['message' => 'No data received.']);
+        }
+        parse_str($_POST['form_data'], $form);
+        $queue = [];
+        foreach ($form as $key => $value) {
+            if (strpos($key, 'queue-postID-') === 0) {
+                $num = str_replace('queue-postID-', '', $key);
+                $queue[$num]['postid'] = intval($value);
+            }
+            if (strpos($key, 'queue-value-') === 0) {
+                $num = str_replace('queue-value-', '', $key);
+                $queue[$num]['queueNumber'] = intval($value);
+            }
+        }
+        $queue = array_values($queue);
+        $result = $this->update_queue_list_in_db($queue);
+        if ($result === true) {
+            wp_send_json_success(['message' => 'Queue updated.']);
+        } else {
+            wp_send_json_error(['message' => 'Error updating queue.']);
+        }
+    }
 
     /**
      * AJAX handler: Processes queue item deletion and updates the queue in the database
@@ -400,6 +434,14 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                         'ajaxurl_net_photo_deletion_info' => admin_url('admin-ajax.php'),
                         'noposts' => __('No older posts found', 'edpq-white'),
                     )); 
+                }
+                // Enqueue admin-queue-edits.js for the Edit Photo Queue page
+                if (
+                    'edit.php' === $pagenow &&
+                    isset($_GET['post_type']) && $_GET['post_type'] === 'net_submission' &&
+                    isset($_GET['page']) && $_GET['page'] === 'admin-queue-edit'
+                ) {
+                    wp_enqueue_script('admin-queue-edits-js', $plugin_url . '/admin/assets/js/admin-queue-edits.js', array('jquery'), $rand, true);
                 }
       
         }
