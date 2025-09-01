@@ -23,31 +23,38 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
     public function __construct()
     {
 
-        add_action('wp_ajax_net_photo_deletion_info_ajax', [$this, 'net_photo_deletion_info_ajax' ] );
-        add_action('wp_ajax_nopriv_net_photo_deletion_info_ajax', [$this, 'net_photo_deletion_info_ajax' ]);
-        add_action('wp_ajax_form_post_new_net_photo_submission_ajax', [$this, 'form_post_new_net_photo_submission_ajax' ] );
-        add_action('wp_ajax_nopriv_form_post_new_net_photo_submission_ajax', [$this, 'form_post_new_net_photo_submission_ajax' ]);
+    // AJAX handler for photo deletion info (admin and public)
+    add_action('wp_ajax_net_photo_deletion_info_ajax', [$this, 'net_photo_deletion_info_ajax' ] );
+    add_action('wp_ajax_nopriv_net_photo_deletion_info_ajax', [$this, 'net_photo_deletion_info_ajax' ]);
 
-        add_action('trashed_post', [$this, 'net_submission_skip_trash' ] );
-        add_action( 'pre_post_update', [$this, 'intercept_publishToDraft' ] , 10, 2);
-        add_action( 'publish_net_submission', [$this, 'do_updated_to_publish' ] , 10, 3 );
+    // AJAX handler for new photo submissions (admin and public)
+    add_action('wp_ajax_form_post_new_net_photo_submission_ajax', [$this, 'form_post_new_net_photo_submission_ajax' ] );
+    add_action('wp_ajax_nopriv_form_post_new_net_photo_submission_ajax', [$this, 'form_post_new_net_photo_submission_ajax' ]);
 
-        add_action('admin_menu', [$this, 'edpqPhotoSubmission_register_submenu_page' ] );
-        add_action( 'admin_enqueue_scripts', [$this, 'load_admin_net_style' ]  );
-        add_action( 'wp_enqueue_scripts', [$this, 'net_style_scripts' ]  );
+    // Hooks for post status changes and queue management
+    add_action('trashed_post', [$this, 'net_submission_skip_trash' ] ); // Force delete net_submission posts
+    add_action( 'pre_post_update', [$this, 'intercept_publishToDraft' ] , 10, 2); // Prevent unsupported status changes
+    add_action( 'publish_net_submission', [$this, 'do_updated_to_publish' ] , 10, 3 ); // Add published post to queue
 
-        add_action( 'admin_menu', [$this, 'edpq_net_submission_remove_meta_boxes' ]  );
-        add_action( 'add_meta_boxes', [$this, 'edpq_net_submission_register_meta_boxes' ]  );
+    // Admin menu and asset loading
+    add_action('admin_menu', [$this, 'edpqPhotoSubmission_register_submenu_page' ] ); // Register custom submenu pages
+    add_action( 'admin_enqueue_scripts', [$this, 'load_admin_net_style' ]  ); // Enqueue admin styles/scripts
+    add_action( 'wp_enqueue_scripts', [$this, 'net_style_scripts' ]  ); // Enqueue frontend styles/scripts
 
-        add_filter( 'post_row_actions', [$this, 'my_cpt_row_actions' ] , 10, 2 );
+    // Meta box management for net_submission post type
+    add_action( 'admin_menu', [$this, 'edpq_net_submission_remove_meta_boxes' ]  ); // Remove default meta boxes
+    add_action( 'add_meta_boxes', [$this, 'edpq_net_submission_register_meta_boxes' ]  ); // Register custom meta boxes
 
-        // Register AJAX handler for admin queue edit
-        add_action('wp_ajax_admin_queue_edit', [$this, 'handle_admin_queue_edit_ajax']);
-        add_action('wp_ajax_admin_queue_full_wipe', [$this, 'handle_admin_queue_full_wipe_ajax']);
+    // Customize row actions for net_submission posts
+    add_filter( 'post_row_actions', [$this, 'my_cpt_row_actions' ] , 10, 2 );
+
+    // Register AJAX handlers for admin queue edit and full wipe
+    add_action('wp_ajax_admin_queue_edit', [$this, 'handle_admin_queue_edit_ajax']); // Save queue changes
+    add_action('wp_ajax_admin_queue_full_wipe', [$this, 'handle_admin_queue_full_wipe_ajax']); // Full wipe of queue/posts
 
     }
 
-  /**
+    /**
      * AJAX handler: Full wipe of queue and all net_submission posts
      */
     public function handle_admin_queue_full_wipe_ajax() {
@@ -315,7 +322,6 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
     }
 
-
     /**
      * Hook: Add newly published net_submission post to the queue list in the database
      */
@@ -341,7 +347,6 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
         }
 
     }
-
 
     /**
      * Admin: Register submenu pages for queue list and admin queue list
@@ -474,7 +479,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                     wp_enqueue_script('admin-queue-edits-js', $plugin_url . '/admin/assets/js/admin-queue-edits.js', array('jquery'), $rand, true);
                 }
 
-        }
+    }
 
 
     /**
@@ -497,7 +502,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                     'high',
                     [ 'show_draft_button' => false ]
                 );
-        }
+    }
 
     /**
      * Render custom meta box UI for net_submission post editing
@@ -590,7 +595,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
             </div>
                 <?php
-        }
+    }
 
     /**
      * Customize row actions for net_submission posts (removes quick edit/trash)
@@ -603,7 +608,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                     unset( $actions['trash'] );
                 }
                 return $actions;
-        }
+    }
 
     /**
      * AJAX handler: Processes new photo submission form and creates new net_submission post
@@ -677,7 +682,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                                         <a href="' . esc_url(home_url('/')) . '" class="edpq-success-home-btn">Return to Homepage</a>
                                     </div>';
             wp_die();
-        }
+    }
 
     /**
      * Conditionally enqueue styles/scripts for frontend shortcodes
@@ -697,7 +702,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                     ));
                 }
 
-        }
+    }
 
         /**
          * Get the queue list from the database
@@ -719,7 +724,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 return is_array($queue) ? $queue : [];
             }
             return [];
-        }
+    }
 
         /**
          * Update the queue list in the database
@@ -738,7 +743,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
             $result = $conn->query($sql);
             $conn->close();
             return $result === TRUE ? true : $conn->error;
-        }
+    }
 
 
     }
