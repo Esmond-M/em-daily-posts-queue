@@ -32,6 +32,7 @@ jQuery(document).ready(function($) {
 
     // Renumber queue rows and update hidden inputs
     function renumberQueue() {
+        // Always assign sequential queueNumber values (1,2,3...) to all items
         $('#queue-list .queue-row').each(function(index) {
             var newNumber = index + 1;
             var postTitle = $(this).attr('data-posttitle') || 'Photo Submission';

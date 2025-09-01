@@ -15,14 +15,19 @@ namespace EmDailyPostsQueue\init_plugin\Classes;
 if (!class_exists('PhotoNetSubmissionQueue')) {
 
     class PhotoNetSubmissionQueue
+
     {
 
     /**
      * Declaring constructor
      */
     public function __construct()
-    {
 
+    {
+    // Remove bulk actions for net_submission
+    add_filter('bulk_actions-edit-net_submission', [$this, 'remove_bulk_actions']);
+    // Hide bulk actions dropdown for net_submission
+    add_action('admin_head', [$this, 'hide_bulk_actions_dropdown']);
     // AJAX handler for photo deletion info (admin and public)
     add_action('wp_ajax_net_photo_deletion_info_ajax', [$this, 'net_photo_deletion_info_ajax' ] );
     add_action('wp_ajax_nopriv_net_photo_deletion_info_ajax', [$this, 'net_photo_deletion_info_ajax' ]);
@@ -54,6 +59,25 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
     }
 
+
+    /**
+     * Remove bulk actions for net_submission post type
+     */
+    public function remove_bulk_actions($actions) {
+        unset($actions['edit']); // Remove Bulk Edit
+        unset($actions['trash']); // Optionally remove Trash
+        return $actions;
+    }
+
+    /**
+     * Hide bulk actions dropdown for net_submission post type using plugin style
+     */
+    public function hide_bulk_actions_dropdown() {
+        $screen = get_current_screen();
+        if ($screen->post_type === 'net_submission') {
+            echo '<style>.bulkactions { display: none !important; }</style>';
+        }
+    }
     /**
      * AJAX handler: Full wipe of queue and all net_submission posts
      */
@@ -147,7 +171,12 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 $queue[$num]['queueNumber'] = intval($value);
             }
         }
+        // Reindex queueNumber sequentially (no gaps)
         $queue = array_values($queue);
+        foreach ($queue as $i => &$item) {
+            $item['queueNumber'] = $i + 1;
+        }
+        unset($item);
 
         // Get current queue from DB to find removed post IDs
         $old_queue = $this->get_queue_list();
@@ -235,7 +264,11 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 }
             }
             $reNumberBeforeSubmit = array_values($stored_queue_list_arr);
-            $reNumberBeforeSubmit = $renumber_queue($reNumberBeforeSubmit, $queueNumberToRemove);
+            // Reindex queueNumber sequentially (no gaps)
+            foreach ($reNumberBeforeSubmit as $i => &$item) {
+                $item['queueNumber'] = $i + 1;
+            }
+            unset($item);
 
             $conn = $db_connect();
             $db_queue = $get_queue_list_db($conn);
@@ -276,6 +309,11 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
             $queueLoop_count++;
         }
         $FixedTempArrayFromPageForm = array_values($tempArrayFromPageForm);
+        // Reindex queueNumber sequentially (no gaps)
+        foreach ($FixedTempArrayFromPageForm as $i => &$item) {
+            $item['queueNumber'] = $i + 1;
+        }
+        unset($item);
         $updatedQueuelist = array_replace($stored_queue_list_arr, $FixedTempArrayFromPageForm);
 
         $conn = $db_connect();
@@ -338,19 +376,16 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
         }
         $queue_list = $this->get_queue_list_from_db();
         if (is_array($queue_list) && !empty($queue_list)) {
-            $getHighestNumberInQueueDatabase = array_key_last($queue_list);
-            $highestNumber = $queue_list[$getHighestNumberInQueueDatabase]['queueNumber'];
-            $addthis = intval($highestNumber) + 1;
-            $queue_list[] = array("postid" => $post_id, "queueNumber" => $addthis);
+            $queue_list[] = array("postid" => $post_id, "queueNumber" => 0); // temp value
         } else {
-            $queue_list = [array("postid" => $post_id, "queueNumber" => 1)];
+            $queue_list = [array("postid" => $post_id, "queueNumber" => 0)];
         }
+        // Reindex queueNumber sequentially (no gaps)
+        foreach ($queue_list as $i => &$item) {
+            $item['queueNumber'] = $i + 1;
+        }
+        unset($item);
         $result = $this->update_queue_list_in_db($queue_list);
-        if ($result !== true) {
-            echo "SQL Error: " . $result;
-        } else {
-            echo "New record created successfully";
-        }
 
     }
 
@@ -389,10 +424,33 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
             }
 
+     /**
+     * Import demo net_submission posts (4 demo posts)
+     */
+    public function import_demo_net_submissions() {
+        for ($i = 1; $i <= 4; $i++) {
+            wp_insert_post([
+                'post_title'   => "Demo Submission $i",
+                'post_content' => "This is demo content for submission $i.",
+                'post_status'  => 'publish',
+                'post_type'    => 'net_submission',
+                'meta_input'   => [
+                    'topic_headline_value' => "Demo Headline $i",
+                    'topic_caption_value'  => "Demo Caption $i"
+                ]
+            ]);
+        }
+    }           
+
     /**
      * Render the admin queue edit page (with reorder/delete UI)
      */
     public function edpqadmin_queue_edit_page(){
+        // Handle demo import trigger
+        if (isset($_GET['import_demo']) && $_GET['import_demo'] === '1' && current_user_can('manage_options')) {
+            $this->import_demo_net_submissions();
+            echo '<div class="notice notice-success"><p>Demo net_submission posts imported!</p></div>';
+        }
         $queue_list = $this->get_queue_list();
         require_once __DIR__ . '/../templates/options-page-admin-queue-edit.php';
     }
@@ -594,13 +652,15 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
      * Customize row actions for net_submission posts (removes quick edit/trash)
      */
     public function my_cpt_row_actions( $actions, $post ) {
-                if ( 'net_submission' === $post->post_type ) {
-                    // Removes the "Quick Edit" action.
-                    // Removes the "Trash" action.
-                    unset( $actions['inline hide-if-no-js'] );
-                    unset( $actions['trash'] );
-                }
-                return $actions;
+        if ( 'net_submission' === $post->post_type ) {
+            // Removes the "Quick Edit" action.
+            // Removes the "Trash" action.
+            // Removes the "Bulk Edit" action.
+            unset( $actions['inline hide-if-no-js'] );
+            unset( $actions['trash'] );
+            unset( $actions['bulk_edit'] );
+        }
+        return $actions;
     }
 
     /**
@@ -667,7 +727,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 $message = 'View it: ' . get_permalink( $pid ) . "<br><br>Edit it: " . get_edit_post_link( $pid, 'display' );
                 wp_set_current_user(0);  // turn off get user after get link function
 
-            // im testing wp_mail( $emailto, $subject, $message, $headers );
+            wp_mail( $emailto, $subject, $message, $headers );
                         echo '<div class="edpq-success-message">
                                         <svg class="edpq-success-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#28a745"/><path d="M10 17l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                         <h3>Thank you for your submission!</h3>
