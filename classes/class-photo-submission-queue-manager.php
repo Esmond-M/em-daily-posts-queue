@@ -301,8 +301,27 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 "manage_options",
                 'admin-queue-list',
                 [$this, 'edpqadmin_queue_list_page']);
+                // Add new submenu for admin queue edit page
+                add_submenu_page(
+                    'edit.php?post_type=net_submission',
+                    'Edit Photo Queue',
+                    'Edit Photo Queue',
+                    'manage_options',
+                    'admin-queue-edit',
+                    [$this, 'edpqadmin_queue_edit_page']
+                );
+    
+             
 
             } 
+
+    /**
+     * Render the admin queue edit page (with reorder/delete UI)
+     */
+    public function edpqadmin_queue_edit_page(){
+        $queue_list = $this->get_queue_list();
+        require_once __DIR__ . '/../templates/options-page-admin-queue-edit.php';
+    }
 
     /**
      * Retrieve the current photo submission queue list from the database
