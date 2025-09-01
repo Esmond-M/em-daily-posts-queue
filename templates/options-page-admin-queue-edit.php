@@ -14,7 +14,10 @@ if (!isset($queue_list) || !is_array($queue_list)) {
         <div id="queue-list">
             <?php foreach ($queue_list as $item): ?>
                 <div class="queue-row" data-postid="<?php echo esc_attr($item['postid']); ?>" data-queuenumber="<?php echo esc_attr($item['queueNumber']); ?>">
-                    <span class="queue-title">Photo Submission #<?php echo esc_html($item['queueNumber']); ?> (Post ID: <?php echo esc_html($item['postid']); ?>)</span>
+                    <?php 
+                        $post_title = get_the_title($item['postid']);
+                    ?>
+                    <span class="queue-title"><?php echo esc_html($post_title); ?> (Post ID: <?php echo esc_html($item['postid']); ?>)</span>
                     <button type="button" class="queue-up">&#8593; Up</button>
                     <button type="button" class="queue-down">&#8595; Down</button>
                     <button type="button" class="queue-delete">Delete</button>
