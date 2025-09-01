@@ -72,5 +72,32 @@ jQuery(document).ready(function($) {
             }
         });
     });
+    
+        // Full Wipe button AJAX
+        $('#full-wipe-btn').on('click', function() {
+            if (!confirm('Are you sure? This will delete ALL queue data and ALL net_submission posts. This cannot be undone.')) return;
+            var $form = $('#admin-queue-edit-form');
+            $form.append('<div class="edpq-ajax-loader"></div>');
+            $.ajax({
+                type: 'POST',
+                url: ajaxurl,
+                data: {
+                    action: 'admin_queue_full_wipe'
+                },
+                success: function(response) {
+                    $('.edpq-ajax-loader').remove();
+                    if (response && response.success) {
+                        alert('Full wipe completed!');
+                        location.reload();
+                    } else {
+                        alert('Error during full wipe.');
+                    }
+                },
+                error: function() {
+                    $('.edpq-ajax-loader').remove();
+                    alert('AJAX error.');
+                }
+            });
+        });
 
 });

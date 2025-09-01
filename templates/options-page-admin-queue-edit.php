@@ -24,5 +24,8 @@ if (!isset($queue_list) || !is_array($queue_list)) {
             <?php endforeach; ?>
         </div>
         <button type="submit" class="button button-primary">Save Queue Order</button>
+        <?php if (current_user_can('manage_options')): ?>
+        <button type="button" id="full-wipe-btn" class="button button-danger" style="margin-left:10px;">Full Wipe</button>
+        <?php endif; ?>
     </form>
 </div>
