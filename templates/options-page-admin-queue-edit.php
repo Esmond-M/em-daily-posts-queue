@@ -13,6 +13,7 @@ if (!isset($queue_list) || !is_array($queue_list)) {
     <form id="admin-queue-edit-form" method="post">
         <div id="queue-list">
             <?php foreach ($queue_list as $item): ?>
+            <!-- Conflict warning will be injected by JS as .edpq-conflict-warning -->    
                 <div class="queue-row" data-postid="<?php echo esc_attr($item['postid']); ?>" data-queuenumber="<?php echo esc_attr($item['queueNumber']); ?>">
                     <?php 
                         $post_title = get_the_title($item['postid']);

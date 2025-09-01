@@ -157,6 +157,12 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
             wp_delete_post($removed_id, true);
         }
 
+        // Check for queue conflict (optimistic concurrency)
+        $db_queue = $this->get_queue_list();
+        if ($db_queue !== $old_queue) {
+            wp_send_json_error(['conflict' => true, 'message' => 'Queue has been updated by another user.']);
+            return;
+        }
         $result = $this->update_queue_list_in_db($queue);
         if ($result === true) {
             wp_send_json_success(['message' => 'Queue updated.']);
@@ -424,7 +430,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
                 $rand = rand(1, 99999999999);
                 $queue_list = $this->get_queue_list();
-                require_once __DIR__  . '/../templates/options-page-auto-submission.php';
+               // require_once __DIR__  . '/../templates/options-page-auto-submission.php';
 
         }
 
@@ -674,7 +680,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 $message = 'View it: ' . get_permalink( $pid ) . "<br><br>Edit it: " . get_edit_post_link( $pid, 'display' );
                 wp_set_current_user(0);  // turn off get user after get link function
 
-            wp_mail( $emailto, $subject, $message, $headers );
+            // im testing wp_mail( $emailto, $subject, $message, $headers );
                         echo '<div class="edpq-success-message">
                                         <svg class="edpq-success-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#28a745"/><path d="M10 17l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                         <h3>Thank you for your submission!</h3>

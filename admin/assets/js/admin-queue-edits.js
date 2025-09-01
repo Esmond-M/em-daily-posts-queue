@@ -61,6 +61,11 @@ jQuery(document).ready(function($) {
                 if (response && response.success) {
                     alert('Queue updated successfully!');
                     location.reload();
+                } else if (response && response.data && response.data.conflict) {
+                    // Conflict detected: another user has changed the queue
+                    var $conflict = $('<div class="edpq-conflict-warning">Another user has updated the queue. This page will refresh in 5 seconds.</div>');
+                    $form.prepend($conflict);
+                    setTimeout(function() { location.reload(); }, 5000);
                 } else {
                     alert('Error updating queue.');
                 }

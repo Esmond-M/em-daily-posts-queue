@@ -1,3 +1,15 @@
+/* Conflict warning styling */
+.edpq-conflict-warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+  border-radius: 5px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  font-size: 1.08rem;
+  font-weight: 500;
+  text-align: center;
+}
 * {
   box-sizing: border-box;
 }
