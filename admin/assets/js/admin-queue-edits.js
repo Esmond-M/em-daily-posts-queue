@@ -6,6 +6,7 @@ jQuery(document).ready(function($) {
         var prev = row.prev('.queue-row');
         if (prev.length) {
             row.insertBefore(prev);
+            renumberQueue();
         }
     });
 
@@ -16,6 +17,7 @@ jQuery(document).ready(function($) {
         var next = row.next('.queue-row');
         if (next.length) {
             row.insertAfter(next);
+            renumberQueue();
         }
     });
 
@@ -24,10 +26,22 @@ jQuery(document).ready(function($) {
         e.preventDefault();
         if (confirm('Are you sure you want to delete this item?')) {
             $(this).closest('.queue-row').remove();
+            renumberQueue();
         }
     });
-});
-    // AJAX form submission for saving queue order
+
+    // Renumber queue rows and update hidden inputs
+    function renumberQueue() {
+        $('#queue-list .queue-row').each(function(index) {
+            var newNumber = index + 1;
+            $(this).attr('data-queuenumber', newNumber);
+            $(this).find('.queue-title').text('Photo Submission #' + newNumber + ' (Post ID: ' + $(this).data('postid') + ')');
+            $(this).find('input[name^="queue-postID-"]').attr('name', 'queue-postID-' + newNumber);
+            $(this).find('input[name^="queue-value-"]').attr('name', 'queue-value-' + newNumber).val(newNumber);
+        });
+    }
+
+        // AJAX form submission for saving queue order
     $('#admin-queue-edit-form').on('submit', function(e) {
         e.preventDefault();
         var $form = $(this);
@@ -58,3 +72,5 @@ jQuery(document).ready(function($) {
             }
         });
     });
+
+});
