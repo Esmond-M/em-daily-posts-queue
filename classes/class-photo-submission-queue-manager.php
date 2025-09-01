@@ -727,7 +727,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                 $message = 'View it: ' . get_permalink( $pid ) . "<br><br>Edit it: " . get_edit_post_link( $pid, 'display' );
                 wp_set_current_user(0);  // turn off get user after get link function
 
-            // im testing wp_mail( $emailto, $subject, $message, $headers );
+            wp_mail( $emailto, $subject, $message, $headers );
                         echo '<div class="edpq-success-message">
                                         <svg class="edpq-success-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#28a745"/><path d="M10 17l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                         <h3>Thank you for your submission!</h3>
