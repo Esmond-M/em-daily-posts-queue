@@ -34,8 +34,9 @@ jQuery(document).ready(function($) {
     function renumberQueue() {
         $('#queue-list .queue-row').each(function(index) {
             var newNumber = index + 1;
+            var postTitle = $(this).attr('data-posttitle') || 'Photo Submission';
             $(this).attr('data-queuenumber', newNumber);
-            $(this).find('.queue-title').text('Photo Submission #' + newNumber + ' (Post ID: ' + $(this).data('postid') + ')');
+            $(this).find('.queue-title').text(postTitle + ' (Post ID: ' + $(this).data('postid') + ')');
             $(this).find('input[name^="queue-postID-"]').attr('name', 'queue-postID-' + newNumber);
             $(this).find('input[name^="queue-value-"]').attr('name', 'queue-value-' + newNumber).val(newNumber);
         });
