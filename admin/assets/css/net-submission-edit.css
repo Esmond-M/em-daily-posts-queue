@@ -1,3 +1,8 @@
+/* Highlight the first queue item */
+.edpq-admin-queue-wrap #queue-list .queue-row:first-child {
+  background: #e0f7fa;
+  border-radius: 6px;
+}
 /* Admin Queue Edit Page Styles */
 .edpq-admin-queue-wrap  {
   max-width: 800px;

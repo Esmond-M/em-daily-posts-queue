@@ -428,8 +428,9 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
      * Import demo net_submission posts (4 demo posts)
      */
     public function import_demo_net_submissions() {
+        $placeholder_path = plugin_dir_path(dirname(__FILE__)) . 'assets/imgs/placeholder.png';
         for ($i = 1; $i <= 4; $i++) {
-            wp_insert_post([
+            $post_id = wp_insert_post([
                 'post_title'   => "Demo Submission $i",
                 'post_content' => "This is demo content for submission $i.",
                 'post_status'  => 'publish',
@@ -439,6 +440,26 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
                     'topic_caption_value'  => "Demo Caption $i"
                 ]
             ]);
+            // Assign featured image if post creation succeeded
+            if ($post_id && file_exists($placeholder_path)) {
+                require_once(ABSPATH . 'wp-admin/includes/image.php');
+                require_once(ABSPATH . 'wp-admin/includes/file.php');
+                require_once(ABSPATH . 'wp-admin/includes/media.php');
+                $upload = wp_upload_bits('placeholder-demo-' . $i . '.png', null, file_get_contents($placeholder_path));
+                if (!$upload['error']) {
+                    $filetype = wp_check_filetype($upload['file'], null);
+                    $attachment = array(
+                        'post_mime_type' => $filetype['type'],
+                        'post_title'     => 'Demo Placeholder',
+                        'post_content'   => '',
+                        'post_status'    => 'inherit'
+                    );
+                    $attach_id = wp_insert_attachment($attachment, $upload['file'], $post_id);
+                    $attach_data = wp_generate_attachment_metadata($attach_id, $upload['file']);
+                    wp_update_attachment_metadata($attach_id, $attach_data);
+                    set_post_thumbnail($post_id, $attach_id);
+                }
+            }
         }
     }           
 
