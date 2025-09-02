@@ -52,6 +52,28 @@ namespace EmDailyPostsQueue\init_plugin\Classes;
             }
         }
 
+
+        public function update_cron_schedule_from_input($time_string, $interval = 86400) {
+        // Remove all previously scheduled actions for this hook
+        if (function_exists('as_unschedule_all_actions')) {
+            as_unschedule_all_actions('eg_1_weekdays_log');
+        }
+
+        // Schedule new recurring action using user input
+        $timestamp = strtotime($time_string . ' America/Chicago');
+        if ($timestamp === false) {
+            $this->send_admin_email('Invalid cron time', 'Could not parse time string: ' . esc_html($time_string));
+            return false;
+        }
+
+        if (function_exists('as_schedule_recurring_action')) {
+            as_schedule_recurring_action($timestamp, $interval, 'eg_1_weekdays_log');
+            $this->send_admin_email('Cron time updated', 'New cron time: ' . esc_html($time_string));
+            return true;
+        }
+        return false;
+        }
+
         /**
          * Helper to send notification email to admin
          */
@@ -73,5 +95,9 @@ namespace EmDailyPostsQueue\init_plugin\Classes;
     if (!function_exists('as_schedule_recurring_action')) {
         function as_schedule_recurring_action($timestamp, $interval, $hook) {}
     }
-
+    // Stub for Action Scheduler's as_unschedule_all_actions.
+    // Prevents Intelephense "undefined function" warnings in development.
+    if (!function_exists('as_unschedule_all_actions')) {
+        function as_unschedule_all_actions($hook) {}
+    }
 new CronEventTimer();
