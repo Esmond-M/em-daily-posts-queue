@@ -209,7 +209,7 @@ class PhotoNetSubmissionAjax {
     // No connection to close
         wp_die();
     }
-    
+
     /**
      * AJAX handler: Processes new photo submission form and creates new net_submission post
      */
@@ -326,7 +326,7 @@ class PhotoNetSubmissionAjax {
                 }
 
     }
-    
+
     /**
      * Conditionally enqueue styles/scripts for frontend shortcodes
      */
@@ -345,6 +345,6 @@ class PhotoNetSubmissionAjax {
                     ));
                 }
 
-    }    
+    }
 
 }

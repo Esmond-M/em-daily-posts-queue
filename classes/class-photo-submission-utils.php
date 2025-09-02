@@ -94,7 +94,7 @@ class PhotoNetSubmissionUtils {
                 }
             }
         }
-    }    
+    }
 
     /**
      * Retrieve the current photo submission queue list from the database
