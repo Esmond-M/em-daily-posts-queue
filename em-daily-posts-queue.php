@@ -22,7 +22,7 @@ use EmDailyPostsQueue\init_plugin\Classes\CPT_NetSubmission;
 use EmDailyPostsQueue\init_plugin\Classes\CPT_NetSubmissionMeta;
 use EmDailyPostsQueue\init_plugin\Classes\CronEvents;
 use EmDailyPostsQueue\init_plugin\Classes\CronEventTimer;
-use EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionQueue;
+use EmDailyPostsQueue\init_plugin\Classes\EmDailyPostsQueueUIManager;
 use EmDailyPostsQueue\init_plugin\Classes\Shortcodes;
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -1,22 +1,25 @@
 <?php
 declare(strict_types=1);
 /**
- * PhotoNetSubmissionQueue Class
+ * EmDailyPostsQueueUIManager Class
  *
- * Handles photo submission queue management for the plugin, including:
- * - AJAX handlers for queue updates and new submissions
- * - Database logic for queue storage and retrieval
- * - Admin and frontend asset loading
- * - Custom post type hooks and meta box management
- * - Utility functions for queue comparison and manipulation
+ * Main controller for the plugin. Responsible for:
+ * - Registering WordPress hooks, actions, and filters for admin UI, asset loading, and custom post type management
+ * - Delegating AJAX requests to the PhotoNetSubmissionAjax class
+ * - Interfacing with the utility class for queue management and array operations
+ * - Managing admin and frontend UI (submenus, meta boxes, styles/scripts)
+ * - Handling post lifecycle events for the custom post type
+ * - Rendering admin pages for queue list and queue editing
+ *
+ * Note: Most AJAX logic and queue manipulation details have been moved to dedicated classes for modularity.
  */
 namespace EmDailyPostsQueue\init_plugin\Classes;
 require_once __DIR__ . '/class-photo-submission-utils.php';
 require_once __DIR__ . '/class-photo-submission-ajax.php';
 
-    class PhotoNetSubmissionQueue
+class EmDailyPostsQueueUIManager
 
-    {
+{
     /**
      * @var \EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionUtils Utility class for queue and array operations
      */
@@ -33,33 +36,38 @@ require_once __DIR__ . '/class-photo-submission-ajax.php';
 
     {
 
+    // --- Initialization ---
     // Instantiate utility class for queue and array operations
     $this->utils = new \EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionUtils();
-    // Instantiate AJAX handler for queue management endpoints
+
+    // Instantiate AJAX handler for queue management endpoints (delegates all AJAX logic)
     $this->ajax = new PhotoNetSubmissionAjax($this->utils);
-    // 1. Hooks/Actions/Filters
+
+    // --- Register hooks, actions, and filters ---
+    // Admin UI and CPT management
     add_filter('bulk_actions-edit-net_submission', [$this, 'remove_bulk_actions']);
     add_action('admin_head', [$this, 'hide_bulk_actions_dropdown']);
     add_action('admin_menu', [$this, 'edpqPhotoSubmission_register_submenu_page']);
     add_action('admin_menu', [$this, 'edpq_net_submission_remove_meta_boxes']);
     add_action('add_meta_boxes', [$this, 'edpq_net_submission_register_meta_boxes']);
     add_filter('post_row_actions', [$this, 'my_cpt_row_actions'], 10, 2);
-    // Post Management
+
+    // Post lifecycle management for custom post type
     add_action('trashed_post', [$this, 'net_submission_skip_trash']);
     add_action('pre_post_update', [$this, 'intercept_publishToDraft'], 10, 2);
     add_action('publish_net_submission', [$this, 'do_updated_to_publish'], 10, 3 );
-    // 2. AJAX Handlers
+
+    // AJAX handlers (delegated to PhotoNetSubmissionAjax)
     add_action('wp_ajax_net_photo_deletion_info_ajax', [$this->ajax, 'net_photo_deletion_info_ajax']);
     add_action('wp_ajax_nopriv_net_photo_deletion_info_ajax', [$this->ajax, 'net_photo_deletion_info_ajax']);
     add_action('wp_ajax_form_post_new_net_photo_submission_ajax', [$this->ajax, 'form_post_new_net_photo_submission_ajax']);
     add_action('wp_ajax_nopriv_form_post_new_net_photo_submission_ajax', [$this->ajax, 'form_post_new_net_photo_submission_ajax']);
     add_action('wp_ajax_admin_queue_edit', [$this->ajax, 'handle_admin_queue_edit_ajax']);
     add_action('wp_ajax_admin_queue_full_wipe', [$this->ajax, 'handle_admin_queue_full_wipe_ajax']);
+
+    // Asset loading for admin and frontend
     add_action('admin_enqueue_scripts', [$this->ajax, 'load_admin_net_style']);
     add_action('wp_enqueue_scripts', [$this->ajax, 'net_style_scripts']);
-
-
- 
 
     }
 
@@ -69,97 +77,94 @@ require_once __DIR__ . '/class-photo-submission-ajax.php';
      * Render custom meta box UI for net_submission post editing
      */
     public function edpq_net_submission_meta_boxes_callback( $post){
-                global $action;
+        global $action;
 
-                $post_id          = (int) $post->ID;
-                $post_type        = $post->post_type;
-                $post_type_object = get_post_type_object( $post_type );
-                $can_publish      = current_user_can( $post_type_object->cap->publish_posts );
-                ?>
-            <div class="submitbox" id="submitpost">
+        $post_id          = (int) $post->ID;
+        $post_type        = $post->post_type;
+        $post_type_object = get_post_type_object( $post_type );
+        $can_publish      = current_user_can( $post_type_object->cap->publish_posts );
+        ?>
+        <div class="submitbox" id="submitpost">
 
-            <div id="minor-publishing">
+        <div id="minor-publishing">
 
-                <?php // Hidden submit button early on so that the browser chooses the right button when form is submitted with Return key. ?>
-                <div style="display:none;">
-                    <?php submit_button( __( 'Save' ), '', 'save' ); ?>
-                </div>
-                <div class="clear"></div>
+            <?php // Hidden submit button early on so that the browser chooses the right button when form is submitted with Return key. ?>
+            <div style="display:none;">
+                <?php submit_button( __( 'Save' ), '', 'save' ); ?>
             </div>
+            <div class="clear"></div>
+        </div>
 
-            <div id="major-publishing-actions">
+        <div id="major-publishing-actions">
+            <?php
+            /**
+             * Fires at the beginning of the publishing actions section of the Publish meta box.
+             *
+             * @since 2.7.0
+             * @since 4.9.0 Added the `$post` parameter.
+             *
+             * @param WP_Post|null $post WP_Post object for the current post on Edit Post screen,
+             *                           null on Edit Link screen.
+             */
+            do_action( 'post_submitbox_start', $post );
+            ?>
+            <div id="delete-action">
                 <?php
-                /**
-                 * Fires at the beginning of the publishing actions section of the Publish meta box.
-                 *
-                 * @since 2.7.0
-                 * @since 4.9.0 Added the `$post` parameter.
-                 *
-                 * @param WP_Post|null $post WP_Post object for the current post on Edit Post screen,
-                 *                           null on Edit Link screen.
-                 */
-                do_action( 'post_submitbox_start', $post );
-                ?>
-                <div id="delete-action">
+                if ( current_user_can( 'delete_post', $post_id ) ) {
+                    if ( ! EMPTY_TRASH_DAYS ) {
+                        $delete_text = __( 'Delete permanently' );
+                    } else {
+                        $delete_text = __( 'Move to Trash' );
+                    }
+
+                    if ( 'publish' !== $post->post_status ) {
+                    ?>
+                    <a class="submitdelete deletion" href="<?php echo get_delete_post_link( $post_id ); ?>"><?php echo $delete_text; ?></a>
                     <?php
-                    if ( current_user_can( 'delete_post', $post_id ) ) {
-                        if ( ! EMPTY_TRASH_DAYS ) {
-                            $delete_text = __( 'Delete permanently' );
-                        } else {
-                            $delete_text = __( 'Move to Trash' );
-                        }
-
-                        if ( 'publish' !== $post->post_status ) {
-                        ?>
-                        <a class="submitdelete deletion" href="<?php echo get_delete_post_link( $post_id ); ?>"><?php echo $delete_text; ?></a>
-                      <?php
-                        }
-                        ?>
-
-                        <?php
                     }
                     ?>
-                </div>
 
-                <div id="publishing-action">
-                    <span class="spinner"></span>
                     <?php
-                    if ( ! in_array( $post->post_status, array( 'publish', 'future', 'private' ), true ) || 0 === $post_id ) {
-                        if ( $can_publish ) :
-                            if ( ! empty( $post->post_date_gmt ) && time() < strtotime( $post->post_date_gmt . ' +0000' ) ) :
-                                ?>
-                                <input name="original_publish" type="hidden" id="original_publish" value="<?php echo esc_attr_x( 'Schedule', 'post action/button label' ); ?>" />
-                                <?php submit_button( _x( 'Schedule', 'post action/button label' ), 'primary large', 'publish', false ); ?>
-                                <?php
-                            else :
-                                ?>
-                                <input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Publish' ); ?>" />
-                                <?php submit_button( __( 'Publish' ), 'primary large', 'publish', false ); ?>
-                                <?php
-                            endif;
+                }
+                ?>
+            </div>
+
+            <div id="publishing-action">
+                <span class="spinner"></span>
+                <?php
+                if ( ! in_array( $post->post_status, array( 'publish', 'future', 'private' ), true ) || 0 === $post_id ) {
+                    if ( $can_publish ) :
+                        if ( ! empty( $post->post_date_gmt ) && time() < strtotime( $post->post_date_gmt . ' +0000' ) ) :
+                            ?>
+                            <input name="original_publish" type="hidden" id="original_publish" value="<?php echo esc_attr_x( 'Schedule', 'post action/button label' ); ?>" />
+                            <?php submit_button( _x( 'Schedule', 'post action/button label' ), 'primary large', 'publish', false ); ?>
+                            <?php
                         else :
                             ?>
-                            <input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Submit for Review' ); ?>" />
-                            <?php submit_button( __( 'Submit for Review' ), 'primary large', 'publish', false ); ?>
+                            <input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Publish' ); ?>" />
+                            <?php submit_button( __( 'Publish' ), 'primary large', 'publish', false ); ?>
                             <?php
                         endif;
-                    } else {
+                    else :
                         ?>
-                        <input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Update' ); ?>" />
-                        <?php submit_button( __( 'Update' ), 'primary large', 'save', false, array( 'id' => 'publish' ) ); ?>
+                        <input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Submit for Review' ); ?>" />
+                        <?php submit_button( __( 'Submit for Review' ), 'primary large', 'publish', false ); ?>
                         <?php
-                    }
+                    endif;
+                } else {
                     ?>
-                </div>
-                <div class="clear"></div>
+                    <input name="original_publish" type="hidden" id="original_publish" value="<?php esc_attr_e( 'Update' ); ?>" />
+                    <?php submit_button( __( 'Update' ), 'primary large', 'save', false, array( 'id' => 'publish' ) ); ?>
+                    <?php
+                }
+                ?>
             </div>
+            <div class="clear"></div>
+        </div>
 
-            </div>
-                <?php
+        </div>
+        <?php
     }
-
-
-    
 
     /**
      * Remove bulk actions for net_submission post type
@@ -250,8 +255,8 @@ require_once __DIR__ . '/class-photo-submission-ajax.php';
             unset( $actions['bulk_edit'] );
         }
         return $actions;
-    }        
-    
+    }
+
     // 2. Post Management
     /**
      * Hook: Force delete net_submission posts instead of sending to trash
@@ -303,7 +308,7 @@ require_once __DIR__ . '/class-photo-submission-ajax.php';
         unset($item);
         $result = $this->utils->update_queue_list_in_db($queue_list);
 
-    }    
+    }
 
     /**
      * Render the admin queue edit page (with reorder/delete UI)
@@ -323,10 +328,10 @@ require_once __DIR__ . '/class-photo-submission-ajax.php';
      */
     public function edpqadmin_queue_list_page(){
 
-                $queue_list = $this->utils->get_queue_list();
-                require_once __DIR__ . '/../templates/options-page-admin-queue-list.php';
+        $queue_list = $this->utils->get_queue_list();
+        require_once __DIR__ . '/../templates/options-page-admin-queue-list.php';
 
     }
 
 }
-new PhotoNetSubmissionQueue();
+new EmDailyPostsQueueUIManager();
