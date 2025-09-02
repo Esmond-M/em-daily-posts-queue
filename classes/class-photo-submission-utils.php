@@ -4,6 +4,20 @@ namespace EmDailyPostsQueue\init_plugin\Classes;
 
 class PhotoNetSubmissionUtils {
     /**
+     * Get the queue list from the database
+     * @return array
+     */
+    public function get_queue_list_from_db() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+        $row = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
+        if (isset($row['list']) && !empty($row['list'])) {
+            $queue = unserialize(base64_decode($row['list']));
+            return is_array($queue) ? $queue : [];
+        }
+        return [];
+    }
+    /**
      * Compare two multidimensional arrays and return differences
      * @param array $array1
      * @param array $array2
@@ -81,4 +95,33 @@ class PhotoNetSubmissionUtils {
             }
         }
     }    
+
+    /**
+     * Retrieve the current photo submission queue list from the database
+     * @return array
+     */
+    public function get_queue_list() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+        $row = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
+        if (isset($row['list']) && !empty($row['list'])) {
+            $queue = unserialize(base64_decode($row['list']));
+            return is_array($queue) ? $queue : [];
+        }
+        return [];
+    }
+
+    /**
+     * Update the queue list in the database
+     * @param array $queue_list
+     * @return bool|string True on success, error message on failure
+     */
+    public function update_queue_list_in_db($queue_list) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
+        $serialized_array = base64_encode(serialize($queue_list));
+        $result = $wpdb->query($wpdb->prepare("UPDATE $table_name SET list=%s WHERE id=1", $serialized_array));
+        // $wpdb->query returns number of rows affected or false
+        return ($result !== false && $result > 0) ? true : false;
+    }
 }
