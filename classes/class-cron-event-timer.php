@@ -3,9 +3,6 @@
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 
-
-if (!class_exists('CronEventTimer')) {
-
     /**
      * CronEventTimer Class
      *
@@ -33,7 +30,11 @@ if (!class_exists('CronEventTimer')) {
          */
 
         public function eg_schedule_1_weekdays_log() {
-            if ( false === as_has_scheduled_action( 'eg_1_weekdays_log' ) ) {
+            
+            if (
+                /** @intelephense-ignore */
+                false === as_has_scheduled_action( 'eg_1_weekdays_log' )
+            ) {
                 $str1Weekdays = strtotime( '+1 weekday 10pm America/Chicago' );
                 $strToday = strtotime( 'Now America/Chicago' );
                 $startDate = new \DateTime( gmdate("Y-m-d H:i:s", $strToday) );//start time
@@ -46,6 +47,7 @@ if (!class_exists('CronEventTimer')) {
                 } else {
                     $this->send_admin_email('Run timer value', 'timer:' . $oneWeekDayInterval);
                 }
+                /** @intelephense-ignore */
                 as_schedule_recurring_action( strtotime( '+1 weekdays 10pm America/Chicago' ), $oneWeekDayInterval, 'eg_1_weekdays_log' );
             }
         }
@@ -60,6 +62,16 @@ if (!class_exists('CronEventTimer')) {
 
     }
 
-}
+    // Stub for Action Scheduler's as_has_scheduled_action.
+    // Prevents Intelephense "undefined function" warnings in development.
+    if (!function_exists('as_has_scheduled_action')) {
+        function as_has_scheduled_action($hook) {}
+    }
+
+    // Stub for Action Scheduler's as_schedule_recurring_action.
+    // Prevents Intelephense "undefined function" warnings in development.
+    if (!function_exists('as_schedule_recurring_action')) {
+        function as_schedule_recurring_action($timestamp, $interval, $hook) {}
+    }
 
 new CronEventTimer();
