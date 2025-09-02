@@ -11,19 +11,25 @@ declare(strict_types=1);
  * - Utility functions for queue comparison and manipulation
  */
 namespace EmDailyPostsQueue\init_plugin\Classes;
-
+require_once __DIR__ . '/class-photo-submission-utils.php';
 if (!class_exists('PhotoNetSubmissionQueue')) {
 
     class PhotoNetSubmissionQueue
 
     {
-
+    /**
+     * @var \EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionUtils
+     */
+    private $utils;
     /**
      * Declaring constructor
      */
     public function __construct()
 
     {
+
+
+    $this->utils = new \EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionUtils();    
     // 1. Hooks/Actions/Filters
     add_filter('bulk_actions-edit-net_submission', [$this, 'remove_bulk_actions']);
     add_action('admin_head', [$this, 'hide_bulk_actions_dropdown']);
@@ -340,7 +346,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
 
             $db_queue = $get_queue_list_db();
             if ($db_queue !== null) {
-                $isWindowOutdated = $this->edpqcompareMultiDimensional($db_queue, $old_stored_queue_list_arr);
+                $isWindowOutdated = $this->utils->edpqcompareMultiDimensional($db_queue, $old_stored_queue_list_arr);
                 if (empty($isWindowOutdated)) {
                     $success = $update_queue_list_db($reNumberBeforeSubmit);
                     if ($success) {
@@ -384,7 +390,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
         $updatedQueuelist = array_replace($stored_queue_list_arr, $FixedTempArrayFromPageForm);
         $db_queue = $get_queue_list_db();
         if ($db_queue !== null) {
-            $isWindowOutdated = $this->edpqcompareMultiDimensional($db_queue, $stored_queue_list_arr);
+            $isWindowOutdated = $this->utils->edpqcompareMultiDimensional($db_queue, $stored_queue_list_arr);
             if (empty($isWindowOutdated)) {
                 $success = $update_queue_list_db($updatedQueuelist);
                 if ($success) {
@@ -524,94 +530,6 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
     return ($result !== false && $result > 0) ? true : false;
     }
 
- /**
-     * Compare two multidimensional arrays and return differences
-     * @param array $array1
-     * @param array $array2
-     * @param bool $strict
-     * @return array
-     */
-    public function edpqcompareMultiDimensional($array1, $array2, $strict = true){
-            if (!is_array($array1)) {
-                throw new \InvalidArgumentException('$array1 must be an array!');
-            }
-
-            if (!is_array($array2)) {
-                return $array1;
-            }
-
-            $result = array();
-
-            foreach ($array1 as $key => $value) {
-                if (!array_key_exists($key, $array2)) {
-                    $result[$key] = $value;
-                    continue;
-                }
-
-                if (is_array($value) && count($value) > 0) {
-                    $recursiveArrayDiff = $this->edpqcompareMultiDimensional($value, $array2[$key], $strict);
-
-                    if (count($recursiveArrayDiff) > 0) {
-                        $result[$key] = $recursiveArrayDiff;
-                    }
-
-                    continue;
-                }
-
-                $value1 = $value;
-                $value2 = $array2[$key];
-
-                if ($strict ? is_float($value1) && is_float($value2) : is_float($value1) || is_float($value2)) {
-                    $value1 = (string) $value1;
-                    $value2 = (string) $value2;
-                }
-
-                if ($strict ? $value1 !== $value2 : $value1 != $value2) {
-                    $result[$key] = $value;
-                }
-            }
-
-            return $result;
-    }
-
-    /**
-    * Import demo net_submission posts (4 demo posts)
-    */
-    public function import_demo_net_submissions() {
-        $placeholder_path = plugin_dir_path(dirname(__FILE__)) . 'assets/imgs/placeholder.png';
-        for ($i = 1; $i <= 4; $i++) {
-            $post_id = wp_insert_post([
-                'post_title'   => "Demo Submission $i",
-                'post_content' => "This is demo content for submission $i.",
-                'post_status'  => 'publish',
-                'post_type'    => 'net_submission',
-                'meta_input'   => [
-                    'topic_headline_value' => "Demo Headline $i",
-                    'topic_caption_value'  => "Demo Caption $i"
-                ]
-            ]);
-            // Assign featured image if post creation succeeded
-            if ($post_id && file_exists($placeholder_path)) {
-                require_once(ABSPATH . 'wp-admin/includes/image.php');
-                require_once(ABSPATH . 'wp-admin/includes/file.php');
-                require_once(ABSPATH . 'wp-admin/includes/media.php');
-                $upload = wp_upload_bits('placeholder-demo-' . $i . '.png', null, file_get_contents($placeholder_path));
-                if (!$upload['error']) {
-                    $filetype = wp_check_filetype($upload['file'], null);
-                    $attachment = array(
-                        'post_mime_type' => $filetype['type'],
-                        'post_title'     => 'Demo Placeholder',
-                        'post_content'   => '',
-                        'post_status'    => 'inherit'
-                    );
-                    $attach_id = wp_insert_attachment($attachment, $upload['file'], $post_id);
-                    $attach_data = wp_generate_attachment_metadata($attach_id, $upload['file']);
-                    wp_update_attachment_metadata($attach_id, $attach_data);
-                    set_post_thumbnail($post_id, $attach_id);
-                }
-            }
-        }
-    } 
 
     // 4. Post Management
     /**
@@ -674,7 +592,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
     public function edpqadmin_queue_edit_page(){
         // Handle demo import trigger
         if (isset($_GET['import_demo']) && $_GET['import_demo'] === '1' && current_user_can('manage_options')) {
-            $this->import_demo_net_submissions();
+            $this->utils->import_demo_net_submissions();
             echo '<div class="notice notice-success"><p>Demo net_submission posts imported!</p></div>';
         }
         $queue_list = $this->get_queue_list();
