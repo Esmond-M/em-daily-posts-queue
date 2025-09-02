@@ -3,12 +3,15 @@ declare(strict_types=1);
 /**
  * PhotoNetSubmissionQueue Class
  *
- * Handles photo submission queue management for the plugin, including:
- * - AJAX handlers for queue updates and new submissions
- * - Database logic for queue storage and retrieval
- * - Admin and frontend asset loading
- * - Custom post type hooks and meta box management
- * - Utility functions for queue comparison and manipulation
+ * Main controller for the plugin. Responsible for:
+ * - Registering WordPress hooks, actions, and filters for admin UI, asset loading, and custom post type management
+ * - Delegating AJAX requests to the PhotoNetSubmissionAjax class
+ * - Interfacing with the utility class for queue management and array operations
+ * - Managing admin and frontend UI (submenus, meta boxes, styles/scripts)
+ * - Handling post lifecycle events for the custom post type
+ * - Rendering admin pages for queue list and queue editing
+ *
+ * Note: Most AJAX logic and queue manipulation details have been moved to dedicated classes for modularity.
  */
 namespace EmDailyPostsQueue\init_plugin\Classes;
 require_once __DIR__ . '/class-photo-submission-utils.php';
@@ -33,33 +36,38 @@ require_once __DIR__ . '/class-photo-submission-ajax.php';
 
     {
 
+    // --- Initialization ---
     // Instantiate utility class for queue and array operations
     $this->utils = new \EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionUtils();
-    // Instantiate AJAX handler for queue management endpoints
+
+    // Instantiate AJAX handler for queue management endpoints (delegates all AJAX logic)
     $this->ajax = new PhotoNetSubmissionAjax($this->utils);
-    // 1. Hooks/Actions/Filters
+
+    // --- Register hooks, actions, and filters ---
+    // Admin UI and CPT management
     add_filter('bulk_actions-edit-net_submission', [$this, 'remove_bulk_actions']);
     add_action('admin_head', [$this, 'hide_bulk_actions_dropdown']);
     add_action('admin_menu', [$this, 'edpqPhotoSubmission_register_submenu_page']);
     add_action('admin_menu', [$this, 'edpq_net_submission_remove_meta_boxes']);
     add_action('add_meta_boxes', [$this, 'edpq_net_submission_register_meta_boxes']);
     add_filter('post_row_actions', [$this, 'my_cpt_row_actions'], 10, 2);
-    // Post Management
+
+    // Post lifecycle management for custom post type
     add_action('trashed_post', [$this, 'net_submission_skip_trash']);
     add_action('pre_post_update', [$this, 'intercept_publishToDraft'], 10, 2);
     add_action('publish_net_submission', [$this, 'do_updated_to_publish'], 10, 3 );
-    // 2. AJAX Handlers
+
+    // AJAX handlers (delegated to PhotoNetSubmissionAjax)
     add_action('wp_ajax_net_photo_deletion_info_ajax', [$this->ajax, 'net_photo_deletion_info_ajax']);
     add_action('wp_ajax_nopriv_net_photo_deletion_info_ajax', [$this->ajax, 'net_photo_deletion_info_ajax']);
     add_action('wp_ajax_form_post_new_net_photo_submission_ajax', [$this->ajax, 'form_post_new_net_photo_submission_ajax']);
     add_action('wp_ajax_nopriv_form_post_new_net_photo_submission_ajax', [$this->ajax, 'form_post_new_net_photo_submission_ajax']);
     add_action('wp_ajax_admin_queue_edit', [$this->ajax, 'handle_admin_queue_edit_ajax']);
     add_action('wp_ajax_admin_queue_full_wipe', [$this->ajax, 'handle_admin_queue_full_wipe_ajax']);
+
+    // Asset loading for admin and frontend
     add_action('admin_enqueue_scripts', [$this->ajax, 'load_admin_net_style']);
     add_action('wp_enqueue_scripts', [$this->ajax, 'net_style_scripts']);
-
-
- 
 
     }
 
@@ -159,7 +167,7 @@ require_once __DIR__ . '/class-photo-submission-ajax.php';
     }
 
 
-    
+
 
     /**
      * Remove bulk actions for net_submission post type
@@ -250,8 +258,8 @@ require_once __DIR__ . '/class-photo-submission-ajax.php';
             unset( $actions['bulk_edit'] );
         }
         return $actions;
-    }        
-    
+    }
+
     // 2. Post Management
     /**
      * Hook: Force delete net_submission posts instead of sending to trash
@@ -303,7 +311,7 @@ require_once __DIR__ . '/class-photo-submission-ajax.php';
         unset($item);
         $result = $this->utils->update_queue_list_in_db($queue_list);
 
-    }    
+    }
 
     /**
      * Render the admin queue edit page (with reorder/delete UI)
