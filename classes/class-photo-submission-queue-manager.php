@@ -241,7 +241,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
         unset($item);
 
         // Get current queue from DB to find removed post IDs
-        $old_queue = $this->get_queue_list();
+        $old_queue = $this->utils->get_queue_list();
         $old_postids = array_map(function($item) { return intval($item['postid']); }, $old_queue);
         $removed_postids = array_diff($old_postids, $new_postids);
         foreach ($removed_postids as $removed_id) {
@@ -249,12 +249,12 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
         }
 
         // Check for queue conflict (optimistic concurrency)
-        $db_queue = $this->get_queue_list();
+        $db_queue = $this->utils->get_queue_list();
         if ($db_queue !== $old_queue) {
             wp_send_json_error(['conflict' => true, 'message' => 'Queue has been updated by another user.']);
             return;
         }
-        $result = $this->update_queue_list_in_db($queue);
+        $result = $this->utils->update_queue_list_in_db($queue);
         if ($result === true || $result === 1) {
             wp_send_json_success(['message' => 'Queue updated.']);
         } else {
@@ -484,53 +484,6 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
     }
 
     
-    // 5. Queue Management    
-
-    /**
-     * Retrieve the current photo submission queue list from the database
-     * @return array
-     */
-    public function get_queue_list() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-        $row = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
-        if (isset($row['list']) && !empty($row['list'])) {
-            $queue = unserialize(base64_decode($row['list']));
-            return is_array($queue) ? $queue : [];
-        }
-        return [];
-    }
-
-    /**
-     * Get the queue list from the database
-     * @return array
-     */
-    private function get_queue_list_from_db() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-        $row = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
-        if (isset($row['list']) && !empty($row['list'])) {
-            $queue = unserialize(base64_decode($row['list']));
-            return is_array($queue) ? $queue : [];
-        }
-        return [];
-    }
-
-    /**
-     * Update the queue list in the database
-     * @param array $queue_list
-     * @return bool|string True on success, error message on failure
-     */
-    private function update_queue_list_in_db($queue_list) {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-    $serialized_array = base64_encode(serialize($queue_list));
-    $result = $wpdb->query($wpdb->prepare("UPDATE $table_name SET list=%s WHERE id=1", $serialized_array));
-    // $wpdb->query returns number of rows affected or false
-    return ($result !== false && $result > 0) ? true : false;
-    }
-
-
     // 4. Post Management
     /**
      * Hook: Force delete net_submission posts instead of sending to trash
@@ -569,7 +522,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
         if ($old_status == 'publish') {
             return;
         }
-        $queue_list = $this->get_queue_list_from_db();
+        $queue_list = $this->utils->get_queue_list_from_db();
         if (is_array($queue_list) && !empty($queue_list)) {
             $queue_list[] = array("postid" => $post_id, "queueNumber" => 0); // temp value
         } else {
@@ -580,7 +533,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
             $item['queueNumber'] = $i + 1;
         }
         unset($item);
-        $result = $this->update_queue_list_in_db($queue_list);
+        $result = $this->utils->update_queue_list_in_db($queue_list);
 
     }    
 
@@ -595,7 +548,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
             $this->utils->import_demo_net_submissions();
             echo '<div class="notice notice-success"><p>Demo net_submission posts imported!</p></div>';
         }
-        $queue_list = $this->get_queue_list();
+        $queue_list = $this->utils->get_queue_list();
         require_once __DIR__ . '/../templates/options-page-admin-queue-edit.php';
     }
 
@@ -604,7 +557,7 @@ if (!class_exists('PhotoNetSubmissionQueue')) {
      */
     public function edpqadmin_queue_list_page(){
 
-                $queue_list = $this->get_queue_list();
+                $queue_list = $this->utils->get_queue_list();
                 require_once __DIR__ . '/../templates/options-page-admin-queue-list.php';
 
     }
