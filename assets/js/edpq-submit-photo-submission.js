@@ -57,4 +57,10 @@ jQuery(document).ready(function ($) {
             }
         });
     });
+
+    // Disable all submit buttons when cron time form is submitted
+    $("#cron-time-form").submit(function () {
+        $("form button[type='submit']").prop("disabled", true);
+        // Optionally show a loader or message here
+    });
 });
