@@ -124,4 +124,12 @@ class PhotoNetSubmissionUtils {
         // $wpdb->query returns number of rows affected or false
         return ($result !== false && $result > 0) ? true : false;
     }
+
+    /**
+     * Helper to send notification email to admin
+     */
+    public function send_admin_email($subject, $message) {
+        $emailto = get_option('admin_email');
+        wp_mail($emailto, $subject, $message);
+    }    
 }
