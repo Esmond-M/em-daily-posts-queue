@@ -2,7 +2,7 @@
 
 **Project:** [https://github.com/Esmond-M/em-daily-posts-queue](https://github.com/Esmond-M/em-daily-posts-queue)  
 **Author:** [esmondmccain.com](https://esmondmccain.com/)  
-**Version:** 0.1.0  
+**Version:** 0.1.1  
 
 ## Summary
 
@@ -23,6 +23,9 @@ Originally made for AWC intranet website. Being put into a plugin for future use
 • Short-code `[EmDailyPostsQueueForm]` for front-end form.  
 • Short-code `[EmDailyPostsQueueDisplayPost]` for displaying the current daily post.  
 • Once a post in this post type has been published it can only be deleted on the queue sub-menu page.
+• **Queue and Cron Management:** Admins can update the cron event time using WordPress timezone settings. The next scheduled cron event and the next post to be removed (title and ID) are displayed in the admin queue edit page.
+• **Action Scheduler Stubs:** Stubs for Action Scheduler functions are included to prevent IDE warnings in development environments.
+• **Improved Admin UX:** Submit buttons are disabled during form submission to prevent double actions.
 
 ## Technical Details
 
@@ -91,20 +94,20 @@ Originally made for AWC intranet website. Being put into a plugin for future use
 ```
 em-daily-posts-queue/
 ├── classes/                          # Main plugin classes
-│   ├── cpt-net-submissions.php       # Custom post type registration
-│   ├── cpt-meta-net-submissions.php  # Meta box functionality
-│   ├── edpq-class-auto-photo-net-submissions.php  # Auto photo submissions
-│   ├── edpq-class-cron-events.php    # Cron event handling
-│   └── edpq-class-cron-event-timers.php  # Cron timing
+│   ├── class-cpt-net-submission-meta.php
+│   ├── class-cpt-net-submission.php
+│   ├── class-cron-event-timer.php
+│   ├── class-cron-events.php
+│   ├── class-photo-submission-ajax.php
+│   ├── class-photo-submission-queue-manager.php
+│   ├── class-photo-submission-utils.php
+│   └── class-shortcodes.php
 ├── tests/                            # PHPUnit test suite
 │   ├── bootstrap.php                 # Test bootstrap
+│   ├── EmDailyPostsQueueUIManagerTest.php
+│   ├── CronEventTimerTest.php
+│   ├── PhotoSubmissionAjaxTest.php
 │   ├── wp-config.php                 # Test WordPress configuration
-│   ├── test-user.php                 # User functionality tests
-│   ├── test-cpt-net-submissions.php  # CPT registration tests
-│   ├── test-cron-events.php          # Cron events tests
-│   ├── test-plugin-main.php          # Main plugin tests
-│   ├── test-auto-photo-submissions.php  # Auto photo tests
-│   └── test-meta-boxes.php           # Meta box tests
 ├── docs/                             # Documentation and images
 ├── vendor/                           # Composer dependencies
 ├── composer.json                     # Composer configuration
@@ -115,7 +118,7 @@ em-daily-posts-queue/
 
 ## Testing
 
-This plugin includes comprehensive PHPUnit tests covering all major functionality.
+This plugin includes PHPUnit tests for major functionality.
 
 ### Running Tests
 
@@ -123,13 +126,13 @@ This plugin includes comprehensive PHPUnit tests covering all major functionalit
 
 ```bash
 # Run all tests
-.\vendor\bin\phpunit --configuration phpunit.xml
+.\vendor\bin\phpunit --bootstrap tests/bootstrap.php tests
 
 # Run specific test file
-.\vendor\bin\phpunit tests/test-cpt-net-submissions.php
+.\vendor\bin\phpunit tests/CronEventTimerTest.php
 
 # Run with verbose output
-.\vendor\bin\phpunit --configuration phpunit.xml --verbose
+.\vendor\bin\phpunit --bootstrap tests/bootstrap.php tests --verbose
 ```
 
 ### Test Coverage
@@ -137,7 +140,7 @@ This plugin includes comprehensive PHPUnit tests covering all major functionalit
 - **Custom Post Type Registration** - CPT creation, roles, capabilities
 - **User Roles and Capabilities** - Permission system testing
 - **Meta Box Functionality** - Form handling, nonce verification, data sanitization
-- **Cron Events and Queue Management** - Array comparison, queue processing
+- **Cron Events and Queue Management** - Array comparison, queue processing, cron event scheduling and display
 - **Plugin Initialization** - Singleton pattern, shortcode registration
 - **Auto Photo Submissions** - Form processing, validation, security
 
@@ -167,6 +170,7 @@ Show the current daily post:
 2. Use the **Edit Net Submissions** sub-menu to manage the queue
 3. Reorder posts by changing queue numbers
 4. Remove posts from queue as needed
+5. Update cron event time and view next scheduled event and post to be removed
 
 ## API Hooks
 
@@ -186,6 +190,9 @@ Show the current daily post:
 - Changed admin queue container class name for uniqueness
 - Removed bulk edit options for net_submission post type
 - Added demo content import button to admin queue edit page
+- Added cron event time update and display using WordPress timezone
+- Added stubs for Action Scheduler functions to prevent IDE warnings
+- Disabled submit buttons during form submission for better UX
 
 ### Version 0.1.0
 - Initial release
@@ -201,4 +208,4 @@ For issues and feature requests, please visit the [GitHub repository](https://gi
 
 ## License
 
-This plugin is licensed under GPL v2 or later.
+This plugin is licensed under GPL
