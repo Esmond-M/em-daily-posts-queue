@@ -1,108 +1,107 @@
 <?php
+/**
+ * CPT_NetSubmission Class
+ *
+ * Registers and manages the custom post type 'net_submission' for photo submissions.
+ * - Registers the post type and its capabilities
+ * - Sets up custom roles and permissions for submitters and administrators
+ * - Ensures only authorized users can manage net submissions
+ * - Supports featured images (thumbnails) for submissions
+ */
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 
-if (!class_exists('CPT_NetSubmission')) {
+class CPT_NetSubmission
+{
 
     /**
-     * CPT_NetSubmission Class
-     *
-     * Registers and manages the custom post type 'net_submission' for photo submissions.
-     * - Registers the post type and its capabilities
-     * - Sets up custom roles and permissions for submitters and administrators
-     * - Ensures only authorized users can manage net submissions
-     * - Supports featured images (thumbnails) for submissions
-     */
-    class CPT_NetSubmission
+    *  Declaring constructor
+    */
+    public function __construct()
     {
-
-        /**
-        *  Declaring constructor
-        */
-        public function __construct()
-        {
-            add_action( 'init', [$this, 'em_daily_posts_register_cpts' ]  );
-            add_action( 'init', [$this, 'net_submission_role' ]  );
-            add_action( 'init', [$this, 'net_submission_cap' ]  );
-            add_action( 'template_redirect', [$this, 'restrict_net_submission_access'] );
-            add_filter( 'template_include', [$this, 'net_submission_template_override'] );
-        }
+        add_action( 'init', [$this, 'em_daily_posts_register_cpts' ]  );
+        add_action( 'init', [$this, 'net_submission_role' ]  );
+        add_action( 'init', [$this, 'net_submission_cap' ]  );
+        add_action( 'template_redirect', [$this, 'restrict_net_submission_access'] );
+        add_filter( 'template_include', [$this, 'net_submission_template_override'] );
+    }
 
 
-        /**
-         * Use plugin template for net_submission single view only
-         */
-        public static function net_submission_template_override($template) {
-            $plugin_dir = plugin_dir_path(__FILE__) . '../templates/';
-            if (is_singular('net_submission')) {
-                $single_template = $plugin_dir . 'single-net-submission.php';
-                if (file_exists($single_template)) {
-                    return $single_template;
-                }
+    /**
+     * Use plugin template for net_submission single view only
+     */
+    public static function net_submission_template_override($template) {
+        $plugin_dir = plugin_dir_path(__FILE__) . '../templates/';
+        if (is_singular('net_submission')) {
+            $single_template = $plugin_dir . 'single-net-submission.php';
+            if (file_exists($single_template)) {
+                return $single_template;
             }
-            return $template;
         }
-        public static function em_daily_posts_register_cpts() {
+        return $template;
+    }
+    
+    public static function em_daily_posts_register_cpts() {
 
-            $labels = array(
-                'name'          => esc_html__( 'Net submissions', 'net_submission' ),
-                'singular_name' => esc_html__( 'Net submission', 'net_submission' ),
-                'add_new'       => esc_html__( 'Add New Net submission', 'net_submission' ),
-                'add_new_item'  => esc_html__( 'Add New Net submission', 'net_submission' ),
-                'new_item'      => esc_html__( 'New Net submission', 'net_submission' ),
-                'edit_item'     => esc_html__( 'Edit Net submission', 'net_submission' ),
-                'view_item'     => esc_html__( 'View Net submission', 'net_submission' ),
-                'all_items'     => esc_html__( 'All Net submissions', 'net_submission' ),
-            );
+        $labels = array(
+            'name'          => esc_html__( 'Net submissions', 'net_submission' ),
+            'singular_name' => esc_html__( 'Net submission', 'net_submission' ),
+            'add_new'       => esc_html__( 'Add New Net submission', 'net_submission' ),
+            'add_new_item'  => esc_html__( 'Add New Net submission', 'net_submission' ),
+            'new_item'      => esc_html__( 'New Net submission', 'net_submission' ),
+            'edit_item'     => esc_html__( 'Edit Net submission', 'net_submission' ),
+            'view_item'     => esc_html__( 'View Net submission', 'net_submission' ),
+            'all_items'     => esc_html__( 'All Net submissions', 'net_submission' ),
+        );
 
-            $args = array(
-                'label'                 => esc_html__( 'Net submissions', 'net_submission' ),
-                'labels'                => $labels,
-                'description'           => '',
-                'public'                => true,
-                'publicly_queryable'    => true,
-                'show_ui'               => true,
-                'show_in_rest'          => true,
-                'rest_base'             => '',
-                'rest_controller_class' => 'WP_REST_Posts_Controller',
-                'rest_namespace'        => 'wp/v2',
-                'has_archive'           => false,
-                'show_in_menu'          => true,
-                'show_in_nav_menus'     => true,
-                'delete_with_user'      => false,
-                'exclude_from_search'   => true,
-                'capability_type'       => 'net_submission',
-                'capabilities' => array(
-                    'edit_post' => 'edit_net_submission',
-                    'read_post' => 'read_net_submission',
-                    'delete_post' => 'delete_net_submission',
-                    'edit_posts' => 'edit_net_submissions',
-                    'edit_others_posts' => 'edit_others_net_submissions',
-                    'delete_posts' => 'delete_net_submissions',
-                    'publish_posts' => 'publish_net_submissions',
-                    'read_private_posts' => 'read_private_net_submissions',
-                    'read' => 'read',
-                    'delete_private_posts' => 'delete_private_net_submissions',
-                    'delete_published_posts' => 'delete_published_net_submissions',
-                    'delete_others_posts' => 'delete_others_net_submissions',
-                    'edit_private_posts' => 'edit_private_net_submissions',
-                    'edit_published_posts' => 'edit_published_net_submissions',
-                    'create_posts' => 'edit_net_submissions'
-                ),
-                'map_meta_cap'          => true,
-                'hierarchical'          => false,
-                'can_export'            => true,
-                'rewrite'               => array(
-                    'slug'       => 'net_submission',
-                    'with_front' => true,
-                ),
-                'query_var'             => true,
-                'supports'              => array( 'title',  'thumbnail'),
-                //'taxonomies'            => array( 'category' ),
-                'show_in_graphql'       => false,
-            );
+        $args = array(
+            'label'                 => esc_html__( 'Net submissions', 'net_submission' ),
+            'labels'                => $labels,
+            'description'           => '',
+            'public'                => true,
+            'publicly_queryable'    => true,
+            'show_ui'               => true,
+            'show_in_rest'          => true,
+            'rest_base'             => '',
+            'rest_controller_class' => 'WP_REST_Posts_Controller',
+            'rest_namespace'        => 'wp/v2',
+            'has_archive'           => false,
+            'show_in_menu'          => true,
+            'show_in_nav_menus'     => true,
+            'delete_with_user'      => false,
+            'exclude_from_search'   => true,
+            'capability_type'       => 'net_submission',
+            'capabilities' => array(
+                'edit_post' => 'edit_net_submission',
+                'read_post' => 'read_net_submission',
+                'delete_post' => 'delete_net_submission',
+                'edit_posts' => 'edit_net_submissions',
+                'edit_others_posts' => 'edit_others_net_submissions',
+                'delete_posts' => 'delete_net_submissions',
+                'publish_posts' => 'publish_net_submissions',
+                'read_private_posts' => 'read_private_net_submissions',
+                'read' => 'read',
+                'delete_private_posts' => 'delete_private_net_submissions',
+                'delete_published_posts' => 'delete_published_net_submissions',
+                'delete_others_posts' => 'delete_others_net_submissions',
+                'edit_private_posts' => 'edit_private_net_submissions',
+                'edit_published_posts' => 'edit_published_net_submissions',
+                'create_posts' => 'edit_net_submissions'
+            ),
+            'map_meta_cap'          => true,
+            'hierarchical'          => false,
+            'can_export'            => true,
+            'rewrite'               => array(
+                'slug'       => 'net_submission',
+                'with_front' => true,
+            ),
+            'query_var'             => true,
+            'supports'              => array( 'title',  'thumbnail'),
+            //'taxonomies'            => array( 'category' ),
+            'show_in_graphql'       => false,
+        );
 
-            register_post_type( 'net_submission', $args );
+        register_post_type( 'net_submission', $args );
 
     }
 
@@ -175,8 +174,6 @@ if (!class_exists('CPT_NetSubmission')) {
             }
         }
     }
-
-}
 
 }
 

@@ -1,9 +1,4 @@
 <?php
-namespace EmDailyPostsQueue\init_plugin\Classes;
-
-if ( ! defined( 'ABSPATH' ) ) {
-    exit;
-}
 /**
  * Handles registration and rendering of frontend shortcodes for the Daily Posts Queue plugin.
  *
@@ -13,6 +8,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Usage: Instantiate this class to register shortcodes.
  */
+declare(strict_types=1);
+namespace EmDailyPostsQueue\init_plugin\Classes;
+
 class Shortcodes {
 
     public function __construct() {

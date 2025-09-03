@@ -1,4 +1,15 @@
 <?php
+/**
+ * PhotoNetSubmissionUtils
+ *
+ * Helper class for Esmond Daily Posts Queue plugin.
+ * Provides utility methods for:
+ * - Managing the photo submission queue in the database
+ * - Comparing multidimensional arrays for queue conflict detection
+ * - Importing demo net_submission posts with featured images
+ * - Sending admin notification emails
+ * - General queue retrieval and update operations
+ */
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 
@@ -123,5 +134,13 @@ class PhotoNetSubmissionUtils {
         $result = $wpdb->query($wpdb->prepare("UPDATE $table_name SET list=%s WHERE id=1", $serialized_array));
         // $wpdb->query returns number of rows affected or false
         return ($result !== false && $result > 0) ? true : false;
+    }
+
+    /**
+     * Helper to send notification email to admin
+     */
+    public function send_admin_email($subject, $message) {
+        $emailto = get_option('admin_email');
+        wp_mail($emailto, $subject, $message);
     }
 }
