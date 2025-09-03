@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
-
+require_once __DIR__ . '/class-photo-submission-utils.php';
     /**
      * CronEventTimer Class
      *
@@ -13,14 +13,15 @@ namespace EmDailyPostsQueue\init_plugin\Classes;
      */
     class CronEventTimer
     {
-
+        private $utils;
         /**
          * Declaring constructor
          */
         public function __construct()
         {
 
-        add_action( 'init', [$this, 'eg_schedule_1_weekdays_log']  );
+            $this->utils = new PhotoNetSubmissionUtils();
+            add_action( 'init', [$this, 'eg_schedule_1_weekdays_log']  );
 
         }
 
@@ -46,9 +47,9 @@ namespace EmDailyPostsQueue\init_plugin\Classes;
 
                 if($oneWeekDayInterval < 86400){
                     $oneWeekDayInterval = 86400;
-                    $this->send_admin_email('Auto timer not working', 'Had to set default 1 days<br>timer:' . $oneWeekDayInterval);
+                    $this->utils->send_admin_email('Auto timer not working', 'Had to set default 1 days<br>timer:' . $oneWeekDayInterval);
                 } else {
-                    $this->send_admin_email('Run timer value', 'timer:' . $oneWeekDayInterval);
+                    $this->utils->send_admin_email('Run timer value', 'timer:' . $oneWeekDayInterval);
                 }
                 /** @intelephense-ignore */
                 as_schedule_recurring_action( $str1Weekdays, $oneWeekDayInterval, 'eg_1_weekdays_log' );
@@ -69,25 +70,19 @@ namespace EmDailyPostsQueue\init_plugin\Classes;
             // Schedule new recurring action using user input
             $timestamp = strtotime($time_string . ' ' . $wp_timezone);
             if ($timestamp === false) {
-                $this->send_admin_email('Invalid cron time', 'Could not parse time string: ' . esc_html($time_string));
+                $this->utils->send_admin_email('Invalid cron time', 'Could not parse time string: ' . esc_html($time_string));
                 return false;
             }
 
             if (function_exists('as_schedule_recurring_action')) {
                 as_schedule_recurring_action($timestamp, $interval, 'eg_1_weekdays_log');
-                $this->send_admin_email('Cron time updated', 'New cron time: ' . esc_html($time_string));
+                $this->utils->send_admin_email('Cron time updated', 'New cron time: ' . esc_html($time_string));
                 return true;
             }
             return false;
         }
 
-        /**
-         * Helper to send notification email to admin
-         */
-        private function send_admin_email($subject, $message) {
-            $emailto = get_option('admin_email');
-            wp_mail($emailto, $subject, $message);
-        }
+
 
     }
 
