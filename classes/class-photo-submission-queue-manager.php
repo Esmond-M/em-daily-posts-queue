@@ -319,6 +319,19 @@ class EmDailyPostsQueueUIManager
             $this->utils->import_demo_net_submissions();
             echo '<div class="notice notice-success"><p>Demo net_submission posts imported!</p></div>';
         }
+
+        // Handle cron time form submission
+        if (
+            isset($_POST['update_cron_time']) &&
+            !empty($_POST['cron_time_input']) &&
+            current_user_can('manage_options')
+        ) {
+            $cron_time = sanitize_text_field($_POST['cron_time_input']);
+            $cron_timer = new \EmDailyPostsQueue\init_plugin\Classes\CronEventTimer();
+            $cron_timer->update_cron_schedule_from_input($cron_time);
+            echo '<div class="notice notice-success"><p>Cron event time updated!</p></div>';
+        }
+
         $queue_list = $this->utils->get_queue_list();
         require_once __DIR__ . '/../templates/options-page-admin-queue-edit.php';
     }
