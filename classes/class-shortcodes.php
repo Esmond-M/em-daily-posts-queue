@@ -11,7 +11,6 @@
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 
-
 class Shortcodes {
 
     public function __construct() {

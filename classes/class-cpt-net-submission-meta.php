@@ -10,9 +10,7 @@
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 
-
-class CPT_NetSubmissionMeta
-{
+class CPT_NetSubmissionMeta {
 
     /**
      * Constructor: Sets up meta box actions for net_submission post type.
@@ -28,7 +26,7 @@ class CPT_NetSubmissionMeta
                 'save_post',
                 [$this, 'netSubmissionMetaboxSave']
             );
-    
+
         }
 
 
@@ -91,7 +89,7 @@ class CPT_NetSubmissionMeta
             </div>
             <?php
         }
-    
+
     /**
      * Saves the custom meta box values to the database when the post is saved.
      *

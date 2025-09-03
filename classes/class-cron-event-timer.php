@@ -11,95 +11,94 @@ declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 require_once __DIR__ . '/class-photo-submission-utils.php';
 
-    class CronEventTimer
+class CronEventTimer {
+    private $utils;
+    /**
+     * Declaring constructor
+     */
+    public function __construct()
     {
-        private $utils;
-        /**
-         * Declaring constructor
-         */
-        public function __construct()
-        {
 
-            $this->utils = new PhotoNetSubmissionUtils();
-            add_action( 'init', [$this, 'eg_schedule_1_weekdays_log']  );
+        $this->utils = new PhotoNetSubmissionUtils();
+        add_action( 'init', [$this, 'eg_schedule_1_weekdays_log']  );
 
+    }
+
+    /**
+     * Schedule an action with the hook 'eg_[insert time here]_log' to run every x amount of time
+     * so that our callbacks in the class cron events is run then.
+     */
+
+    public function eg_schedule_1_weekdays_log() {
+        // Get timezone from WordPress settings
+        $wp_timezone_string = get_option('timezone_string');
+        $wp_timezone = $wp_timezone_string ? $wp_timezone_string : 'UTC';
+
+        if (
+            /** @intelephense-ignore */
+            false === as_has_scheduled_action( 'eg_1_weekdays_log' )
+        ) {
+            $str1Weekdays = strtotime( '+1 weekday 10pm ' . $wp_timezone );
+            $strToday = strtotime( 'Now ' . $wp_timezone );
+            $startDate = new \DateTime( date("Y-m-d H:i:s", $strToday), new \DateTimeZone($wp_timezone) ); // start time
+            $nextDate = new \DateTime( date("Y-m-d H:i:s", $str1Weekdays), new \DateTimeZone($wp_timezone) ); // end time
+            $oneWeekDayInterval = $nextDate->getTimestamp() - $startDate->getTimestamp();
+
+            if($oneWeekDayInterval < 86400){
+                $oneWeekDayInterval = 86400;
+                $this->utils->send_admin_email('Auto timer not working', 'Had to set default 1 days<br>timer:' . $oneWeekDayInterval);
+            } else {
+                $this->utils->send_admin_email('Run timer value', 'timer:' . $oneWeekDayInterval);
+            }
+            /** @intelephense-ignore */
+            as_schedule_recurring_action( $str1Weekdays, $oneWeekDayInterval, 'eg_1_weekdays_log' );
+        }
+    }
+
+
+    public function update_cron_schedule_from_input($time_string, $interval = 86400) {
+        // Get timezone from WordPress settings
+        $wp_timezone_string = get_option('timezone_string');
+        $wp_timezone = $wp_timezone_string ? $wp_timezone_string : 'UTC';
+
+        // Remove all previously scheduled actions for this hook
+        if (function_exists('as_unschedule_all_actions')) {
+            as_unschedule_all_actions('eg_1_weekdays_log');
         }
 
-        /**
-         * Schedule an action with the hook 'eg_[insert time here]_log' to run every x amount of time
-         * so that our callbacks in the class cron events is run then.
-         */
-
-        public function eg_schedule_1_weekdays_log() {
-            // Get timezone from WordPress settings
-            $wp_timezone_string = get_option('timezone_string');
-            $wp_timezone = $wp_timezone_string ? $wp_timezone_string : 'UTC';
-
-            if (
-                /** @intelephense-ignore */
-                false === as_has_scheduled_action( 'eg_1_weekdays_log' )
-            ) {
-                $str1Weekdays = strtotime( '+1 weekday 10pm ' . $wp_timezone );
-                $strToday = strtotime( 'Now ' . $wp_timezone );
-                $startDate = new \DateTime( date("Y-m-d H:i:s", $strToday), new \DateTimeZone($wp_timezone) ); // start time
-                $nextDate = new \DateTime( date("Y-m-d H:i:s", $str1Weekdays), new \DateTimeZone($wp_timezone) ); // end time
-                $oneWeekDayInterval = $nextDate->getTimestamp() - $startDate->getTimestamp();
-
-                if($oneWeekDayInterval < 86400){
-                    $oneWeekDayInterval = 86400;
-                    $this->utils->send_admin_email('Auto timer not working', 'Had to set default 1 days<br>timer:' . $oneWeekDayInterval);
-                } else {
-                    $this->utils->send_admin_email('Run timer value', 'timer:' . $oneWeekDayInterval);
-                }
-                /** @intelephense-ignore */
-                as_schedule_recurring_action( $str1Weekdays, $oneWeekDayInterval, 'eg_1_weekdays_log' );
-            }
-        }
-
-
-        public function update_cron_schedule_from_input($time_string, $interval = 86400) {
-            // Get timezone from WordPress settings
-            $wp_timezone_string = get_option('timezone_string');
-            $wp_timezone = $wp_timezone_string ? $wp_timezone_string : 'UTC';
-
-            // Remove all previously scheduled actions for this hook
-            if (function_exists('as_unschedule_all_actions')) {
-                as_unschedule_all_actions('eg_1_weekdays_log');
-            }
-
-            // Schedule new recurring action using user input
-            $timestamp = strtotime($time_string . ' ' . $wp_timezone);
-            if ($timestamp === false) {
-                $this->utils->send_admin_email('Invalid cron time', 'Could not parse time string: ' . esc_html($time_string));
-                return false;
-            }
-
-            if (function_exists('as_schedule_recurring_action')) {
-                as_schedule_recurring_action($timestamp, $interval, 'eg_1_weekdays_log');
-                $this->utils->send_admin_email('Cron time updated', 'New cron time: ' . esc_html($time_string));
-                return true;
-            }
+        // Schedule new recurring action using user input
+        $timestamp = strtotime($time_string . ' ' . $wp_timezone);
+        if ($timestamp === false) {
+            $this->utils->send_admin_email('Invalid cron time', 'Could not parse time string: ' . esc_html($time_string));
             return false;
         }
 
-
-
+        if (function_exists('as_schedule_recurring_action')) {
+            as_schedule_recurring_action($timestamp, $interval, 'eg_1_weekdays_log');
+            $this->utils->send_admin_email('Cron time updated', 'New cron time: ' . esc_html($time_string));
+            return true;
+        }
+        return false;
     }
 
-    // Stub for Action Scheduler's as_has_scheduled_action.
-    // Prevents Intelephense "undefined function" warnings in development.
-    if (!function_exists('as_has_scheduled_action')) {
-        function as_has_scheduled_action($hook) {}
-    }
 
-    // Stub for Action Scheduler's as_schedule_recurring_action.
-    // Prevents Intelephense "undefined function" warnings in development.
-    if (!function_exists('as_schedule_recurring_action')) {
-        function as_schedule_recurring_action($timestamp, $interval, $hook) {}
-    }
-    // Stub for Action Scheduler's as_unschedule_all_actions.
-    // Prevents Intelephense "undefined function" warnings in development.
-    if (!function_exists('as_unschedule_all_actions')) {
-        function as_unschedule_all_actions($hook) {}
-    }
+
+}
+
+// Stub for Action Scheduler's as_has_scheduled_action.
+// Prevents Intelephense "undefined function" warnings in development.
+if (!function_exists('as_has_scheduled_action')) {
+    function as_has_scheduled_action($hook) {}
+}
+
+// Stub for Action Scheduler's as_schedule_recurring_action.
+// Prevents Intelephense "undefined function" warnings in development.
+if (!function_exists('as_schedule_recurring_action')) {
+    function as_schedule_recurring_action($timestamp, $interval, $hook) {}
+}
+// Stub for Action Scheduler's as_unschedule_all_actions.
+// Prevents Intelephense "undefined function" warnings in development.
+if (!function_exists('as_unschedule_all_actions')) {
+    function as_unschedule_all_actions($hook) {}
+}
 new CronEventTimer();

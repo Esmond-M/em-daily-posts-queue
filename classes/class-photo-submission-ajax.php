@@ -14,6 +14,7 @@
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 require_once __DIR__ . '/class-photo-submission-utils.php';
+
 class PhotoNetSubmissionAjax {
     /**
      * @var PhotoNetSubmissionUtils
@@ -216,7 +217,7 @@ class PhotoNetSubmissionAjax {
         } else {
             $render_ajax_response('Database row does not exist.');
         }
-   
+
         wp_die();
     }
 
