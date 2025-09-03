@@ -142,5 +142,5 @@ class PhotoNetSubmissionUtils {
     public function send_admin_email($subject, $message) {
         $emailto = get_option('admin_email');
         wp_mail($emailto, $subject, $message);
-    }    
+    }
 }
