@@ -1,19 +1,18 @@
 <?php
+/**
+ * CPT_NetSubmissionMeta Class
+ *
+ * Handles custom meta box functionality for the 'net_submission' post type.
+ * - Registers and renders custom fields for headline and caption
+ * - Saves custom field data securely to post meta
+ * - Integrates with WordPress hooks for meta box display and saving
+ */
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 
-if (!class_exists('CPT_NetSubmissionMeta')) {
 
-    /**
-     * CPT_NetSubmissionMeta Class
-     *
-     * Handles custom meta box functionality for the 'net_submission' post type.
-     * - Registers and renders custom fields for headline and caption
-     * - Saves custom field data securely to post meta
-     * - Integrates with WordPress hooks for meta box display and saving
-     */
-    class CPT_NetSubmissionMeta
-    {
+class CPT_NetSubmissionMeta
+{
 
     /**
      * Constructor: Sets up meta box actions for net_submission post type.
@@ -152,8 +151,8 @@ if (!class_exists('CPT_NetSubmissionMeta')) {
     }
 
 
-    }
 }
+
 
 
 new CPT_NetSubmissionMeta;

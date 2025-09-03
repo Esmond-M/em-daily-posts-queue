@@ -1,4 +1,16 @@
 <?php
+/**
+ * PhotoNetSubmissionAjax
+ *
+ * Handles AJAX requests for the Esmond Daily Posts Queue plugin, including:
+ * - Queue editing and reordering
+ * - Full queue wipe
+ * - Queue item deletion
+ * - New photo submission form processing
+ * - Conditional loading of admin and frontend styles/scripts
+ *
+ * Relies on PhotoNetSubmissionUtils for queue and helper functions.
+ */
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 require_once __DIR__ . '/class-photo-submission-utils.php';
@@ -11,8 +23,6 @@ class PhotoNetSubmissionAjax {
     public function __construct($utils) {
         $this->utils = $utils;
     }
-
-    // Move AJAX methods here one by one
 
     public function handle_admin_queue_edit_ajax() {
         if (!current_user_can('manage_options')) {
@@ -206,7 +216,7 @@ class PhotoNetSubmissionAjax {
         } else {
             $render_ajax_response('Database row does not exist.');
         }
-    // No connection to close
+   
         wp_die();
     }
 

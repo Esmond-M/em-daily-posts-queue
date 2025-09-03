@@ -1,4 +1,15 @@
 <?php
+/**
+ * PhotoNetSubmissionUtils
+ *
+ * Helper class for Esmond Daily Posts Queue plugin.
+ * Provides utility methods for:
+ * - Managing the photo submission queue in the database
+ * - Comparing multidimensional arrays for queue conflict detection
+ * - Importing demo net_submission posts with featured images
+ * - Sending admin notification emails
+ * - General queue retrieval and update operations
+ */
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 

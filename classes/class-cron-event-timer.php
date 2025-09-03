@@ -1,16 +1,16 @@
 <?php
-
+/**
+ * CronEventTimer Class
+ *
+ * Handles scheduling of recurring cron events for the plugin.
+ * - Schedules a custom action hook to run at a specific weekday/time interval
+ * - Notifies the WordPress admin if the timer interval is set to a default value
+ * - Used to trigger queue and post-processing logic in other plugin classes
+ */
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 require_once __DIR__ . '/class-photo-submission-utils.php';
-    /**
-     * CronEventTimer Class
-     *
-     * Handles scheduling of recurring cron events for the plugin.
-     * - Schedules a custom action hook to run at a specific weekday/time interval
-     * - Notifies the WordPress admin if the timer interval is set to a default value
-     * - Used to trigger queue and post-processing logic in other plugin classes
-     */
+
     class CronEventTimer
     {
         private $utils;

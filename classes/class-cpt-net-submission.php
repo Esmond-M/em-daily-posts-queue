@@ -1,18 +1,16 @@
 <?php
+/**
+ * CPT_NetSubmission Class
+ *
+ * Registers and manages the custom post type 'net_submission' for photo submissions.
+ * - Registers the post type and its capabilities
+ * - Sets up custom roles and permissions for submitters and administrators
+ * - Ensures only authorized users can manage net submissions
+ * - Supports featured images (thumbnails) for submissions
+ */
 declare(strict_types=1);
 namespace EmDailyPostsQueue\init_plugin\Classes;
 
-if (!class_exists('CPT_NetSubmission')) {
-
-    /**
-     * CPT_NetSubmission Class
-     *
-     * Registers and manages the custom post type 'net_submission' for photo submissions.
-     * - Registers the post type and its capabilities
-     * - Sets up custom roles and permissions for submitters and administrators
-     * - Ensures only authorized users can manage net submissions
-     * - Supports featured images (thumbnails) for submissions
-     */
     class CPT_NetSubmission
     {
 
@@ -175,8 +173,6 @@ if (!class_exists('CPT_NetSubmission')) {
             }
         }
     }
-
-}
 
 }
 
