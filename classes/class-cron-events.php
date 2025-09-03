@@ -1,5 +1,16 @@
 <?php
 declare(strict_types=1);
+/**
+ * Handles the weekly update for net_submission queue via cron event.
+ *
+ * - Removes the first item in the queue
+ * - Renumbers the queue
+ * - Updates the database
+ * - Deletes the corresponding post
+ * - Sends notification emails
+ *
+ * @return void
+ */
 namespace EmDailyPostsQueue\init_plugin\Classes;
 require_once __DIR__ . '/class-photo-submission-utils.php';
 
@@ -19,17 +30,7 @@ class CronEvents
 
         }
     
-    /**
-     * Handles the weekly update for net_submission queue via cron event.
-     *
-     * - Removes the first item in the queue
-     * - Renumbers the queue
-     * - Updates the database
-     * - Deletes the corresponding post
-     * - Sends notification emails
-     *
-     * @return void
-     */
+
         public function eg_action_net_submission_weekly_update() {
             global $wpdb;
             $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
