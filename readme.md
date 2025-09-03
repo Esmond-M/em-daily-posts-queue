@@ -55,8 +55,6 @@ Originally made for AWC intranet website. Being put into a plugin for future use
 4. Activate the plugin through the 'Plugins' menu in WordPress.
 5. Ensure "Action Scheduler" plugin is installed and activated.
 
-![Alt text](/docs/imgs/admin-menu.png "Admin Menu Option")
-
 ![Alt text](/docs/imgs/queue-list.png "Queue List")
 
 ## Development Setup
