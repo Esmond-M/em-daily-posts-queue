@@ -26,11 +26,21 @@ class PhotoNetSubmissionUtils {
         // Try JSON first (new format)
         $decoded = json_decode($raw, true);
         if (is_array($decoded)) {
-            return $decoded;
+            return $this->filter_queue_items($decoded);
         }
         // Fall back to legacy serialize+base64
         $legacy = @unserialize(base64_decode($raw));
-        return is_array($legacy) ? $legacy : [];
+        return is_array($legacy) ? $this->filter_queue_items($legacy) : [];
+    }
+
+    /**
+     * Filter an array down to valid queue items (must have postid + queueNumber).
+     * Discards install/info rows like {"message":"Congratulations..."}.
+     */
+    private function filter_queue_items(array $items): array {
+        return array_values(array_filter($items, function ($item) {
+            return is_array($item) && isset($item['postid'], $item['queueNumber']);
+        }));
     }
 
     /**
