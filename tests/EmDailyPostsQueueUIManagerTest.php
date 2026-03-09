@@ -98,4 +98,160 @@ public function testQueueListIsArray()
         $result = $utils->edpqcompareMultiDimensional($array1, $array2);
         $this->assertIsArray($result);
     }
+
+    // ------------------------------------------------------------------
+    // decode_queue (private) — tested via Reflection
+    // ------------------------------------------------------------------
+
+    public function testDecodeQueueEmptyStringReturnsEmptyArray()
+    {
+        $utils = new PhotoNetSubmissionUtils();
+        $method = (new \ReflectionClass($utils))->getMethod('decode_queue');
+        $method->setAccessible(true);
+        $result = $method->invoke($utils, '');
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    public function testDecodeQueueValidJsonReturnsItems()
+    {
+        $utils = new PhotoNetSubmissionUtils();
+        $method = (new \ReflectionClass($utils))->getMethod('decode_queue');
+        $method->setAccessible(true);
+        $queue = [['postid' => 1, 'queueNumber' => 1], ['postid' => 2, 'queueNumber' => 2]];
+        $result = $method->invoke($utils, json_encode($queue));
+        $this->assertCount(2, $result);
+        $this->assertEquals(1, $result[0]['postid']);
+    }
+
+    public function testDecodeQueueFiltersInstallGreetingRow()
+    {
+        $utils = new PhotoNetSubmissionUtils();
+        $method = (new \ReflectionClass($utils))->getMethod('decode_queue');
+        $method->setAccessible(true);
+        // Install row: valid JSON but no postid/queueNumber keys
+        $result = $method->invoke($utils, json_encode(['message' => 'Congratulations...']));
+        $this->assertEmpty($result);
+    }
+
+    public function testDecodeQueueLegacyBase64SerializeIsAccepted()
+    {
+        $utils = new PhotoNetSubmissionUtils();
+        $method = (new \ReflectionClass($utils))->getMethod('decode_queue');
+        $method->setAccessible(true);
+        $queue  = [['postid' => 5, 'queueNumber' => 1]];
+        $legacy = base64_encode(serialize($queue));
+        $result = $method->invoke($utils, $legacy);
+        $this->assertCount(1, $result);
+        $this->assertEquals(5, $result[0]['postid']);
+    }
+
+    public function testDecodeQueueCompletelyInvalidStringReturnsEmpty()
+    {
+        $utils = new PhotoNetSubmissionUtils();
+        $method = (new \ReflectionClass($utils))->getMethod('decode_queue');
+        $method->setAccessible(true);
+        $result = $method->invoke($utils, 'not-json-not-base64-garbage!!!');
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    // ------------------------------------------------------------------
+    // filter_queue_items (private) — tested via Reflection
+    // ------------------------------------------------------------------
+
+    public function testFilterQueueItemsKeepsValidItems()
+    {
+        $utils  = new PhotoNetSubmissionUtils();
+        $method = (new \ReflectionClass($utils))->getMethod('filter_queue_items');
+        $method->setAccessible(true);
+        $items  = [
+            ['postid' => 1, 'queueNumber' => 1],
+            ['postid' => 2, 'queueNumber' => 2],
+        ];
+        $result = $method->invoke($utils, $items);
+        $this->assertCount(2, $result);
+    }
+
+    public function testFilterQueueItemsRemovesItemMissingPostid()
+    {
+        $utils  = new PhotoNetSubmissionUtils();
+        $method = (new \ReflectionClass($utils))->getMethod('filter_queue_items');
+        $method->setAccessible(true);
+        $items  = [
+            ['queueNumber' => 1],                     // missing postid
+            ['postid' => 2, 'queueNumber' => 2],
+        ];
+        $result = $method->invoke($utils, $items);
+        $this->assertCount(1, $result);
+        $this->assertEquals(2, $result[0]['postid']);
+    }
+
+    public function testFilterQueueItemsRemovesItemMissingQueueNumber()
+    {
+        $utils  = new PhotoNetSubmissionUtils();
+        $method = (new \ReflectionClass($utils))->getMethod('filter_queue_items');
+        $method->setAccessible(true);
+        $items  = [
+            ['postid' => 1],                          // missing queueNumber
+            ['postid' => 2, 'queueNumber' => 1],
+        ];
+        $result = $method->invoke($utils, $items);
+        $this->assertCount(1, $result);
+        $this->assertEquals(2, $result[0]['postid']);
+    }
+
+    public function testFilterQueueItemsRemovesNonArrayValues()
+    {
+        $utils  = new PhotoNetSubmissionUtils();
+        $method = (new \ReflectionClass($utils))->getMethod('filter_queue_items');
+        $method->setAccessible(true);
+        $items  = [
+            'message'  => 'Congratulations...',       // string scalar — install row pattern
+            ['postid' => 1, 'queueNumber' => 1],
+        ];
+        $result = $method->invoke($utils, $items);
+        $this->assertCount(1, $result);
+    }
+
+    public function testFilterQueueItemsEmptyInputReturnsEmpty()
+    {
+        $utils  = new PhotoNetSubmissionUtils();
+        $method = (new \ReflectionClass($utils))->getMethod('filter_queue_items');
+        $method->setAccessible(true);
+        $result = $method->invoke($utils, []);
+        $this->assertIsArray($result);
+        $this->assertEmpty($result);
+    }
+
+    // ------------------------------------------------------------------
+    // New EmDailyPostsQueueUIManager methods — existence checks
+    // ------------------------------------------------------------------
+
+    public function testShortcodesPageMethodExists()
+    {
+        $manager = new EmDailyPostsQueueUIManager();
+        $this->assertTrue(
+            method_exists($manager, 'edpq_shortcodes_page'),
+            'edpq_shortcodes_page method does not exist'
+        );
+    }
+
+    public function testDashboardWidgetRegisterMethodExists()
+    {
+        $manager = new EmDailyPostsQueueUIManager();
+        $this->assertTrue(
+            method_exists($manager, 'edpq_register_dashboard_widget'),
+            'edpq_register_dashboard_widget method does not exist'
+        );
+    }
+
+    public function testDashboardWidgetRenderMethodExists()
+    {
+        $manager = new EmDailyPostsQueueUIManager();
+        $this->assertTrue(
+            method_exists($manager, 'edpq_dashboard_widget_render'),
+            'edpq_dashboard_widget_render method does not exist'
+        );
+    }
 }
