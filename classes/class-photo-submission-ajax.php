@@ -119,20 +119,14 @@ class PhotoNetSubmissionAjax {
         };
 
 
-        // Helper: Get queue list from DB using $wpdb
+        // Helper: Get queue list from DB
         $get_queue_list_db = function() {
-            global $wpdb;
-            $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-            $row = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
-            return isset($row['list']) && !empty($row['list']) ? unserialize(base64_decode($row['list'])) : null;
+            return $this->utils->get_queue_list();
         };
 
-        // Helper: Update queue list in DB using $wpdb
+        // Helper: Update queue list in DB
         $update_queue_list_db = function($queue) {
-            global $wpdb;
-            $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-            $serialize_queueListArray = base64_encode(serialize($queue));
-            return $wpdb->query($wpdb->prepare("UPDATE $table_name SET list=%s WHERE id=1", $serialize_queueListArray));
+            return $this->utils->update_queue_list_in_db($queue);
         };
 
         // Helper: Renumber queue

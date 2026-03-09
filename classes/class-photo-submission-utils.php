@@ -15,6 +15,25 @@ namespace EmDailyPostsQueue\init_plugin\Classes;
 
 class PhotoNetSubmissionUtils {
     /**
+     * Decode a stored queue value, migrating legacy serialize+base64 rows to JSON on first read.
+     * @param string $raw  The raw `list` column value from the DB.
+     * @return array
+     */
+    private function decode_queue(string $raw): array {
+        if ('' === $raw) {
+            return [];
+        }
+        // Try JSON first (new format)
+        $decoded = json_decode($raw, true);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+        // Fall back to legacy serialize+base64
+        $legacy = @unserialize(base64_decode($raw));
+        return is_array($legacy) ? $legacy : [];
+    }
+
+    /**
      * Get the queue list from the database
      * @return array
      */
@@ -22,11 +41,15 @@ class PhotoNetSubmissionUtils {
         global $wpdb;
         $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
         $row = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
-        if (isset($row['list']) && !empty($row['list'])) {
-            $queue = unserialize(base64_decode($row['list']));
-            return is_array($queue) ? $queue : [];
+        if (empty($row['list'])) {
+            return [];
         }
-        return [];
+        $queue = $this->decode_queue($row['list']);
+        // Migrate: if the row was stored as legacy format, write it back as JSON now
+        if (json_decode($row['list'], true) === null && !empty($queue)) {
+            $this->update_queue_list_in_db($queue);
+        }
+        return $queue;
     }
     /**
      * Compare two multidimensional arrays and return differences
@@ -112,28 +135,25 @@ class PhotoNetSubmissionUtils {
      * @return array
      */
     public function get_queue_list() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-        $row = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
-        if (isset($row['list']) && !empty($row['list'])) {
-            $queue = unserialize(base64_decode($row['list']));
-            return is_array($queue) ? $queue : [];
-        }
-        return [];
+        return $this->get_queue_list_from_db();
     }
 
     /**
      * Update the queue list in the database
      * @param array $queue_list
-     * @return bool|string True on success, error message on failure
+     * @return bool
      */
     public function update_queue_list_in_db($queue_list) {
         global $wpdb;
         $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-        $serialized_array = base64_encode(serialize($queue_list));
-        $result = $wpdb->query($wpdb->prepare("UPDATE $table_name SET list=%s WHERE id=1", $serialized_array));
-        // $wpdb->query returns number of rows affected or false
-        return ($result !== false && $result > 0) ? true : false;
+        $result = $wpdb->update(
+            $table_name,
+            ['list' => wp_json_encode($queue_list)],
+            ['id'   => 1],
+            ['%s'],
+            ['%d']
+        );
+        return $result !== false;
     }
 
     /**

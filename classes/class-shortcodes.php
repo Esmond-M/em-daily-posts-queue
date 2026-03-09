@@ -75,7 +75,11 @@ class Shortcodes {
     $placeholder_img = esc_url(plugin_dir_url(__DIR__) . 'assets/imgs/placeholder.png');
 
         if (isset($row['list']) && !empty($row['list'])) {
-            $stored_queue_list_arr = @unserialize(base64_decode($row['list']));
+            // Try JSON first; fall back to legacy serialize+base64
+            $stored_queue_list_arr = json_decode($row['list'], true);
+            if (!is_array($stored_queue_list_arr)) {
+                $stored_queue_list_arr = @unserialize(base64_decode($row['list']));
+            }
             if (is_array($stored_queue_list_arr) && !empty($stored_queue_list_arr)) {
                 // Only show the first post in the queue
                 $postID = isset($stored_queue_list_arr[0]['postid']) ? intval($stored_queue_list_arr[0]['postid']) : 0;
