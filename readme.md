@@ -2,187 +2,222 @@
 
 **Project:** [https://github.com/Esmond-M/em-daily-posts-queue](https://github.com/Esmond-M/em-daily-posts-queue)  
 **Author:** [esmondmccain.com](https://esmondmccain.com/)  
-**Version:** 0.1.1  
+**Version:** 0.1.2
 
 ## Summary
 
-Originally made for AWC intranet website. Being put into a plugin for future use. This plugin allows for daily posts to be displayed on the front-end. These posts can be submitted to the website through a short-code form on the front-end. I have also made a custom role on the back-end for a user that will edit these posts. The role will have access to reordering the release of the daily post or even choosing not to publish the post if submitted by a user.
+Originally made for an intranet website. Packaged as a reusable plugin. Allows daily posts to be displayed on the front end via shortcode. Visitors submit photos through a front-end form; a custom admin role can then review, reorder, and manage the queue. The top post in the queue is automatically rotated out on a weekday schedule using Action Scheduler.
 
 ## Requirements
 
 - **WordPress:** 6.1+
-- **PHP:** 7.4.33+
-- **Required Plugin:** Action Scheduler
+- **PHP:** 7.4+
+- **Required Plugin:** [Action Scheduler](https://actionscheduler.org/)
 
-## Features & Guidelines
+## Quick Start — Shortcodes
 
-• Demo content import button added to the admin queue edit page for quick sample post creation.  
-• This plugin is used in conjunction with the "Action Scheduler" plugin. The number one post in the queue will get deleted once every weekday. The next post will then move up and be displayed on the front-end using the short-code `[EmDailyPostsQueueDisplayPost]`.  
-• This plugin adds a Custom Post type "Net Submissions".  
-• Adds WordPress user role "Net Submitter". Only this role and administrators can edit the new post type and queue system.  
-• Short-code `[EmDailyPostsQueueForm]` for front-end form.  
-• Short-code `[EmDailyPostsQueueDisplayPost]` for displaying the current daily post.  
-• Once a post in this post type has been published it can only be deleted on the queue sub-menu page.
-• **Queue and Cron Management:** Admins can update the cron event time using WordPress timezone settings. The next scheduled cron event and the next post to be removed (title and ID) are displayed in the admin queue edit page.
-• **Action Scheduler Stubs:** Stubs for Action Scheduler functions are included to prevent IDE warnings in development environments.
-• **Improved Admin UX:** Submit buttons are disabled during form submission to prevent double actions.
+After activation, go to **Net Submissions → 📋 Shortcodes** in the WP admin sidebar, or check the **Daily Posts Queue** widget on the main dashboard. Both show copy buttons for each shortcode.
+
+| Shortcode | Where to use |
+|---|---|
+| `[EmDailyPostsQueueForm]` | Any page where visitors submit photos |
+| `[EmDailyPostsQueueDisplayPost]` | Any page/widget area to show today's post |
+
+Both shortcodes accept an optional `class` attribute:
+```
+[EmDailyPostsQueueForm class="my-wrapper"]
+[EmDailyPostsQueueDisplayPost class="my-wrapper"]
+```
+
+## Features
+
+- **Photo submission form** — front-end shortcode form; visitors upload a photo, headline, and caption (max 8 MB, JPG/PNG)
+- **Daily post display** — shortcode that renders the current first-in-queue post (image, headline, caption)
+- **Drag-and-drop queue management** — admin sub-menu to reorder or remove submissions
+- **Automatic daily rotation** — Action Scheduler advances the queue every weekday; admins can customise the trigger time from the WP timezone settings
+- **Demo content import** — one-click button on the queue edit page to seed 4 sample posts
+- **Custom post type** `net_submission` — separate from regular posts; supports title and featured image
+- **Custom role** `Net Submitter` — limited access; can submit and view own submissions only
+- **Shortcode reference** — dedicated admin sub-menu page + dashboard widget so shortcodes are always visible
+- **Optimistic concurrency** — queue edits check for stale data and warn before overwriting
+- **JSON queue storage** — queue stored as JSON (migrated transparently from legacy serialize+base64)
+
+## Installation
+
+1. Download the latest zip from [build/em-daily-posts-queue.zip](https://github.com/Esmond-M/em-daily-posts-queue/blob/main/build/em-daily-posts-queue.zip).
+2. In WordPress admin go to **Plugins → Add New → Upload Plugin**.
+3. Upload the zip and activate.
+4. Install and activate the **Action Scheduler** plugin.
+5. Find your shortcodes under **Net Submissions → 📋 Shortcodes**.
+
+![Queue List](/docs/imgs/queue-list.png "Queue List")
+
+## Usage
+
+### 1. Add the submission form to a page
+```
+[EmDailyPostsQueueForm]
+```
+Visitors fill in a headline, caption, and photo. On submission an email is sent to the site admin.
+
+### 2. Display the current daily post
+```
+[EmDailyPostsQueueDisplayPost]
+```
+Shows the featured image, headline, and caption of the first item in the queue.
+
+### 3. Manage the queue
+1. Go to **Net Submissions → Edit Photo Queue**
+2. Reorder items by changing the queue number fields and saving
+3. Delete individual items with the remove button
+4. Import demo content with the **Import Demo** button
+5. Adjust the daily rotation time under the cron settings panel
+
+### 4. Review submissions
+Go to **Net Submissions** to see all submitted posts. Publishing a post automatically appends it to the end of the queue.
 
 ## Technical Details
 
 ### Database
-- **Custom Table:** `edpq_net_photos_queue_order` - Stores the queue order and post relationships
-- **Meta Fields:** `topic_headline_value`, `topic_caption_value` - Custom fields for net submissions
+| Table | Purpose |
+|---|---|
+| `{prefix}edpq_net_photos_queue_order` | Stores queue order as a JSON array of `{postid, queueNumber}` objects |
+
+### Meta Fields
+| Key | Description |
+|---|---|
+| `topic_headline_value` | Submission headline |
+| `topic_caption_value` | Submission caption |
 
 ### Custom Post Type
-- **Post Type:** `net_submission`
-- **Capabilities:** Custom capability system with `edit_net_submission`, `read_net_submission`, etc.
-- **Features:** Supports title and thumbnail
+- **Slug:** `net_submission`
+- **Supports:** title, thumbnail
+- **Custom capabilities:** `edit_net_submission`, `read_net_submission`, `delete_net_submission`, etc.
 
 ### User Roles
-- **Custom Role:** `net_submission_role` (Net Submitter)
-- **Capabilities:** Limited access to net submission posts and file uploads
-- **Admin Enhancement:** Administrators get full access to all net submission capabilities
+- **Net Submitter** — can create/read own `net_submission` posts and upload files; no access to queue management
+- **Administrator** — full access including queue edit, wipe, and cron controls
 
 ### Shortcodes
-- `[EmDailyPostsQueueForm]` - Frontend submission form
-- `[EmDailyPostsQueueDisplayPost]` - Display current daily post
+| Shortcode | Class | Description |
+|---|---|---|
+| `[EmDailyPostsQueueForm]` | `EmDailyPostsQueue\init_plugin\Classes\Shortcodes` | Renders the photo submission form |
+| `[EmDailyPostsQueueDisplayPost]` | `EmDailyPostsQueue\init_plugin\Classes\Shortcodes` | Renders the current daily post |
 
-## Installation
+## API Hooks
 
-1. Download the latest version from [https://github.com/Esmond-M/em-daily-posts-queue/blob/main/build/em-daily-posts-queue.zip](https://github.com/Esmond-M/em-daily-posts-queue/blob/main/build/em-daily-posts-queue.zip).
-2. Upload `em-daily-posts-queue` zip to the `/wp-content/plugins/` directory.
-3. Extract zip folder. Folder name of plugin should be "em-daily-posts-queue".
-4. Activate the plugin through the 'Plugins' menu in WordPress.
-5. Ensure "Action Scheduler" plugin is installed and activated.
+### Actions
+| Hook | Description |
+|---|---|
+| `init` | CPT registration, role setup, cron scheduling |
+| `add_meta_boxes` | Custom meta box registration |
+| `save_post` | Saves headline/caption meta |
+| `publish_net_submission` | Appends post to queue on first publish |
+| `trashed_post` | Force-deletes instead of trashing |
+| `eg_1_weekdays_log` | Action Scheduler hook that advances the queue |
 
-![Alt text](/docs/imgs/queue-list.png "Queue List")
+### Filters
+| Hook | Description |
+|---|---|
+| `post_row_actions` | Removes Quick Edit and Trash from submission list |
+| `bulk_actions-edit-net_submission` | Removes bulk edit action |
+| `template_include` | Loads plugin template for single `net_submission` view |
 
 ## Development Setup
 
 ### Prerequisites
-1. **WordPress Development Environment** with database access
-2. **Composer** for dependency management
-3. **PHPUnit** for testing (included via composer)
+- WordPress local environment with database access
+- Composer
+- PHPUnit (included via composer)
+- Node.js + npm (for `plugin-zip` build script)
 
-### Setup Steps
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Esmond-M/em-daily-posts-queue.git
-   ```
+### Setup
 
-2. Install dependencies:
-   ```bash
-   composer install
-   ```
+```bash
+git clone https://github.com/Esmond-M/em-daily-posts-queue.git
+cd em-daily-posts-queue
+composer install
+```
 
-3. Configure test database in `tests/wp-config.php`:
-   ```php
-   define( 'DB_NAME', 'wordpress_test' );
-   define( 'DB_USER', 'your_username' );
-   define( 'DB_PASSWORD', 'your_password' );
-   define( 'DB_HOST', 'localhost' );
-   ```
+Configure `tests/wp-config.php`:
+```php
+define( 'DB_NAME',     'wordpress_test' );
+define( 'DB_USER',     'your_username' );
+define( 'DB_PASSWORD', 'your_password' );
+define( 'DB_HOST',     'localhost' );
+```
 
-4. Set up WordPress test environment variables (if needed):
-   ```bash
-   export WP_PHPUNIT__DIR=/path/to/wordpress-develop/tests/phpunit
-   ```
+### Build zip
+
+```bash
+npm run plugin-zip
+# Output: build/em-daily-posts-queue.zip
+```
 
 ### File Structure
 ```
 em-daily-posts-queue/
-├── classes/                          # Main plugin classes
-│   ├── class-cpt-net-submission-meta.php
-│   ├── class-cpt-net-submission.php
-│   ├── class-cron-event-timer.php
-│   ├── class-cron-events.php
-│   ├── class-photo-submission-ajax.php
-│   ├── class-photo-submission-queue-manager.php
-│   ├── class-photo-submission-utils.php
-│   └── class-shortcodes.php
-├── tests/                            # PHPUnit test suite
-│   ├── bootstrap.php                 # Test bootstrap
+├── admin/assets/           # Admin-only CSS and JS
+├── assets/                 # Frontend CSS, JS, images
+├── classes/
+│   ├── class-cpt-net-submission.php          # CPT registration + roles
+│   ├── class-cpt-net-submission-meta.php     # Meta box (headline, caption)
+│   ├── class-cron-event-timer.php            # Action Scheduler scheduling
+│   ├── class-cron-events.php                 # Weekly queue rotation logic
+│   ├── class-photo-submission-ajax.php       # All AJAX handlers
+│   ├── class-photo-submission-queue-manager.php  # Main admin controller
+│   ├── class-photo-submission-utils.php      # DB helpers, queue encode/decode
+│   └── class-shortcodes.php                  # Frontend shortcode renderers
+├── templates/
+│   ├── options-page-admin-queue-edit.php     # Queue reorder UI
+│   ├── options-page-admin-queue-list.php     # Queue read-only list
+│   ├── shortcode-reference.php               # Shortcode reference card
+│   └── single-net-submission.php             # Single post template
+├── tests/
+│   ├── bootstrap.php
 │   ├── EmDailyPostsQueueUIManagerTest.php
-│   ├── CronEventTimerTest.php
-│   ├── PhotoSubmissionAjaxTest.php
-│   ├── wp-config.php                 # Test WordPress configuration
-├── docs/                             # Documentation and images
-├── vendor/                           # Composer dependencies
-├── composer.json                     # Composer configuration
-├── phpunit.xml                       # PHPUnit configuration
-├── em-daily-posts-queue.php          # Main plugin file
-└── readme.md                         # This file
+│   └── wp-config.php
+├── docs/
+├── vendor/
+├── composer.json
+├── phpunit.xml
+├── package.json
+├── em-daily-posts-queue.php   # Plugin entry point
+└── readme.md
 ```
 
 ## Testing
-
-This plugin includes PHPUnit tests for major functionality.
-
-### Running Tests
-
-**Prerequisites:** Ensure WordPress and database are running.
 
 ```bash
 # Run all tests
 .\vendor\bin\phpunit --bootstrap tests/bootstrap.php tests
 
-# Run specific test file
-.\vendor\bin\phpunit tests/CronEventTimerTest.php
-
 # Run with verbose output
 .\vendor\bin\phpunit --bootstrap tests/bootstrap.php tests --verbose
 ```
 
-### Test Coverage
-
-- **Custom Post Type Registration** - CPT creation, roles, capabilities
-- **User Roles and Capabilities** - Permission system testing
-- **Meta Box Functionality** - Form handling, nonce verification, data sanitization
-- **Cron Events and Queue Management** - Array comparison, queue processing, cron event scheduling and display
-- **Plugin Initialization** - Singleton pattern, shortcode registration
-- **Auto Photo Submissions** - Form processing, validation, security
-
-### Test Categories
-
-- **Happy Path** - Normal operation flows
-- **Input Verification** - Edge cases and boundary values  
-- **Exception Handling** - Error conditions and invalid inputs
-- **Security Testing** - Nonce verification, permission checks, data escaping
-
-## Usage
-
-### Frontend Form
-Add the submission form to any page or post:
-```
-[EmDailyPostsQueueForm class="your-css-class"]
-```
-
-### Display Daily Post
-Show the current daily post:
-```
-[EmDailyPostsQueueDisplayPost class="your-css-class"]
-```
-
-### Backend Management
-1. Navigate to **Net Submissions** in WordPress admin
-2. Use the **Edit Net Submissions** sub-menu to manage the queue
-3. Reorder posts by changing queue numbers
-4. Remove posts from queue as needed
-5. Update cron event time and view next scheduled event and post to be removed
-
-## API Hooks
-
-### Actions
-- `init` - Plugin initialization
-- `add_meta_boxes` - Meta box registration
-- `save_post` - Meta data saving
-- `publish_net_submission` - Post publication handling
-- `trashed_post` - Post deletion handling
-
-### Filters
-- `post_row_actions` - Custom row actions for net submissions
+### Coverage areas
+- CPT registration, roles, capabilities
+- Meta box rendering and save
+- Queue array comparison and conflict detection
+- Cron scheduling and queue rotation
+- Shortcode registration
+- AJAX handler security (nonce, capability checks)
 
 ## Changelog
+
+### Version 0.1.2
+- **Security:** Replaced `serialize`/`base64` queue storage with `json_encode`; eliminates PHP object injection risk
+- **Security:** `net_photo_deletion_info_ajax` no longer registered as `nopriv`; added nonce and capability checks to AJAX handlers
+- **Security:** Sanitised all `$_POST` inputs (`sanitize_text_field`, `sanitize_textarea_field`, `(int)` casts)
+- **Security:** `$wpdb->prepare()` used consistently; removed one unparameterised `UPDATE` query
+- **Feature:** Added **Shortcodes** submenu page (📋) under Net Submissions CPT menu
+- **Feature:** Added dashboard widget showing both shortcodes with copy-to-clipboard buttons
+- **Bug fix:** Fatal `TypeError: Cannot access offset on string` on queue list page when DB contained the install greeting row
+- **Bug fix:** `get_queue_list_from_db` and `get_queue_list` were identical; unified via `decode_queue()` helper with legacy migration
+- **Bug fix:** `new CronEvents` at file scope removed; instantiation moved to plugin bootstrap only
+- **Bug fix:** `wp_set_current_user()` hack replaced with direct `admin_url()` call for edit links
+
 ### Version 0.1.1
 - Queue system now guarantees sequential queue numbers (no gaps)
 - Changed admin queue container class name for uniqueness
