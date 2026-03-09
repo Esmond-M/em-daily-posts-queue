@@ -58,8 +58,8 @@ class EmDailyPostsQueueUIManager
     add_action('publish_net_submission', [$this, 'do_updated_to_publish'], 10, 3 );
 
     // AJAX handlers (delegated to PhotoNetSubmissionAjax)
+    // net_photo_deletion_info_ajax is admin-only; no nopriv registration.
     add_action('wp_ajax_net_photo_deletion_info_ajax', [$this->ajax, 'net_photo_deletion_info_ajax']);
-    add_action('wp_ajax_nopriv_net_photo_deletion_info_ajax', [$this->ajax, 'net_photo_deletion_info_ajax']);
     add_action('wp_ajax_form_post_new_net_photo_submission_ajax', [$this->ajax, 'form_post_new_net_photo_submission_ajax']);
     add_action('wp_ajax_nopriv_form_post_new_net_photo_submission_ajax', [$this->ajax, 'form_post_new_net_photo_submission_ajax']);
     add_action('wp_ajax_admin_queue_edit', [$this->ajax, 'handle_admin_queue_edit_ajax']);
