@@ -69,6 +69,9 @@ class EmDailyPostsQueueUIManager
     add_action('admin_enqueue_scripts', [$this->ajax, 'load_admin_net_style']);
     add_action('wp_enqueue_scripts', [$this->ajax, 'net_style_scripts']);
 
+    // Shortcode reference page + dashboard widget
+    add_action('wp_dashboard_setup', [$this, 'edpq_register_dashboard_widget']);
+
     }
 
        // 1. Admin UI
@@ -196,12 +199,21 @@ class EmDailyPostsQueueUIManager
         // - Appears under the "net_submission" post type menu
         // - Allows admins to view the current photo submission queue
         add_submenu_page(
-            'edit.php?post_type=net_submission', // Parent menu (custom post type)
-            'Admin Photo Queue List',            // Page title (shown in browser tab)
-            'Admin Photo Queue List',            // Menu title (shown in WP admin menu)
-            'manage_options',                    // Capability required to access
-            'admin-queue-list',                  // Menu slug
-            [$this, 'edpqadmin_queue_list_page'] // Callback to render the page
+            'edit.php?post_type=net_submission',
+            'Admin Photo Queue List',
+            'Admin Photo Queue List',
+            'manage_options',
+            'admin-queue-list',
+            [$this, 'edpqadmin_queue_list_page']
+        );
+
+        add_submenu_page(
+            'edit.php?post_type=net_submission',
+            'Shortcodes',
+            '📋 Shortcodes',
+            'manage_options',
+            'edpq-shortcodes',
+            [$this, 'edpq_shortcodes_page']
         );
 
         // Submenu: Edit Photo Queue (reorder/delete UI)
@@ -218,6 +230,35 @@ class EmDailyPostsQueueUIManager
 
 
 
+    }
+
+    /**
+     * Render the Shortcodes reference submenu page
+     */
+    public function edpq_shortcodes_page() {
+        echo '<div class="wrap"><h1>Daily Posts Queue — Shortcodes</h1>';
+        $context = 'page';
+        include plugin_dir_path( dirname( __FILE__ ) ) . 'templates/shortcode-reference.php';
+        echo '</div>';
+    }
+
+    /**
+     * Register a dashboard widget showing available shortcodes
+     */
+    public function edpq_register_dashboard_widget() {
+        wp_add_dashboard_widget(
+            'edpq_shortcodes_widget',
+            '📋 Daily Posts Queue — Shortcodes',
+            [$this, 'edpq_dashboard_widget_render']
+        );
+    }
+
+    /**
+     * Render the dashboard widget content
+     */
+    public function edpq_dashboard_widget_render() {
+        $context = 'widget';
+        include plugin_dir_path( dirname( __FILE__ ) ) . 'templates/shortcode-reference.php';
     }
 
     /**
