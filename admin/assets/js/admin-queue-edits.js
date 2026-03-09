@@ -55,6 +55,7 @@ jQuery(document).ready(function($) {
             url: ajaxurl,
             data: {
                 action: 'admin_queue_edit',
+                nonce: edpq_admin_queue.nonce,
                 form_data: formData
             },
             success: function(response) {
@@ -89,7 +90,8 @@ jQuery(document).ready(function($) {
                 type: 'POST',
                 url: ajaxurl,
                 data: {
-                    action: 'admin_queue_full_wipe'
+                    action: 'admin_queue_full_wipe',
+                    nonce: edpq_admin_queue.nonce
                 },
                 success: function(response) {
                     $('.edpq-ajax-loader').remove();

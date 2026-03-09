@@ -26,6 +26,7 @@ class PhotoNetSubmissionAjax {
     }
 
     public function handle_admin_queue_edit_ajax() {
+        check_ajax_referer('edpq_admin_queue', 'nonce');
         if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Permission denied.']);
         }
@@ -79,6 +80,7 @@ class PhotoNetSubmissionAjax {
      * AJAX handler: Full wipe of queue and all net_submission posts
      */
     public function handle_admin_queue_full_wipe_ajax() {
+        check_ajax_referer('edpq_admin_queue', 'nonce');
         if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Permission denied.']);
         }
@@ -94,7 +96,7 @@ class PhotoNetSubmissionAjax {
         // Empty the queue table
         global $wpdb;
         $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-        $wpdb->query("UPDATE $table_name SET list='' WHERE id=1");
+        $wpdb->update($table_name, ['list' => ''], ['id' => 1], ['%s'], ['%d']);
         wp_send_json_success(['message' => 'Full wipe completed.']);
     }
 
@@ -102,7 +104,12 @@ class PhotoNetSubmissionAjax {
      * AJAX handler: Processes queue item deletion and updates the queue in the database
      */
     public function net_photo_deletion_info_ajax() {
-        $stored_queue_list_arr = json_decode(stripslashes($_POST['checkWindowAge']), true);
+        check_ajax_referer('edpq_admin_queue', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Permission denied.']);
+            return;
+        }
+        $stored_queue_list_arr = json_decode(wp_unslash($_POST['checkWindowAge'] ?? ''), true);
 
         // Helper: Render AJAX response and die
         $render_ajax_response = function($msg) {
@@ -112,20 +119,14 @@ class PhotoNetSubmissionAjax {
         };
 
 
-        // Helper: Get queue list from DB using $wpdb
+        // Helper: Get queue list from DB
         $get_queue_list_db = function() {
-            global $wpdb;
-            $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-            $row = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
-            return isset($row['list']) && !empty($row['list']) ? unserialize(base64_decode($row['list'])) : null;
+            return $this->utils->get_queue_list();
         };
 
-        // Helper: Update queue list in DB using $wpdb
+        // Helper: Update queue list in DB
         $update_queue_list_db = function($queue) {
-            global $wpdb;
-            $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-            $serialize_queueListArray = base64_encode(serialize($queue));
-            return $wpdb->query($wpdb->prepare("UPDATE $table_name SET list=%s WHERE id=1", $serialize_queueListArray));
+            return $this->utils->update_queue_list_in_db($queue);
         };
 
         // Helper: Renumber queue
@@ -140,8 +141,8 @@ class PhotoNetSubmissionAjax {
 
         // --- Main Logic ---
         if (isset($_POST['remove_postid'])) {
-            $idToRemove = $_POST['remove_postid'];
-            $queueNumberToRemove = $_POST['remove_queue'];
+            $idToRemove        = (int) $_POST['remove_postid'];
+            $queueNumberToRemove = (int) $_POST['remove_queue'];
             $old_stored_queue_list_arr = $stored_queue_list_arr;
 
             // Remove post from queue
@@ -226,26 +227,24 @@ class PhotoNetSubmissionAjax {
      */
     public function form_post_new_net_photo_submission_ajax()
     {
+            check_ajax_referer('new-post', '_wpnonce');
 
-            // Do some minor form validation to make sure there is content
-            if (  isset($_POST['topic_headline_value']) && isset($_POST['topic_caption_value'])  ) {
-
+            if ( ! isset($_POST['topic_headline_value']) || ! isset($_POST['topic_caption_value']) ) {
+                wp_die('<p class="newpost-fail">Server error please resubmit.</p>');
             }
-            else{
-                    wp_die('<p class="newpost-fail">Server error please resubmit.</p>');
-            }
+            $headline = sanitize_text_field(wp_unslash($_POST['topic_headline_value']));
+            $caption  = sanitize_textarea_field(wp_unslash($_POST['topic_caption_value']));
 
             // Add the content of the form to $post as an array
             $new_post = array(
-                'post_title'    => $_POST['topic_headline_value'] . ' ' . date("m-d-y") ,
-                'post_status'   => 'draft',           // Choose: publish, preview, future, draft, etc.
-                'meta_input'   => array(
-                'topic_headline_value' => '' . $_POST['topic_headline_value'] . '',
-                'topic_caption_value' => '' . $_POST['topic_caption_value'] . '',
+                'post_title'  => $headline . ' ' . date('m-d-y'),
+                'post_status' => 'draft',
+                'meta_input'  => array(
+                    'topic_headline_value' => $headline,
+                    'topic_caption_value'  => $caption,
                 ),
-                'post_type' => 'net_submission'  //'post',page' or use a custom post type if you want to
-                );
-                //save the new post
+                'post_type'   => 'net_submission',
+            );
             $pid = wp_insert_post($new_post);
 
             // The nonce was valid and the user has the capabilities, it is safe to continue.
@@ -270,7 +269,7 @@ class PhotoNetSubmissionAjax {
                 $emailto = $admin_email;
 
             // Email subject, "New {post_type_label}"
-            $subject = 'New Photo Submission for: ' . $_POST['topic_headline_value'] . ' ' . date("m-d-y");
+            $subject = 'New Photo Submission for: ' . $headline . ' ' . date('m-d-y');
 
             // Dynamically get a user who can edit posts (administrator)
             $admin_user = get_users([
@@ -324,6 +323,7 @@ class PhotoNetSubmissionAjax {
                     wp_enqueue_script( 'edpq-photo-submission-scripts', $plugin_url  . '/admin/assets/js/edpq-photo-submission.js', array('jquery'), $rand, true);
                     wp_localize_script('edpq-photo-submission-scripts', 'ajax_net_photo_deletion_info', array(
                         'ajaxurl_net_photo_deletion_info' => admin_url('admin-ajax.php'),
+                        'nonce'   => wp_create_nonce('edpq_admin_queue'),
                         'noposts' => __('No older posts found', 'edpq-white'),
                     ));
                 }
@@ -334,6 +334,9 @@ class PhotoNetSubmissionAjax {
                     isset($_GET['page']) && $_GET['page'] === 'admin-queue-edit'
                 ) {
                     wp_enqueue_script('admin-queue-edits-js', $plugin_url . '/admin/assets/js/admin-queue-edits.js', array('jquery'), $rand, true);
+                    wp_localize_script('admin-queue-edits-js', 'edpq_admin_queue', [
+                        'nonce' => wp_create_nonce('edpq_admin_queue'),
+                    ]);
                 }
 
     }

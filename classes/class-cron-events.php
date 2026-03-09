@@ -32,45 +32,35 @@ class CronEvents
     
 
         public function eg_action_net_submission_weekly_update() {
-            global $wpdb;
-            $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-            $row = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
-            if (empty($row) || empty($row['list'])) {
-                echo 'Database row does not exist.';
+            $queue = $this->utils->get_queue_list();
+            if (empty($queue)) {
+                echo 'Queue is empty or database row does not exist.';
                 return;
             }
-            $stored_queue_list_arr = unserialize(base64_decode($row['list']));
-            $old_stored_queue_list_arr = $stored_queue_list_arr;
-            $idToRemove = $stored_queue_list_arr[0]['postid'] ?? null;
-            unset($stored_queue_list_arr[0]);
-            $reNumberBeforeSubmit = array_values($stored_queue_list_arr);
-            foreach ($reNumberBeforeSubmit as $i => &$item) {
+            $old_queue    = $queue;
+            $idToRemove   = $queue[0]['postid'] ?? null;
+            array_shift($queue);
+            foreach ($queue as $i => &$item) {
                 $item['queueNumber'] = $i + 1;
             }
             unset($item);
 
-            // Check for update/conflict
-            $row2 = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
-            if (empty($row2) || empty($row2['list'])) {
-                echo 'Database row does not exist.';
-                return;
-            }
-            $Second_stored_queue_list_arr = unserialize(base64_decode($row2['list']));
-            $isWindowOutdated = $this->utils->edpqcompareMultiDimensional($Second_stored_queue_list_arr, $old_stored_queue_list_arr);
+            // Optimistic concurrency: re-read and compare
+            $current = $this->utils->get_queue_list();
+            $diff    = $this->utils->edpqcompareMultiDimensional($current, $old_queue);
 
-            if (empty($isWindowOutdated)) {
-                $serialized = base64_encode(serialize($reNumberBeforeSubmit));
-                $result = $wpdb->query($wpdb->prepare("UPDATE $table_name SET list=%s WHERE id=1", $serialized));
-                if ($result !== false && $result > 0) {
+            if (empty($diff)) {
+                $ok = $this->utils->update_queue_list_in_db($queue);
+                if ($ok) {
                     if ($idToRemove) {
-                        wp_delete_post($idToRemove, true);
+                        wp_delete_post((int) $idToRemove, true);
                     }
                     echo 'Queue List updated. Item has been removed. Next weekly post active.';
                     $subject = 'Next submission Live: Check Status - ' . date('m-d-y');
-                    $message = '<a href="' . site_url() . '/wp-admin/tools.php?page=action-scheduler&status=pending">View it</a>';
+                    $message = '<a href="' . esc_url(site_url()) . '/wp-admin/tools.php?page=action-scheduler&status=pending">View it</a>';
                     $this->utils->send_admin_email($subject, $message);
                 } else {
-                    echo "SQL Error: Could not update queue list.";
+                    echo 'SQL Error: Could not update queue list.';
                 }
             } else {
                 echo 'This window is out of date. Weekly update failed.';
