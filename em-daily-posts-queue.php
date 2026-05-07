@@ -42,6 +42,28 @@ if ( ! defined( 'ABSPATH' ) ) {
             add_action( 'init', [ $this, 'i18n' ] );
             add_action( 'plugins_loaded', [ $this, 'init_class' ] );
             register_activation_hook( __FILE__,   [ $this, 'EmDailyPostsQueue_install' ] );
+            register_deactivation_hook( __FILE__, [ $this, 'EmDailyPostsQueue_deactivate' ] );
+            register_uninstall_hook( __FILE__, [ __CLASS__, 'EmDailyPostsQueue_uninstall' ] );
+        }
+
+        /**
+         * Deactivation: cancel the scheduled Action Scheduler action so it does not
+         * fire while the plugin is inactive.
+         */
+        public function EmDailyPostsQueue_deactivate() {
+            if ( function_exists( 'as_unschedule_all_actions' ) ) {
+                as_unschedule_all_actions( 'eg_1_weekdays_log' );
+            }
+        }
+
+        /**
+         * Uninstall: remove the custom role definition.
+         * DB table and queue data are intentionally left intact.
+         * Users previously assigned this role retain their wp_usermeta row;
+         * the role will be recognised again if the plugin is reinstalled.
+         */
+        public static function EmDailyPostsQueue_uninstall() {
+            remove_role( 'net_submission_role' );
         }
 
         public function i18n() {
