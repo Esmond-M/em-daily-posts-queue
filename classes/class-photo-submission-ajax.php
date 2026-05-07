@@ -271,18 +271,8 @@ class PhotoNetSubmissionAjax {
             // Email subject, "New {post_type_label}"
             $subject = 'New Photo Submission for: ' . $headline . ' ' . date('m-d-y');
 
-            // Dynamically get a user who can edit posts (administrator)
-            $admin_user = get_users([
-                'role'    => 'administrator',
-                'number'  => 1,
-                'fields'  => 'ID'
-            ]);
-            if (!empty($admin_user)) {
-                wp_set_current_user($admin_user[0]);
-            }
             // Email body
-                $message = 'View it: ' . get_permalink( $pid ) . "<br><br>Edit it: " . get_edit_post_link( $pid, 'display' );
-                wp_set_current_user(0);  // turn off get user after get link function
+                $message = 'View it: ' . get_permalink( $pid ) . "<br><br>Edit it: " . admin_url( 'post.php?post=' . $pid . '&action=edit' );
 
             wp_mail( $emailto, $subject, $message, $headers );
                         echo '<div class="edpq-success-message">

@@ -50,7 +50,7 @@ class PhotoNetSubmissionUtils {
     public function get_queue_list_from_db() {
         global $wpdb;
         $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-        $row = $wpdb->get_row("SELECT list FROM $table_name WHERE id='1';", ARRAY_A);
+        $row = $wpdb->get_row( $wpdb->prepare( "SELECT list FROM $table_name WHERE id = %d", 1 ), ARRAY_A );
         if (empty($row['list'])) {
             return [];
         }
