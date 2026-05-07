@@ -33,8 +33,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     $EmDailyPostsQueueDbVersion = '1.0';
     final class EmDailyPostsQueueInit {
 
-        const VERSION = '0.1.0';
-        const PHP_MINIMUM_VERSION = '7.0';
+        const VERSION = '0.1.1';
+        const PHP_MINIMUM_VERSION = '7.4';
 
         private static $_instance = null;
 
@@ -90,6 +90,13 @@ if ( ! defined( 'ABSPATH' ) ) {
         require_once __DIR__ . '/classes/class-cpt-net-submission.php';
         require_once __DIR__ . '/classes/class-cpt-net-submission-meta.php';
         require_once __DIR__ . '/classes/class-shortcodes.php';
+
+        new Classes\EmDailyPostsQueueUIManager();
+        new Classes\CronEvents();
+        new Classes\CronEventTimer();
+        new Classes\CPT_NetSubmission();
+        new Classes\CPT_NetSubmissionMeta();
+        new Classes\Shortcodes();
     }
 
     public static function get_instance() {

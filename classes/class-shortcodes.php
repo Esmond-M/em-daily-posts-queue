@@ -144,5 +144,3 @@ class Shortcodes {
         return $shortcode_html;
     }
 }
-
-new Shortcodes();

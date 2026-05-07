@@ -176,5 +176,3 @@ class CPT_NetSubmission
     }
 
 }
-
-new CPT_NetSubmission;
