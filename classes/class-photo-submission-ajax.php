@@ -104,7 +104,7 @@ class PhotoNetSubmissionAjax {
         // Empty the queue table
         global $wpdb;
         $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-        $wpdb->update($table_name, ['list' => ''], ['id' => 1], ['%s'], ['%d']);
+        $wpdb->update($table_name, ['list' => '[]'], ['id' => 1], ['%s'], ['%d']);
         wp_send_json_success(['message' => 'Full wipe completed.']);
     }
 
@@ -136,16 +136,6 @@ class PhotoNetSubmissionAjax {
         // Helper: Update queue list in DB
         $update_queue_list_db = function($queue) {
             return $this->utils->update_queue_list_in_db($queue);
-        };
-
-        // Helper: Renumber queue
-        $renumber_queue = function($queue, $removedQueueNumber) {
-            foreach ($queue as &$item) {
-                if (intval($item['queueNumber']) > $removedQueueNumber) {
-                    $item['queueNumber'] = $item['queueNumber'] - 1;
-                }
-            }
-            return $queue;
         };
 
         // --- Main Logic ---
