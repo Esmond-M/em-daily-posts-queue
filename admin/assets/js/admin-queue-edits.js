@@ -1,4 +1,13 @@
 jQuery(document).ready(function($) {
+    // Capture queue state as it was when the page loaded — used for optimistic concurrency
+    var initialQueueSnapshot = [];
+    $('#queue-list .queue-row').each(function() {
+        initialQueueSnapshot.push({
+            postid: parseInt($(this).attr('data-postid'), 10),
+            queueNumber: parseInt($(this).attr('data-queuenumber'), 10)
+        });
+    });
+
     // Move queue item up
     $(document).on('click', '.queue-up', function(e) {
         e.preventDefault();
@@ -56,7 +65,8 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'admin_queue_edit',
                 nonce: edpq_admin_queue.nonce,
-                form_data: formData
+                form_data: formData,
+                client_snapshot: JSON.stringify(initialQueueSnapshot)
             },
             success: function(response) {
                 $('.edpq-ajax-loader').remove();

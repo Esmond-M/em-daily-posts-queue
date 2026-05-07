@@ -101,4 +101,3 @@ if (!function_exists('as_schedule_recurring_action')) {
 if (!function_exists('as_unschedule_all_actions')) {
     function as_unschedule_all_actions($hook) {}
 }
-new CronEventTimer();

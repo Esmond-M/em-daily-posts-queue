@@ -150,7 +150,3 @@ class CPT_NetSubmissionMeta {
 
 
 }
-
-
-
-new CPT_NetSubmissionMeta;

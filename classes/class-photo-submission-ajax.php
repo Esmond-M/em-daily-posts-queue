@@ -33,6 +33,13 @@ class PhotoNetSubmissionAjax {
         if (!isset($_POST['form_data'])) {
             wp_send_json_error(['message' => 'No data received.']);
         }
+
+        // Client's snapshot of the queue at page load — used for optimistic concurrency
+        $client_snapshot = json_decode(wp_unslash($_POST['client_snapshot'] ?? '[]'), true);
+        if (!is_array($client_snapshot)) {
+            $client_snapshot = [];
+        }
+
         parse_str($_POST['form_data'], $form);
         $queue = [];
         $new_postids = [];
@@ -54,20 +61,21 @@ class PhotoNetSubmissionAjax {
         }
         unset($item);
 
-        // Get current queue from DB to find removed post IDs
-        $old_queue = $this->utils->get_queue_list();
-        $old_postids = array_map(function($item) { return intval($item['postid']); }, $old_queue);
+        // Check for conflict: compare client's page-load snapshot against current DB value
+        $db_queue = $this->utils->get_queue_list();
+        $diff = $this->utils->edpqcompareMultiDimensional($db_queue, $client_snapshot);
+        if (!empty($diff)) {
+            wp_send_json_error(['conflict' => true, 'message' => 'Queue has been updated by another user.']);
+            return;
+        }
+
+        // Conflict check passed — safe to delete posts removed by the user
+        $old_postids = array_map(function($item) { return intval($item['postid']); }, $client_snapshot);
         $removed_postids = array_diff($old_postids, $new_postids);
         foreach ($removed_postids as $removed_id) {
             wp_delete_post($removed_id, true);
         }
 
-        // Check for queue conflict (optimistic concurrency)
-        $db_queue = $this->utils->get_queue_list();
-        if ($db_queue !== $old_queue) {
-            wp_send_json_error(['conflict' => true, 'message' => 'Queue has been updated by another user.']);
-            return;
-        }
         $result = $this->utils->update_queue_list_in_db($queue);
         if ($result === true || $result === 1) {
             wp_send_json_success(['message' => 'Queue updated.']);
@@ -96,7 +104,7 @@ class PhotoNetSubmissionAjax {
         // Empty the queue table
         global $wpdb;
         $table_name = $wpdb->prefix . 'edpq_net_photos_queue_order';
-        $wpdb->update($table_name, ['list' => ''], ['id' => 1], ['%s'], ['%d']);
+        $wpdb->update($table_name, ['list' => '[]'], ['id' => 1], ['%s'], ['%d']);
         wp_send_json_success(['message' => 'Full wipe completed.']);
     }
 
@@ -113,8 +121,9 @@ class PhotoNetSubmissionAjax {
 
         // Helper: Render AJAX response and die
         $render_ajax_response = function($msg) {
+            $redirect_url = site_url() . '/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions';
             echo '<div class="edpq-response-msg"><p>' . $msg . '<br>Page will reload soon.</p><div class="edpq-ajax-loader"></div></div>';
-            header('refresh:5; url=' . site_url() . '/wp-admin/edit.php?post_type=net_submission&page=edit_net_submissions');
+            echo '<script>setTimeout(function(){ window.location.href=' . wp_json_encode(esc_url_raw($redirect_url)) . '; }, 5000);</script>';
             wp_die();
         };
 
@@ -127,16 +136,6 @@ class PhotoNetSubmissionAjax {
         // Helper: Update queue list in DB
         $update_queue_list_db = function($queue) {
             return $this->utils->update_queue_list_in_db($queue);
-        };
-
-        // Helper: Renumber queue
-        $renumber_queue = function($queue, $removedQueueNumber) {
-            foreach ($queue as &$item) {
-                if (intval($item['queueNumber']) > $removedQueueNumber) {
-                    $item['queueNumber'] = $item['queueNumber'] - 1;
-                }
-            }
-            return $queue;
         };
 
         // --- Main Logic ---
@@ -255,6 +254,10 @@ class PhotoNetSubmissionAjax {
             require_once( ABSPATH . 'wp-admin/includes/media.php' );
 
             $attachment_id = media_handle_upload( 'net_image', $pid );
+            if ( is_wp_error( $attachment_id ) ) {
+                wp_delete_post( $pid, true );
+                wp_die( '<p class="newpost-fail">Image upload failed. Please try again.</p>' );
+            }
             //Set Image as thumbnail
             set_post_thumbnail($pid, $attachment_id);
 
@@ -271,18 +274,8 @@ class PhotoNetSubmissionAjax {
             // Email subject, "New {post_type_label}"
             $subject = 'New Photo Submission for: ' . $headline . ' ' . date('m-d-y');
 
-            // Dynamically get a user who can edit posts (administrator)
-            $admin_user = get_users([
-                'role'    => 'administrator',
-                'number'  => 1,
-                'fields'  => 'ID'
-            ]);
-            if (!empty($admin_user)) {
-                wp_set_current_user($admin_user[0]);
-            }
             // Email body
-                $message = 'View it: ' . get_permalink( $pid ) . "<br><br>Edit it: " . get_edit_post_link( $pid, 'display' );
-                wp_set_current_user(0);  // turn off get user after get link function
+                $message = 'View it: ' . get_permalink( $pid ) . "<br><br>Edit it: " . admin_url( 'post.php?post=' . $pid . '&action=edit' );
 
             wp_mail( $emailto, $subject, $message, $headers );
                         echo '<div class="edpq-success-message">

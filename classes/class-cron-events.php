@@ -70,7 +70,4 @@ class CronEvents
             }
         }
     
-} 
-
-
-new CronEvents;
+}

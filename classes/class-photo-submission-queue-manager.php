@@ -388,4 +388,3 @@ class EmDailyPostsQueueUIManager
     }
 
 }
-new EmDailyPostsQueueUIManager();
