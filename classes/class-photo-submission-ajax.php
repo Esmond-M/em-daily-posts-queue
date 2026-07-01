@@ -326,6 +326,8 @@ class PhotoNetSubmissionAjax {
                     isset($_GET['post_type']) && $_GET['post_type'] === 'net_submission' &&
                     isset($_GET['page']) && $_GET['page'] === 'admin-queue-edit'
                 ) {
+                    wp_enqueue_style( 'font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css', array(), '6.5.2' );
+                    wp_enqueue_style( 'edpq-admin-queue-edit-css', $plugin_url . '/admin/assets/css/admin-queue-edit.css', array('font-awesome'), $rand );
                     wp_enqueue_script('admin-queue-edits-js', $plugin_url . '/admin/assets/js/admin-queue-edits.js', array('jquery'), $rand, true);
                     wp_localize_script('admin-queue-edits-js', 'edpq_admin_queue', [
                         'nonce' => wp_create_nonce('edpq_admin_queue'),
