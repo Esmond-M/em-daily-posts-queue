@@ -92,9 +92,15 @@ class PhotoNetSubmissionAjax {
         if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Permission denied.']);
         }
-        // Delete all net_submission posts
+
+        $confirmation = sanitize_text_field(wp_unslash($_POST['confirmation'] ?? ''));
+        if ('FULL WIPE' !== $confirmation) {
+            wp_send_json_error(['message' => 'Type FULL WIPE to confirm permanent deletion.']);
+        }
+
         $posts = get_posts([
             'post_type' => 'net_submission',
+            'post_status' => array_values(get_post_stati([], 'names')),
             'numberposts' => -1,
             'fields' => 'ids'
         ]);
@@ -295,16 +301,31 @@ class PhotoNetSubmissionAjax {
                 $rand = rand(1, 99999999999);
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
 
-                if ( 'edit.php' === $pagenow  && 'net_submission' ===  $_GET['post_type'] ) {
-                wp_enqueue_style( 'edit_screen_css',  $plugin_url  . '/admin/assets/css/net-submission-edit.css' , array(),  $rand );
-                }
                 // Only enqueue admin_option_css for the specific admin queue list page
                 if (
                     'edit.php' === $pagenow &&
                     isset($_GET['post_type']) && $_GET['post_type'] === 'net_submission' &&
                     isset($_GET['page']) && $_GET['page'] === 'admin-queue-list'
                 ) {
-                    wp_enqueue_style( 'admin_option_css',  $plugin_url  . '/admin/assets/css/admin-queue.css' , array(),  $rand );
+                    wp_enqueue_style( 'admin_option_css', $plugin_url . 'admin/assets/css/admin-queue.css', array(), (string) filemtime(dirname(__DIR__) . '/admin/assets/css/admin-queue.css') );
+                    if (current_user_can('manage_options')) {
+                        wp_enqueue_script('admin-queue-edits-js', $plugin_url . '/admin/assets/js/admin-queue-edits.js', array('jquery'), (string) filemtime(dirname(__DIR__) . '/admin/assets/js/admin-queue-edits.js'), true);
+                        wp_localize_script('admin-queue-edits-js', 'edpq_admin_queue', [
+                            'nonce'      => wp_create_nonce('edpq_admin_queue'),
+                            'showingNow' => __('Showing now', 'em-daily-posts-queue'),
+                            'upNext'     => __('Up next', 'em-daily-posts-queue'),
+                            'queued'     => __('Queued', 'em-daily-posts-queue'),
+                            'clean'      => __('No unsaved changes.', 'em-daily-posts-queue'),
+                            'dirty'      => __('You have unsaved queue changes.', 'em-daily-posts-queue'),
+                            'saving'     => __('Saving queue changes...', 'em-daily-posts-queue'),
+                            'saved'      => __('Queue changes saved.', 'em-daily-posts-queue'),
+                            'conflict'   => __('The queue changed in another window. Your changes were not saved; review them before refreshing.', 'em-daily-posts-queue'),
+                            'error'      => __('Queue changes could not be saved.', 'em-daily-posts-queue'),
+                            'confirmDelete' => __('Remove this item from the queue and permanently delete its submission?', 'em-daily-posts-queue'),
+                            'fullWipePrompt' => __('Type FULL WIPE to permanently delete every Net Submission post in every status and clear the queue.', 'em-daily-posts-queue'),
+                            'fullWipeCancelled' => __('Full Wipe cancelled.', 'em-daily-posts-queue'),
+                        ]);
+                    }
                 }
                 // Only enqueue styles and scripts for the edit_net_submissions page
                 if (
@@ -320,20 +341,6 @@ class PhotoNetSubmissionAjax {
                         'noposts' => __('No older posts found', 'edpq-white'),
                     ));
                 }
-                // Enqueue admin-queue-edits.js for the Edit Photo Queue page
-                if (
-                    'edit.php' === $pagenow &&
-                    isset($_GET['post_type']) && $_GET['post_type'] === 'net_submission' &&
-                    isset($_GET['page']) && $_GET['page'] === 'admin-queue-edit'
-                ) {
-                    wp_enqueue_style( 'font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css', array(), '6.5.2' );
-                    wp_enqueue_style( 'edpq-admin-queue-edit-css', $plugin_url . '/admin/assets/css/admin-queue-edit.css', array('font-awesome'), $rand );
-                    wp_enqueue_script('admin-queue-edits-js', $plugin_url . '/admin/assets/js/admin-queue-edits.js', array('jquery'), $rand, true);
-                    wp_localize_script('admin-queue-edits-js', 'edpq_admin_queue', [
-                        'nonce' => wp_create_nonce('edpq_admin_queue'),
-                    ]);
-                }
-
     }
 
     /**

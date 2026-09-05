@@ -6,7 +6,7 @@
 
 ## Summary
 
-Originally made for an intranet website. Packaged as a reusable plugin. Allows daily posts to be displayed on the front end via shortcode. Visitors submit photos through a front-end form; a custom admin role can then review, reorder, and manage the queue. The top post in the queue is automatically rotated out on a weekday schedule using Action Scheduler.
+Originally made for an intranet website. Packaged as a reusable plugin. Allows daily posts to be displayed on the front end via shortcode. Visitors submit photos through a front-end form; queue viewers can review the display order, and administrators can reorder, schedule, or wipe the queue. The first post in the queue is shown by the display shortcode and is rotated by Action Scheduler.
 
 ## Requirements
 
@@ -33,11 +33,12 @@ Both shortcodes accept an optional `class` attribute:
 
 - **Photo submission form** — front-end shortcode form; visitors upload a photo, headline, and caption (max 8 MB, JPG/PNG)
 - **Daily post display** — shortcode that renders the current first-in-queue post (image, headline, caption)
-- **Drag-and-drop queue management** — admin sub-menu to reorder or remove submissions
-- **Automatic daily rotation** — Action Scheduler advances the queue every weekday; admins can customise the trigger time from the WP timezone settings
-- **Demo content import** — one-click button on the queue edit page to seed 4 sample posts
+- **Photo Queue screen** — unified admin screen for queue review, administrator-only reorder controls, schedule controls, demo import, and Full Wipe
+- **Keyboard queue management** — administrators can reorder with arrow buttons or Alt+Up / Alt+Down, discard unsaved changes, and save with conflict feedback
+- **Structured scheduled rotation** — Action Scheduler advances the queue on daily, weekday, or selected-day schedules using the WordPress timezone; admins can pause/resume rotation
+- **Demo content import** — one-click button on the Photo Queue screen seeds 4 sample posts with bundled demo images
 - **Custom post type** `net_submission` — separate from regular posts; supports title and featured image
-- **Custom role** `Net Submitter` — limited access; can submit and view own submissions only
+- **Custom role** `Net Submitter` — preserves submission permissions and can view the read-only Photo Queue without `manage_options`
 - **Shortcode reference** — dedicated admin sub-menu page + dashboard widget so shortcodes are always visible
 - **Optimistic concurrency** — queue edits check for stale data and warn before overwriting
 - **JSON queue storage** — queue stored as JSON (migrated transparently from legacy serialize+base64)
@@ -66,12 +67,12 @@ Visitors fill in a headline, caption, and photo. On submission an email is sent 
 ```
 Shows the featured image, headline, and caption of the first item in the queue.
 
-### 3. Manage the queue
-1. Go to **Net Submissions → Edit Photo Queue**
-2. Reorder items by changing the queue number fields and saving
-3. Delete individual items with the remove button
-4. Import demo content with the **Import Demo** button
-5. Adjust the daily rotation time under the cron settings panel
+### 3. Review or manage the queue
+1. Go to **Net Submissions → Photo Queue**
+2. Net Submitters can review the saved display order
+3. Administrators can move items with the arrow controls or Alt+Up / Alt+Down
+4. Administrators can save or discard pending queue changes
+5. Administrators can import demo content, configure scheduled rotation, or run Full Wipe
 
 ### 4. Review submissions
 Go to **Net Submissions** to see all submitted posts. Publishing a post automatically appends it to the end of the queue.
@@ -92,11 +93,11 @@ Go to **Net Submissions** to see all submitted posts. Publishing a post automati
 ### Custom Post Type
 - **Slug:** `net_submission`
 - **Supports:** title, thumbnail
-- **Custom capabilities:** `edit_net_submission`, `read_net_submission`, `delete_net_submission`, etc.
+- **Custom capabilities:** `edpq_view_queue`, `edit_net_submission`, `read_net_submission`, `delete_net_submission`, etc.
 
 ### User Roles
-- **Net Submitter** — can create/read own `net_submission` posts and upload files; no access to queue management
-- **Administrator** — full access including queue edit, wipe, and cron controls
+- **Net Submitter** — retains existing `net_submission` post permissions and can view the read-only Photo Queue; no queue mutation, schedule, demo import, or Full Wipe access
+- **Administrator** — full access including queue reorder, demo import, Full Wipe, and schedule controls
 
 ### Shortcodes
 | Shortcode | Class | Description |
@@ -139,13 +140,9 @@ cd em-daily-posts-queue
 composer install
 ```
 
-Configure `tests/wp-config.php`:
-```php
-define( 'DB_NAME',     'wordpress_test' );
-define( 'DB_USER',     'your_username' );
-define( 'DB_PASSWORD', 'your_password' );
-define( 'DB_HOST',     'localhost' );
-```
+Run `composer test` to verify the database-free test baseline. No Local site shell
+or database configuration is needed. See [Testing](docs/testing.md) for setup,
+individual suites, and the limits of this baseline.
 
 ### Build zip
 
@@ -158,7 +155,7 @@ npm run plugin-zip
 ```
 em-daily-posts-queue/
 ├── admin/assets/           # Admin-only CSS and JS
-├── assets/                 # Frontend CSS, JS, images
+├── assets/                 # Frontend CSS, JS, images, bundled demo images
 ├── classes/
 │   ├── class-cpt-net-submission.php          # CPT registration + roles
 │   ├── class-cpt-net-submission-meta.php     # Meta box (headline, caption)
@@ -169,13 +166,12 @@ em-daily-posts-queue/
 │   ├── class-photo-submission-utils.php      # DB helpers, queue encode/decode
 │   └── class-shortcodes.php                  # Frontend shortcode renderers
 ├── templates/
-│   ├── options-page-admin-queue-edit.php     # Queue reorder UI
-│   ├── options-page-admin-queue-list.php     # Queue read-only list
+│   ├── options-page-admin-queue-list.php     # Unified Photo Queue admin screen
 │   ├── shortcode-reference.php               # Shortcode reference card
 │   └── single-net-submission.php             # Single post template
 ├── tests/
 │   ├── bootstrap.php
-│   ├── EmDailyPostsQueueUIManagerTest.php
+│   ├── unit/, wordpress-hooks/, and integration/
 │   └── wp-config.php
 ├── docs/
 ├── vendor/
@@ -189,20 +185,26 @@ em-daily-posts-queue/
 ## Testing
 
 ```bash
-# Run all tests
-.\vendor\bin\phpunit --bootstrap tests/bootstrap.php tests
+# Run both database-free suites
+composer test
 
-# Run with verbose output
-.\vendor\bin\phpunit --bootstrap tests/bootstrap.php tests --verbose
+# Run either suite separately
+composer test:unit
+composer test:hooks
+
+# Run the full WordPress integration suite with a disposable MySQL database
+.\tests\run-integration.ps1 -MySqlBinDirectory 'C:\Program Files\MySQL\MySQL Server 5.7\bin'
 ```
 
 ### Coverage areas
-- CPT registration, roles, capabilities
-- Meta box rendering and save
-- Queue array comparison and conflict detection
-- Cron scheduling and queue rotation
-- Shortcode registration
-- AJAX handler security (nonce, capability checks)
+- Queue decoding, legacy storage compatibility, malformed entries, and snapshot comparisons
+- Submission row/bulk action behavior through the real WordPress hook API
+- Authenticated and guest AJAX hook registration
+- Queue viewing capability enforcement, admin-only mutations, menu/direct URL access, Full Wipe confirmation, schedule controls, and demo image import through a disposable WordPress integration database
+
+This does not replace live browser review for visual layout, keyboard ergonomics,
+or WordPress admin styling. See [Testing](docs/testing.md) before adding or
+running integration tests.
 
 ## Changelog
 

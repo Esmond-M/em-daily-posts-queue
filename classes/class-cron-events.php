@@ -13,6 +13,7 @@ declare(strict_types=1);
  */
 namespace EmDailyPostsQueue\init_plugin\Classes;
 require_once __DIR__ . '/class-photo-submission-utils.php';
+require_once __DIR__ . '/class-cron-event-timer.php';
 
 class CronEvents
 {
@@ -32,6 +33,7 @@ class CronEvents
     
 
         public function eg_action_net_submission_weekly_update() {
+            try {
             $queue = $this->utils->get_queue_list();
             if (empty($queue)) {
                 echo 'Queue is empty or database row does not exist.';
@@ -67,6 +69,9 @@ class CronEvents
                 $subject = 'Weekly update failed: Someone was editing ' . date('m-d-y');
                 $message = 'Window was out of date when cron event ran.';
                 $this->utils->send_admin_email($subject, $message);
+            }
+            } finally {
+                (new CronEventTimer())->schedule_next_from_settings();
             }
         }
     

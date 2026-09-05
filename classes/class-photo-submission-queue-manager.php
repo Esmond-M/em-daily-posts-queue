@@ -195,14 +195,14 @@ class EmDailyPostsQueueUIManager
 
         // Register custom admin submenu pages for photo submission queue management
 
-        // Submenu: Admin Photo Queue List (read-only view)
+        // Submenu: Photo Queue (read-only view)
         // - Appears under the "net_submission" post type menu
-        // - Allows admins to view the current photo submission queue
+        // - Allows queue viewers to inspect the saved display order
         add_submenu_page(
             'edit.php?post_type=net_submission',
-            'Admin Photo Queue List',
-            'Admin Photo Queue List',
-            'manage_options',
+            __('Photo Queue', 'em-daily-posts-queue'),
+            __('Photo Queue', 'em-daily-posts-queue'),
+            'edpq_view_queue',
             'admin-queue-list',
             [$this, 'edpqadmin_queue_list_page']
         );
@@ -219,7 +219,7 @@ class EmDailyPostsQueueUIManager
         // Submenu: Edit Photo Queue (reorder/delete UI)
         // - Appears under the "net_submission" post type menu
         // - Allows admins to reorder or delete items in the queue
-        add_submenu_page(
+        $queue_edit_hook = add_submenu_page(
             'edit.php?post_type=net_submission', // Parent menu (custom post type)
             'Edit Photo Queue',                  // Page title (shown in browser tab)
             'Edit Photo Queue',                  // Menu title (shown in WP admin menu)
@@ -227,9 +227,23 @@ class EmDailyPostsQueueUIManager
             'admin-queue-edit',                  // Menu slug
             [$this, 'edpqadmin_queue_edit_page'] // Callback to render the page
         );
+        remove_submenu_page('edit.php?post_type=net_submission', 'admin-queue-edit');
+        add_action('load-' . $queue_edit_hook, [$this, 'redirect_admin_queue_edit_page']);
 
 
 
+    }
+
+    /**
+     * Preserve the old queue editing URL while making Photo Queue the single admin screen.
+     */
+    public function redirect_admin_queue_edit_page() {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('You do not have permission to manage the photo queue.', 'em-daily-posts-queue'), '', ['response' => 403]);
+        }
+
+        wp_safe_redirect(admin_url('edit.php?post_type=net_submission&page=admin-queue-list'));
+        exit;
     }
 
     /**
@@ -355,26 +369,11 @@ class EmDailyPostsQueueUIManager
      * Render the admin queue edit page (with reorder/delete UI)
      */
     public function edpqadmin_queue_edit_page(){
-        // Handle demo import trigger
-        if (isset($_GET['import_demo']) && $_GET['import_demo'] === '1' && current_user_can('manage_options')) {
-            $this->utils->import_demo_net_submissions();
-            echo '<div class="notice notice-success"><p>Demo net_submission posts imported!</p></div>';
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('You do not have permission to manage the photo queue.', 'em-daily-posts-queue'), '', ['response' => 403]);
         }
 
-        // Handle cron time form submission
-        if (
-            isset($_POST['update_cron_time']) &&
-            !empty($_POST['cron_time_input']) &&
-            current_user_can('manage_options')
-        ) {
-            $cron_time = sanitize_text_field($_POST['cron_time_input']);
-            $cron_timer = new \EmDailyPostsQueue\init_plugin\Classes\CronEventTimer();
-            $cron_timer->update_cron_schedule_from_input($cron_time);
-            echo '<div class="notice notice-success"><p>Cron event time updated!</p></div>';
-        }
-
-        $queue_list = $this->utils->get_queue_list();
-        require_once __DIR__ . '/../templates/options-page-admin-queue-edit.php';
+        $this->edpqadmin_queue_list_page();
     }
 
     /**
@@ -382,8 +381,46 @@ class EmDailyPostsQueueUIManager
      */
     public function edpqadmin_queue_list_page(){
 
+        if (!current_user_can('edpq_view_queue')) {
+            wp_die(esc_html__('You do not have permission to view the photo queue.', 'em-daily-posts-queue'), '', ['response' => 403]);
+        }
+
+        // Existing admin-only actions remain available on the unified queue screen.
+        if (current_user_can('manage_options') && isset($_GET['import_demo']) && $_GET['import_demo'] === '1') {
+            $this->utils->import_demo_net_submissions();
+            echo '<div class="notice notice-success"><p>' . esc_html__('Demo net_submission posts imported!', 'em-daily-posts-queue') . '</p></div>';
+        }
+
+        $cron_timer = new \EmDailyPostsQueue\init_plugin\Classes\CronEventTimer();
+
+        if (
+            current_user_can('manage_options') &&
+            isset($_POST['update_cron_time'])
+        ) {
+            $schedule_nonce = isset($_POST['edpq_schedule_nonce']) ? sanitize_text_field(wp_unslash($_POST['edpq_schedule_nonce'])) : '';
+            if (!wp_verify_nonce($schedule_nonce, 'edpq_update_schedule')) {
+                echo '<div class="notice notice-error"><p>' . esc_html__('Schedule was not updated because the security check failed.', 'em-daily-posts-queue') . '</p></div>';
+            } else {
+                $schedule_settings = [
+                    'mode' => isset($_POST['edpq_schedule_mode']) ? sanitize_key(wp_unslash($_POST['edpq_schedule_mode'])) : '',
+                    'days' => isset($_POST['edpq_schedule_days']) ? array_map('absint', (array) wp_unslash($_POST['edpq_schedule_days'])) : [],
+                    'time' => isset($_POST['edpq_schedule_time']) ? sanitize_text_field(wp_unslash($_POST['edpq_schedule_time'])) : '',
+                    'paused' => !empty($_POST['edpq_schedule_paused']),
+                ];
+
+                if ($cron_timer->update_schedule_settings($schedule_settings)) {
+                    echo '<div class="notice notice-success"><p>' . esc_html__('Schedule settings updated.', 'em-daily-posts-queue') . '</p></div>';
+                } else {
+                    echo '<div class="notice notice-error"><p>' . esc_html__('Schedule was not updated. Choose valid days and time, then try again.', 'em-daily-posts-queue') . '</p></div>';
+                }
+            }
+        }
+
+        $schedule_settings = $cron_timer->get_schedule_settings();
+        $schedule_choices = $cron_timer->get_schedule_choices();
+        $weekday_choices = $cron_timer->get_weekday_choices();
         $queue_list = $this->utils->get_queue_list();
-        require_once __DIR__ . '/../templates/options-page-admin-queue-list.php';
+        require __DIR__ . '/../templates/options-page-admin-queue-list.php';
 
     }
 
