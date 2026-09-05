@@ -1,240 +1,484 @@
-/* Keep queue overview styling inside this plugin page. */
+/* Unified Photo Queue admin screen. */
 .edpq-queue-overview {
-    max-width: 1120px;
+    max-width: 1060px;
 }
 
-.edpq-queue-overview .edpq-queue-intro {
-    max-width: 780px;
-    margin: 12px 0 18px;
+.edpq-queue-overview * {
+    box-sizing: border-box;
 }
 
-.edpq-queue-overview .edpq-queue-toolbar {
+.edpq-queue-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 20px 0 26px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid #dcdcde;
+}
+
+.edpq-queue-header-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    flex: 0 0 auto;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #5d6ee7 0%, #7453b8 100%);
+    color: #fff;
+    box-shadow: 0 5px 16px rgba(80, 86, 170, 0.28);
+}
+
+.edpq-queue-header-icon .dashicons {
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+}
+
+.edpq-queue-header h1 {
+    margin: 0 0 6px;
+    padding: 0;
+    color: #1d2327;
+    font-size: 24px;
+    line-height: 1.2;
+}
+
+.edpq-queue-intro {
+    max-width: 720px;
+    margin: 0;
+}
+
+.edpq-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.edpq-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    padding: 18px;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    box-shadow: 0 2px 9px rgba(0, 0, 0, 0.04);
+}
+
+.edpq-summary-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+}
+
+.edpq-summary-icon .dashicons {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+}
+
+.edpq-summary-icon-purple {
+    background: #f1edff;
+    color: #6f42c1;
+}
+
+.edpq-summary-icon-orange {
+    background: #fff3e6;
+    color: #b85c00;
+}
+
+.edpq-summary-icon-teal {
+    background: #e9fbf8;
+    color: #007c89;
+}
+
+.edpq-summary-label {
+    margin-bottom: 5px;
+    color: #646970;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.edpq-summary-value {
+    min-width: 0;
+    color: #1d2327;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.edpq-id-tag {
+    color: #8c8f94;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.edpq-queue-toolbar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 24px;
+    gap: 10px;
+    margin-bottom: 18px;
 }
 
-.edpq-queue-overview .edpq-toolbar-danger {
+.edpq-queue-toolbar .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.edpq-toolbar-danger {
     min-height: 30px;
-    padding: 0 4px;
+    padding: 0 6px;
     border: 0;
     background: transparent;
     cursor: pointer;
     line-height: 2.15384615;
 }
 
-.edpq-queue-overview .edpq-queue-summary {
+.edpq-queue-panel,
+.edpq-schedule-panel,
+.edpq-queue-empty {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.edpq-queue-panel {
+    overflow: hidden;
+}
+
+.edpq-queue-panel-header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 16px;
+    padding: 15px 18px;
+    background: #f6f7f7;
+    border-bottom: 1px solid #dcdcde;
 }
 
-.edpq-queue-overview .edpq-queue-summary h2 {
-    margin: 0 0 12px;
-}
-
-.edpq-queue-overview .edpq-queue-summary p {
-    margin: 0 0 12px;
-    color: #50575e;
-}
-
-.edpq-queue-overview .edpq-queue-table-scroll {
-    overflow-x: auto;
-}
-
-.edpq-queue-overview .edpq-queue-table-scroll:focus-visible {
-    outline: 2px solid #2271b1;
-    outline-offset: 2px;
-}
-
-.edpq-queue-overview .edpq-queue-table {
-    min-width: 860px;
-    table-layout: auto;
-}
-
-.edpq-queue-overview .edpq-queue-table td,
-.edpq-queue-overview .edpq-queue-table tbody th {
-    vertical-align: top;
-    padding: 16px 12px;
-}
-
-.edpq-queue-overview .edpq-position {
-    width: 72px;
-    text-align: center;
-}
-
-.edpq-queue-overview .edpq-photo {
-    width: 96px;
-}
-
-.edpq-queue-overview .edpq-photo img {
-    display: block;
-    width: 72px;
-    height: 72px;
-    object-fit: cover;
-    border-radius: 3px;
-}
-
-.edpq-queue-overview .edpq-no-photo {
+.edpq-queue-panel-title {
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 72px;
-    min-height: 72px;
-    background: #f0f0f1;
-    border: 1px solid #dcdcde;
-    border-radius: 3px;
-    color: #50575e;
+    gap: 8px;
+    color: #1d2327;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.edpq-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+    padding: 1px 9px;
+    border-radius: 999px;
+    background: #6956c8;
+    color: #fff;
     font-size: 12px;
-    text-align: center;
+    line-height: 1.4;
 }
 
-.edpq-queue-overview .edpq-display {
-    width: 136px;
-}
-
-.edpq-queue-overview .edpq-actions {
-    width: 190px;
-}
-
-.edpq-queue-overview .edpq-action-group {
+.edpq-queue-panel-hint {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 8px;
+    gap: 5px;
+    color: #646970;
+    font-size: 12px;
 }
 
-.edpq-queue-overview .edpq-icon-button {
+.edpq-queue-list {
+    display: grid;
+    gap: 10px;
+    padding: 16px;
+}
+
+.edpq-queue-row {
+    display: grid;
+    grid-template-columns: 18px 34px 72px minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+    min-height: 86px;
+    padding: 12px 12px;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+}
+
+.edpq-queue-list .edpq-queue-row:first-child {
+    border-color: #8c7ae6;
+    background: linear-gradient(90deg, #f6f4ff 0%, #effafb 100%);
+}
+
+.edpq-drag-marker {
+    color: #b5b9bd;
+    cursor: default;
+}
+
+.edpq-drag-marker .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+}
+
+.edpq-position {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 30px;
-    min-height: 30px;
-    padding: 0;
+    height: 30px;
+    border-radius: 7px;
+    background: #f0f0f1;
+    color: #50575e;
+    font-weight: 700;
 }
 
-.edpq-queue-overview .edpq-icon-button .dashicons {
-    width: 16px;
-    height: 16px;
-    font-size: 16px;
-    line-height: 1;
+.edpq-queue-row:first-child .edpq-position {
+    background: #6956c8;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(105, 86, 200, 0.26);
 }
 
-.edpq-queue-overview .edpq-row-delete {
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-    font-size: 12px;
-    line-height: 1.5;
+.edpq-photo img,
+.edpq-no-photo {
+    display: block;
+    width: 64px;
+    height: 64px;
+    border-radius: 6px;
 }
 
-.edpq-queue-overview .edpq-submission {
-    font-weight: 400;
-    min-width: 280px;
+.edpq-photo img {
+    object-fit: cover;
+}
+
+.edpq-no-photo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    color: #8c8f94;
+}
+
+.edpq-submission {
+    min-width: 0;
+}
+
+.edpq-submission-title {
+    display: block;
+    color: #1d2327;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
     overflow-wrap: break-word;
 }
 
-.edpq-queue-overview .edpq-submission-title {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.5;
+.edpq-submission-title:hover {
+    color: #135e96;
 }
 
-.edpq-queue-overview .edpq-submission-id {
+.edpq-submission-id {
     display: block;
     margin-top: 3px;
     color: #646970;
     font-size: 12px;
 }
 
-.edpq-queue-overview .edpq-submission-caption {
-    margin: 8px 0 0;
-    color: #50575e;
-    line-height: 1.6;
+.edpq-submission-caption {
+    margin: 6px 0 0;
+    color: #646970;
+    line-height: 1.5;
 }
 
-.edpq-queue-overview .edpq-display-badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 3px;
+.edpq-display-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 25px;
+    padding: 3px 10px;
+    border-radius: 999px;
     background: #f0f0f1;
     color: #2c3338;
     font-size: 12px;
-    font-weight: 600;
-    line-height: 1.6;
+    font-weight: 700;
+    line-height: 1.4;
     white-space: nowrap;
 }
 
-.edpq-queue-overview .edpq-display-current {
-    background: #edfaef;
-    color: #005c12;
+.edpq-display-current {
+    background: #6956c8;
+    color: #fff;
 }
 
-.edpq-queue-overview .edpq-display-unavailable {
+.edpq-display-unavailable {
     background: #fcf0f1;
     color: #8a2424;
 }
 
-.edpq-queue-overview .edpq-queue-empty {
+.edpq-action-group {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.edpq-icon-button {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    min-height: 32px;
+    padding: 0 !important;
+}
+
+.edpq-icon-button .dashicons {
+    width: 17px;
+    height: 17px;
+    font-size: 17px;
+    line-height: 1;
+}
+
+.edpq-row-delete {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    background: #fcf0f1;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #b32d2e;
+}
+
+.edpq-row-delete .dashicons {
+    width: 17px;
+    height: 17px;
+    font-size: 17px;
+}
+
+.edpq-queue-panel-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    background: #f6f7f7;
+    border-top: 1px solid #dcdcde;
+}
+
+.edpq-queue-panel-footer .submit {
+    margin: 0;
+    padding: 0;
+}
+
+.edpq-footer-hint {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #646970;
+    font-size: 12px;
+}
+
+.edpq-queue-empty {
     padding: 24px;
-    background: #fff;
-    border: 1px solid #c3c4c7;
 }
 
-.edpq-queue-overview .edpq-queue-empty h2 {
-    margin-top: 0;
-}
-
-.edpq-queue-overview .edpq-queue-empty p:last-child {
+.edpq-queue-empty h2,
+.edpq-queue-empty p:last-child {
     margin-bottom: 0;
 }
 
-.edpq-queue-overview .edpq-queue-save-actions {
-    margin-top: 16px;
-}
-
-.edpq-queue-overview .edpq-schedule-panel {
+.edpq-schedule-panel {
     max-width: 760px;
-    margin-top: 28px;
-    padding: 18px 20px;
-    background: #fff;
-    border: 1px solid #c3c4c7;
+    margin-top: 24px;
+    overflow: hidden;
 }
 
-.edpq-queue-overview .edpq-schedule-panel h2 {
-    margin-top: 0;
+.edpq-schedule-panel h2 {
+    margin: 0;
+    padding: 15px 18px;
+    background: #f6f7f7;
+    border-bottom: 1px solid #dcdcde;
+    font-size: 14px;
 }
 
-.edpq-queue-overview .edpq-schedule-panel label {
+.edpq-schedule-panel form {
+    padding: 18px;
+}
+
+.edpq-schedule-panel label {
     display: block;
     margin-bottom: 6px;
     font-weight: 600;
 }
 
-.edpq-queue-overview .edpq-schedule-panel .button {
+.edpq-schedule-panel .button {
     margin-left: 6px;
 }
 
-@media screen and (max-width: 782px) {
-    .edpq-queue-overview .edpq-queue-table td,
-    .edpq-queue-overview .edpq-queue-table tbody th {
-        padding: 12px 8px;
+@media screen and (max-width: 900px) {
+    .edpq-summary-cards {
+        grid-template-columns: 1fr;
     }
 
-    .edpq-queue-overview .edpq-position {
-        width: 56px;
+    .edpq-queue-row {
+        grid-template-columns: 18px 34px 64px minmax(0, 1fr);
     }
 
-    .edpq-queue-overview .edpq-photo {
-        width: 80px;
+    .edpq-display,
+    .edpq-actions {
+        grid-column: 4;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .edpq-queue-header {
+        align-items: flex-start;
     }
 
-    .edpq-queue-overview .edpq-actions {
-        width: 170px;
+    .edpq-queue-row {
+        grid-template-columns: 30px minmax(0, 1fr);
+    }
+
+    .edpq-drag-marker,
+    .edpq-photo {
+        display: none;
+    }
+
+    .edpq-position {
+        grid-row: span 3;
+    }
+
+    .edpq-submission,
+    .edpq-display,
+    .edpq-actions {
+        grid-column: 2;
+    }
+
+    .edpq-queue-panel-header,
+    .edpq-queue-panel-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .edpq-schedule-panel .regular-text {
+        width: 100%;
+    }
+
+    .edpq-schedule-panel .button {
+        margin: 10px 0 0;
     }
 }
