@@ -3,6 +3,7 @@ jQuery(function($) {
     var $form = $('#admin-queue-edit-form');
     var $saveButton = $form.find('button[type="submit"]');
     var $discardButton = $('#edpq-discard-queue-changes');
+    var $fullWipeButton = $('#full-wipe-btn');
     var $status = $('#edpq-queue-status');
     var initialQueueSnapshot = readQueueSnapshot();
     var initialQueueHtml = $queueList.html();
@@ -88,28 +89,31 @@ jQuery(function($) {
     });
 
     $('#full-wipe-btn').on('click', function() {
-        if (!window.confirm('Are you sure? This will delete ALL queue data and ALL net_submission posts. This cannot be undone.')) {
+        var confirmation = window.prompt(edpq_admin_queue.fullWipePrompt, '');
+        if (confirmation !== 'FULL WIPE') {
+            setStatus(edpq_admin_queue.fullWipeCancelled, 'info');
             return;
         }
 
-        setSaving(true);
+        setFullWipeSaving(true);
         $.ajax({
             type: 'POST',
             url: ajaxurl,
             data: {
                 action: 'admin_queue_full_wipe',
-                nonce: edpq_admin_queue.nonce
+                nonce: edpq_admin_queue.nonce,
+                confirmation: confirmation
             },
             success: function(response) {
-                setSaving(false);
+                setFullWipeSaving(false);
                 if (response && response.success) {
                     window.location.reload();
                 } else {
-                    setStatus(edpq_admin_queue.error, 'error');
+                    setStatus((response && response.data && response.data.message) || edpq_admin_queue.error, 'error');
                 }
             },
             error: function() {
-                setSaving(false);
+                setFullWipeSaving(false);
                 setStatus(edpq_admin_queue.error, 'error');
             }
         });
@@ -178,6 +182,11 @@ jQuery(function($) {
         $form.toggleClass('edpq-is-saving', isSaving);
         $saveButton.prop('disabled', isSaving || !$form.data('dirty'));
         $discardButton.prop('disabled', isSaving || !$form.data('dirty'));
+    }
+
+    function setFullWipeSaving(isSaving) {
+        $fullWipeButton.prop('disabled', isSaving);
+        setSaving(isSaving);
     }
 
     function setStatus(message, type) {

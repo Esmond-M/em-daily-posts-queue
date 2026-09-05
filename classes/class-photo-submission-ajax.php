@@ -92,9 +92,15 @@ class PhotoNetSubmissionAjax {
         if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Permission denied.']);
         }
-        // Delete all net_submission posts
+
+        $confirmation = sanitize_text_field(wp_unslash($_POST['confirmation'] ?? ''));
+        if ('FULL WIPE' !== $confirmation) {
+            wp_send_json_error(['message' => 'Type FULL WIPE to confirm permanent deletion.']);
+        }
+
         $posts = get_posts([
             'post_type' => 'net_submission',
+            'post_status' => array_values(get_post_stati([], 'names')),
             'numberposts' => -1,
             'fields' => 'ids'
         ]);
@@ -319,6 +325,8 @@ class PhotoNetSubmissionAjax {
                             'conflict'   => __('The queue changed in another window. Your changes were not saved; review them before refreshing.', 'em-daily-posts-queue'),
                             'error'      => __('Queue changes could not be saved.', 'em-daily-posts-queue'),
                             'confirmDelete' => __('Remove this item from the queue and permanently delete its submission?', 'em-daily-posts-queue'),
+                            'fullWipePrompt' => __('Type FULL WIPE to permanently delete every Net Submission post in every status and clear the queue.', 'em-daily-posts-queue'),
+                            'fullWipeCancelled' => __('Full Wipe cancelled.', 'em-daily-posts-queue'),
                         ]);
                     }
                 }
