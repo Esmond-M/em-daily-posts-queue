@@ -391,6 +391,8 @@ class EmDailyPostsQueueUIManager
             echo '<div class="notice notice-success"><p>' . esc_html__('Demo net_submission posts imported!', 'em-daily-posts-queue') . '</p></div>';
         }
 
+        $cron_timer = new \EmDailyPostsQueue\init_plugin\Classes\CronEventTimer();
+
         if (
             current_user_can('manage_options') &&
             isset($_POST['update_cron_time'])
@@ -398,19 +400,25 @@ class EmDailyPostsQueueUIManager
             $schedule_nonce = isset($_POST['edpq_schedule_nonce']) ? sanitize_text_field(wp_unslash($_POST['edpq_schedule_nonce'])) : '';
             if (!wp_verify_nonce($schedule_nonce, 'edpq_update_schedule')) {
                 echo '<div class="notice notice-error"><p>' . esc_html__('Schedule was not updated because the security check failed.', 'em-daily-posts-queue') . '</p></div>';
-            } elseif (empty($_POST['cron_time_input'])) {
-                echo '<div class="notice notice-error"><p>' . esc_html__('Enter a schedule expression before updating the schedule.', 'em-daily-posts-queue') . '</p></div>';
             } else {
-                $cron_time = sanitize_text_field(wp_unslash($_POST['cron_time_input']));
-                $cron_timer = new \EmDailyPostsQueue\init_plugin\Classes\CronEventTimer();
-                if ($cron_timer->update_cron_schedule_from_input($cron_time)) {
-                    echo '<div class="notice notice-success"><p>' . esc_html__('Cron event time updated!', 'em-daily-posts-queue') . '</p></div>';
+                $schedule_settings = [
+                    'mode' => isset($_POST['edpq_schedule_mode']) ? sanitize_key(wp_unslash($_POST['edpq_schedule_mode'])) : '',
+                    'days' => isset($_POST['edpq_schedule_days']) ? array_map('absint', (array) wp_unslash($_POST['edpq_schedule_days'])) : [],
+                    'time' => isset($_POST['edpq_schedule_time']) ? sanitize_text_field(wp_unslash($_POST['edpq_schedule_time'])) : '',
+                    'paused' => !empty($_POST['edpq_schedule_paused']),
+                ];
+
+                if ($cron_timer->update_schedule_settings($schedule_settings)) {
+                    echo '<div class="notice notice-success"><p>' . esc_html__('Schedule settings updated.', 'em-daily-posts-queue') . '</p></div>';
                 } else {
-                    echo '<div class="notice notice-error"><p>' . esc_html__('Schedule was not updated. Check the expression and Action Scheduler availability.', 'em-daily-posts-queue') . '</p></div>';
+                    echo '<div class="notice notice-error"><p>' . esc_html__('Schedule was not updated. Choose valid days and time, then try again.', 'em-daily-posts-queue') . '</p></div>';
                 }
             }
         }
 
+        $schedule_settings = $cron_timer->get_schedule_settings();
+        $schedule_choices = $cron_timer->get_schedule_choices();
+        $weekday_choices = $cron_timer->get_weekday_choices();
         $queue_list = $this->utils->get_queue_list();
         require __DIR__ . '/../templates/options-page-admin-queue-list.php';
 

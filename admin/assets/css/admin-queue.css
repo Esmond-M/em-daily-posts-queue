@@ -466,14 +466,52 @@
     padding: 18px;
 }
 
-.edpq-schedule-panel label {
+.edpq-schedule-fieldset {
+    margin: 0 0 18px;
+    padding: 0;
+    border: 0;
+}
+
+.edpq-schedule-fieldset legend,
+.edpq-schedule-row label {
     display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
+    margin-bottom: 8px;
+    color: #1d2327;
+    font-weight: 700;
+}
+
+.edpq-schedule-option,
+.edpq-schedule-day {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 16px 8px 0;
+}
+
+.edpq-schedule-days {
+    padding: 12px 12px 4px;
+    background: #f6f7f7;
+    border-radius: 6px;
+}
+
+.edpq-schedule-row {
+    margin-bottom: 16px;
+}
+
+.edpq-schedule-row input[type="time"] {
+    min-height: 32px;
+    margin-right: 10px;
+}
+
+.edpq-schedule-paused {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
 }
 
 .edpq-schedule-panel .button {
-    margin-left: 6px;
+    margin-left: 0;
 }
 
 @media screen and (max-width: 900px) {

@@ -67,6 +67,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             if ( $administrator ) {
                 $administrator->remove_cap( 'edpq_view_queue' );
             }
+            delete_option( 'edpq_schedule_settings' );
             remove_role( 'net_submission_role' );
         }
 

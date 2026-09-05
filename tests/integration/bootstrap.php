@@ -22,6 +22,15 @@ if (!function_exists('as_schedule_recurring_action')) {
         return count($GLOBALS['edpq_test_scheduled_actions'][$hook]);
     }
 }
+if (!function_exists('as_schedule_single_action')) {
+    function as_schedule_single_action($timestamp, $hook) {
+        $GLOBALS['edpq_test_scheduled_actions'][$hook][] = [
+            'timestamp' => $timestamp,
+            'interval' => null,
+        ];
+        return count($GLOBALS['edpq_test_scheduled_actions'][$hook]);
+    }
+}
 if (!function_exists('as_unschedule_all_actions')) {
     function as_unschedule_all_actions($hook) {
         $GLOBALS['edpq_test_scheduled_actions'][$hook] = [];

@@ -13,7 +13,7 @@ $next_cron_timestamp = false;
 if (function_exists('as_next_scheduled_action')) {
     $next_cron_timestamp = as_next_scheduled_action('eg_1_weekdays_log');
 }
-$next_cron_time = $next_cron_timestamp ? wp_date(get_option('date_format') . ' ' . get_option('time_format'), (int) $next_cron_timestamp) : __('Not scheduled', 'em-daily-posts-queue');
+$next_cron_time = !empty($schedule_settings['paused']) ? __('Paused', 'em-daily-posts-queue') : ($next_cron_timestamp ? wp_date(get_option('date_format') . ' ' . get_option('time_format'), (int) $next_cron_timestamp) : __('Not scheduled', 'em-daily-posts-queue'));
 
 $current_item = $queue_items[0] ?? null;
 $current_id = is_array($current_item) && isset($current_item['postid']) ? absint($current_item['postid']) : 0;
@@ -225,12 +225,43 @@ $current_title = '' !== trim($current_title) ? $current_title : __('(Untitled su
             <h2><?php esc_html_e('Schedule', 'em-daily-posts-queue'); ?></h2>
             <form id="cron-time-form" method="post">
                 <?php wp_nonce_field('edpq_update_schedule', 'edpq_schedule_nonce'); ?>
-                <label for="cron-time-input"><?php esc_html_e('Schedule expression', 'em-daily-posts-queue'); ?></label>
-                <input type="text" name="cron_time_input" id="cron-time-input" class="regular-text" placeholder="+1 weekday 8pm">
-                <button type="submit" name="update_cron_time" class="button">
-                    <?php esc_html_e('Update schedule', 'em-daily-posts-queue'); ?>
-                </button>
-                <p class="description"><?php esc_html_e('Example: +1 weekday 8pm', 'em-daily-posts-queue'); ?></p>
+                <fieldset class="edpq-schedule-fieldset">
+                    <legend><?php esc_html_e('Rotation days', 'em-daily-posts-queue'); ?></legend>
+                    <?php foreach ($schedule_choices as $mode => $label): ?>
+                        <label class="edpq-schedule-option">
+                            <input type="radio" name="edpq_schedule_mode" value="<?php echo esc_attr($mode); ?>" <?php checked($schedule_settings['mode'], $mode); ?>>
+                            <?php echo esc_html($label); ?>
+                        </label>
+                    <?php endforeach; ?>
+                </fieldset>
+                <fieldset class="edpq-schedule-fieldset edpq-schedule-days">
+                    <legend><?php esc_html_e('Selected days', 'em-daily-posts-queue'); ?></legend>
+                    <?php foreach ($weekday_choices as $day => $label): ?>
+                        <label class="edpq-schedule-day">
+                            <input type="checkbox" name="edpq_schedule_days[]" value="<?php echo esc_attr((string) $day); ?>" <?php checked(in_array((int) $day, $schedule_settings['days'], true)); ?>>
+                            <?php echo esc_html($label); ?>
+                        </label>
+                    <?php endforeach; ?>
+                </fieldset>
+                <div class="edpq-schedule-row">
+                    <label for="edpq-schedule-time"><?php esc_html_e('Rotation time', 'em-daily-posts-queue'); ?></label>
+                    <input type="time" name="edpq_schedule_time" id="edpq-schedule-time" value="<?php echo esc_attr($schedule_settings['time']); ?>" required>
+                    <span class="description">
+                        <?php
+                        /* translators: %s: WordPress timezone name. */
+                        printf(esc_html__('Site timezone: %s', 'em-daily-posts-queue'), esc_html(wp_timezone_string() ?: 'UTC'));
+                        ?>
+                    </span>
+                </div>
+                <label class="edpq-schedule-paused">
+                    <input type="checkbox" name="edpq_schedule_paused" value="1" <?php checked($schedule_settings['paused']); ?>>
+                    <?php esc_html_e('Pause scheduled rotation', 'em-daily-posts-queue'); ?>
+                </label>
+                <p class="submit">
+                    <button type="submit" name="update_cron_time" class="button">
+                        <?php esc_html_e('Update schedule', 'em-daily-posts-queue'); ?>
+                    </button>
+                </p>
             </form>
         </div>
     <?php endif; ?>

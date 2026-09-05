@@ -65,6 +65,11 @@ final class QueueAccessTest extends WP_UnitTestCase
         self::assertSame($canManage, strpos($html, 'id="edpq-queue-status"') !== false);
         self::assertSame($canManage, strpos($html, 'tabindex="0"') !== false);
         self::assertSame($canManage, strpos($html, 'id="full-wipe-btn"') !== false);
+        self::assertSame($canManage, strpos($html, 'name="edpq_schedule_mode"') !== false);
+        self::assertSame($canManage, strpos($html, 'name="edpq_schedule_days[]"') !== false);
+        self::assertSame($canManage, strpos($html, 'name="edpq_schedule_time"') !== false);
+        self::assertSame($canManage, strpos($html, 'name="edpq_schedule_paused"') !== false);
+        self::assertStringNotContainsString('cron_time_input', $html);
     }
 
     public static function viewers() {
@@ -86,7 +91,7 @@ final class QueueAccessTest extends WP_UnitTestCase
     public function testSubmitterCannotInvokeManagementPageWithImportOrScheduleInputs() {
         wp_set_current_user(self::factory()->user->create(['role' => 'net_submission_role']));
         $_GET['import_demo'] = '1';
-        $_POST = ['update_cron_time' => '1', 'cron_time_input' => '+1 weekday 8pm'];
+        $_POST = ['update_cron_time' => '1', 'edpq_schedule_mode' => 'daily', 'edpq_schedule_time' => '20:00'];
         $before = wp_count_posts('net_submission');
         ob_start();
         try {
@@ -106,7 +111,7 @@ final class QueueAccessTest extends WP_UnitTestCase
     public function testAdministratorScheduleUpdateRequiresValidNonceBeforeReplacingSchedule() {
         $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log'] = [['timestamp' => 123, 'interval' => 86400]];
         wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
-        $_POST = ['update_cron_time' => '1', 'cron_time_input' => '+2 weekdays 8pm'];
+        $_POST = ['update_cron_time' => '1', 'edpq_schedule_mode' => 'daily', 'edpq_schedule_time' => '20:00'];
 
         ob_start();
         try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
@@ -121,7 +126,8 @@ final class QueueAccessTest extends WP_UnitTestCase
         wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
         $_POST = [
             'update_cron_time' => '1',
-            'cron_time_input' => 'not-a-real-time-expression',
+            'edpq_schedule_mode' => 'selected',
+            'edpq_schedule_time' => '20:00',
             'edpq_schedule_nonce' => wp_create_nonce('edpq_update_schedule'),
         ];
 
@@ -138,7 +144,9 @@ final class QueueAccessTest extends WP_UnitTestCase
         wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
         $_POST = [
             'update_cron_time' => '1',
-            'cron_time_input' => '+2 weekdays 8pm',
+            'edpq_schedule_mode' => 'selected',
+            'edpq_schedule_days' => ['1', '3', '5'],
+            'edpq_schedule_time' => '20:00',
             'edpq_schedule_nonce' => wp_create_nonce('edpq_update_schedule'),
         ];
 
@@ -146,10 +154,51 @@ final class QueueAccessTest extends WP_UnitTestCase
         try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
         finally { $html = ob_get_clean(); }
 
-        self::assertStringContainsString('Cron event time updated', $html);
+        self::assertStringContainsString('Schedule settings updated', $html);
         self::assertCount(1, $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log']);
         self::assertNotSame(123, $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log'][0]['timestamp']);
-        self::assertSame(86400, $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log'][0]['interval']);
+        self::assertNull($GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log'][0]['interval']);
+        self::assertSame([
+            'mode' => 'selected',
+            'days' => [1, 3, 5],
+            'time' => '20:00',
+            'paused' => false,
+        ], get_option(EmDailyPostsQueue\init_plugin\Classes\CronEventTimer::OPTION));
+    }
+
+    public function testPausedScheduleUnschedulesExistingActionAndStoresSettings() {
+        $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log'] = [['timestamp' => 123, 'interval' => 86400]];
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+        $_POST = [
+            'update_cron_time' => '1',
+            'edpq_schedule_mode' => 'weekdays',
+            'edpq_schedule_time' => '09:30',
+            'edpq_schedule_paused' => '1',
+            'edpq_schedule_nonce' => wp_create_nonce('edpq_update_schedule'),
+        ];
+
+        ob_start();
+        try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
+        finally { $html = ob_get_clean(); }
+
+        self::assertStringContainsString('Schedule settings updated', $html);
+        self::assertSame([], $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log']);
+        self::assertTrue(get_option(EmDailyPostsQueue\init_plugin\Classes\CronEventTimer::OPTION)['paused']);
+    }
+
+    public function testNextRunUsesSelectedCalendarDayAndSiteTimezoneAcrossDst() {
+        update_option('timezone_string', 'America/New_York');
+        $timer = new EmDailyPostsQueue\init_plugin\Classes\CronEventTimer();
+        $now = (new DateTimeImmutable('2026-03-06 12:00:00', new DateTimeZone('America/New_York')))->format('U');
+        $timestamp = $timer->calculate_next_run_timestamp([
+            'mode' => 'selected',
+            'days' => [1],
+            'time' => '02:30',
+            'paused' => false,
+        ], (int) $now);
+
+        $next = (new DateTimeImmutable('@' . $timestamp))->setTimezone(new DateTimeZone('America/New_York'));
+        self::assertSame('2026-03-09 02:30 -04:00', $next->format('Y-m-d H:i P'));
     }
 
     public function testQueueListLoadsManagementAssetsForAdministratorsOnly() {
@@ -184,10 +233,12 @@ final class QueueAccessTest extends WP_UnitTestCase
 
     public function testUninstallRemovesTheNewAdministratorGrantOnly() {
         require_once dirname(__DIR__, 2) . '/em-daily-posts-queue.php';
+        update_option(EmDailyPostsQueue\init_plugin\Classes\CronEventTimer::OPTION, ['paused' => true]);
         $before = get_role('administrator')->capabilities;
         unset($before['edpq_view_queue']);
         EmDailyPostsQueue\init_plugin\EmDailyPostsQueueInit::EmDailyPostsQueue_uninstall();
         self::assertEquals($before, get_role('administrator')->capabilities);
+        self::assertFalse(get_option(EmDailyPostsQueue\init_plugin\Classes\CronEventTimer::OPTION));
         self::assertNull(get_role('net_submission_role'));
     }
 
