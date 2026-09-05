@@ -108,6 +108,40 @@ final class QueueAccessTest extends WP_UnitTestCase
         self::assertEquals($before, wp_count_posts('net_submission'));
     }
 
+    public function testDemoImporterUsesBundledDemoImages() {
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+        $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log'] = [];
+        $_GET['import_demo'] = '1';
+        $_POST = [];
+
+        ob_start();
+        try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
+        finally { ob_get_clean(); }
+
+        $posts = get_posts([
+            'post_type' => 'net_submission',
+            'post_status' => 'publish',
+            'orderby' => 'ID',
+            'order' => 'ASC',
+            'numberposts' => 4,
+        ]);
+        self::assertCount(4, $posts);
+
+        $filenames = [];
+        foreach ($posts as $post) {
+            $thumbnail_id = get_post_thumbnail_id($post->ID);
+            self::assertNotSame(0, $thumbnail_id);
+            $filenames[] = preg_replace('/-\d+(\.png)$/', '$1', basename((string) get_attached_file($thumbnail_id)));
+        }
+
+        self::assertSame([
+            'edpq-demo-abstract.png',
+            'edpq-demo-city.png',
+            'edpq-demo-garden.png',
+            'edpq-demo-sunrise.png',
+        ], array_values(array_unique($filenames)));
+    }
+
     public function testAdministratorScheduleUpdateRequiresValidNonceBeforeReplacingSchedule() {
         $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log'] = [['timestamp' => 123, 'interval' => 86400]];
         wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));

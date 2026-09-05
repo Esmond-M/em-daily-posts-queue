@@ -105,7 +105,11 @@ class PhotoNetSubmissionUtils {
     * Import demo net_submission posts (4 demo posts)
     */
     public function import_demo_net_submissions() {
-        $placeholder_path = plugin_dir_path(dirname(__FILE__)) . 'assets/imgs/placeholder.png';
+        $plugin_dir = plugin_dir_path(dirname(__FILE__));
+        $demo_images = glob($plugin_dir . 'assets/imgs/demo/*.png');
+        if (!$demo_images) {
+            $demo_images = [$plugin_dir . 'assets/imgs/placeholder.png'];
+        }
         for ($i = 1; $i <= 4; $i++) {
             $post_id = wp_insert_post([
                 'post_title'   => "Demo Submission $i",
@@ -118,16 +122,17 @@ class PhotoNetSubmissionUtils {
                 ]
             ]);
             // Assign featured image if post creation succeeded
-            if ($post_id && file_exists($placeholder_path)) {
+            $demo_image_path = $demo_images[($i - 1) % count($demo_images)];
+            if ($post_id && file_exists($demo_image_path)) {
                 require_once(ABSPATH . 'wp-admin/includes/image.php');
                 require_once(ABSPATH . 'wp-admin/includes/file.php');
                 require_once(ABSPATH . 'wp-admin/includes/media.php');
-                $upload = wp_upload_bits('placeholder-demo-' . $i . '.png', null, file_get_contents($placeholder_path));
+                $upload = wp_upload_bits('edpq-' . sanitize_file_name(basename($demo_image_path)), null, file_get_contents($demo_image_path));
                 if (!$upload['error']) {
                     $filetype = wp_check_filetype($upload['file'], null);
                     $attachment = array(
                         'post_mime_type' => $filetype['type'],
-                        'post_title'     => 'Demo Placeholder',
+                        'post_title'     => sprintf('Demo Image %d', $i),
                         'post_content'   => '',
                         'post_status'    => 'inherit'
                     );

@@ -51,7 +51,7 @@ php -d extension=zip C:/ProgramData/ComposerSetup/bin/composer.phar install
 | --- | --- | --- |
 | `unit` | JSON/legacy queue decoding, malformed entry filtering, selected snapshot comparison cases | Queue utility class and PHPUnit |
 | `wordpress-hooks` | Submission row/bulk actions, preservation of other post types, guest/authenticated AJAX registrations | Real WordPress hook API plus queue controller |
-| `wordpress-integration` | Queue-viewing capability grants, direct admin page access, submenu visibility, protected AJAX mutations, uninstall cleanup | Full WordPress PHPUnit bootstrap plus a disposable MySQL database |
+| `wordpress-integration` | Queue-viewing capability grants, direct admin page access, submenu visibility, protected AJAX mutations, Full Wipe confirmation/scope, schedule controls, demo image import, uninstall cleanup | Full WordPress PHPUnit bootstrap plus a disposable MySQL database |
 
 The hook suite loads only `wordpress/wp-includes/plugin.php`, not `wp-load.php`
 or the WordPress PHPUnit installer. Hook globals are restored after every test.
@@ -86,9 +86,9 @@ version-controlled.
 ## Verified baseline
 
 2026-09-05: PHP 8.2.12, PHPUnit 9.6.23, WordPress hook API 6.8.1.
-Both suites: **23 tests, 27 assertions**. Unit suite: 16 tests; hook suite: 7 tests.
-Randomized order also passes. This is not a PHP-version compatibility matrix or
-a full WordPress integration run.
+Database-free suites: **23 tests, 27 assertions**. Unit suite: 16 tests; hook suite: 7 tests.
+Disposable WordPress integration suite: **29 tests, 134 assertions**. Randomized order also passes.
+This is not a PHP-version compatibility matrix or a live browser validation run.
 
 References: [PHPUnit configuration](https://docs.phpunit.de/en/9.6/configuration.html),
 [WordPress integration test lifecycle](https://make.wordpress.org/core/handbook/testing/automated-testing/writing-phpunit-tests/).

@@ -301,9 +301,6 @@ class PhotoNetSubmissionAjax {
                 $rand = rand(1, 99999999999);
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
 
-                if ( 'edit.php' === $pagenow && isset($_GET['post_type']) && 'net_submission' === $_GET['post_type'] ) {
-                wp_enqueue_style( 'edit_screen_css',  $plugin_url  . '/admin/assets/css/net-submission-edit.css' , array(),  $rand );
-                }
                 // Only enqueue admin_option_css for the specific admin queue list page
                 if (
                     'edit.php' === $pagenow &&
