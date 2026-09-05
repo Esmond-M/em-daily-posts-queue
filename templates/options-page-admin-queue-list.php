@@ -134,7 +134,7 @@ $current_title = '' !== trim($current_title) ? $current_title : __('(Untitled su
                     $thumbnail = $available ? get_the_post_thumbnail($submission_id, 'thumbnail', ['alt' => '', 'loading' => 'lazy']) : '';
                     $caption = $available ? get_post_meta($submission_id, 'topic_caption_value', true) : '';
                     ?>
-                    <div class="edpq-queue-row <?php echo $can_manage_queue ? 'queue-row' : ''; ?>" role="listitem" data-postid="<?php echo esc_attr($submission_id); ?>" data-queuenumber="<?php echo esc_attr($index + 1); ?>" data-posttitle="<?php echo esc_attr($title); ?>">
+                    <div class="edpq-queue-row <?php echo $can_manage_queue ? 'queue-row' : ''; ?>" role="listitem" <?php echo $can_manage_queue ? 'tabindex="0"' : ''; ?> data-postid="<?php echo esc_attr($submission_id); ?>" data-queuenumber="<?php echo esc_attr($index + 1); ?>" data-posttitle="<?php echo esc_attr($title); ?>">
                         <span class="edpq-drag-marker" aria-hidden="true"><span class="dashicons dashicons-menu-alt"></span></span>
                         <span class="edpq-position"><?php echo esc_html(number_format_i18n($index + 1)); ?></span>
                         <span class="edpq-photo">
@@ -199,14 +199,18 @@ $current_title = '' !== trim($current_title) ? $current_title : __('(Untitled su
             </div>
             <?php if ($can_manage_queue): ?>
                 <div class="edpq-queue-panel-footer">
+                    <div id="edpq-queue-status" class="edpq-queue-status" role="status" aria-live="polite"></div>
                     <p class="submit">
-                        <button type="submit" name="save_queue_order" class="button button-primary">
+                        <button type="submit" name="save_queue_order" class="button button-primary" disabled>
                             <?php esc_html_e('Save queue order', 'em-daily-posts-queue'); ?>
+                        </button>
+                        <button type="button" id="edpq-discard-queue-changes" class="button" disabled>
+                            <?php esc_html_e('Discard changes', 'em-daily-posts-queue'); ?>
                         </button>
                     </p>
                     <div class="edpq-footer-hint">
                         <span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
-                        <?php esc_html_e('Changes are saved with AJAX.', 'em-daily-posts-queue'); ?>
+                        <?php esc_html_e('Use Alt+Up or Alt+Down on a row to reorder.', 'em-daily-posts-queue'); ?>
                     </div>
                 </div>
             <?php endif; ?>

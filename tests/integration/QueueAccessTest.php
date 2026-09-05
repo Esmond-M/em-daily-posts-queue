@@ -60,6 +60,9 @@ final class QueueAccessTest extends WP_UnitTestCase
         self::assertStringNotContainsString('page=admin-queue-edit', $html);
         self::assertSame($canManage, strpos($html, 'id="admin-queue-edit-form"') !== false);
         self::assertSame($canManage, strpos($html, 'class="button button-primary"') !== false);
+        self::assertSame($canManage, strpos($html, 'id="edpq-discard-queue-changes"') !== false);
+        self::assertSame($canManage, strpos($html, 'id="edpq-queue-status"') !== false);
+        self::assertSame($canManage, strpos($html, 'tabindex="0"') !== false);
         self::assertSame($canManage, strpos($html, 'id="full-wipe-btn"') !== false);
     }
 

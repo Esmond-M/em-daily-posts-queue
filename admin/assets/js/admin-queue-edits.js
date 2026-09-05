@@ -1,49 +1,151 @@
-jQuery(document).ready(function($) {
-    // Capture queue state as it was when the page loaded — used for optimistic concurrency
-    var initialQueueSnapshot = [];
-    $('#queue-list .queue-row').each(function() {
-        initialQueueSnapshot.push({
-            postid: parseInt($(this).attr('data-postid'), 10),
-            queueNumber: parseInt($(this).attr('data-queuenumber'), 10)
-        });
-    });
-    renumberQueue();
+jQuery(function($) {
+    var $queueList = $('#queue-list');
+    var $form = $('#admin-queue-edit-form');
+    var $saveButton = $form.find('button[type="submit"]');
+    var $discardButton = $('#edpq-discard-queue-changes');
+    var $status = $('#edpq-queue-status');
+    var initialQueueSnapshot = readQueueSnapshot();
+    var initialQueueHtml = $queueList.html();
 
-    // Move queue item up
+    renumberQueue();
+    setDirty(false, '');
+
     $(document).on('click', '.queue-up', function(e) {
         e.preventDefault();
-        var row = $(this).closest('.queue-row');
-        var prev = row.prev('.queue-row');
-        if (prev.length) {
-            row.insertBefore(prev);
-            renumberQueue();
-        }
+        moveRow($(this).closest('.queue-row'), 'up');
     });
 
-    // Move queue item down
     $(document).on('click', '.queue-down', function(e) {
         e.preventDefault();
-        var row = $(this).closest('.queue-row');
-        var next = row.next('.queue-row');
-        if (next.length) {
-            row.insertAfter(next);
-            renumberQueue();
-        }
+        moveRow($(this).closest('.queue-row'), 'down');
     });
 
-    // Delete queue item
+    $(document).on('keydown', '.queue-row', function(e) {
+        if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) {
+            return;
+        }
+
+        e.preventDefault();
+        moveRow($(this), e.key === 'ArrowUp' ? 'up' : 'down');
+    });
+
     $(document).on('click', '.queue-delete', function(e) {
         e.preventDefault();
-        if (confirm('Are you sure you want to delete this item?')) {
+        if (window.confirm(edpq_admin_queue.confirmDelete)) {
             $(this).closest('.queue-row').remove();
             renumberQueue();
+            setDirty(true, edpq_admin_queue.dirty);
         }
     });
 
-    // Renumber queue rows and update hidden inputs
+    $discardButton.on('click', function() {
+        $queueList.html(initialQueueHtml);
+        renumberQueue();
+        setDirty(false, edpq_admin_queue.clean);
+    });
+
+    $form.on('submit', function(e) {
+        e.preventDefault();
+
+        if (!$form.data('dirty')) {
+            setStatus(edpq_admin_queue.clean, 'info');
+            return;
+        }
+
+        setSaving(true);
+        setStatus(edpq_admin_queue.saving, 'info');
+
+        $.ajax({
+            type: 'POST',
+            url: ajaxurl,
+            data: {
+                action: 'admin_queue_edit',
+                nonce: edpq_admin_queue.nonce,
+                form_data: $form.serialize(),
+                client_snapshot: JSON.stringify(initialQueueSnapshot)
+            },
+            success: function(response) {
+                setSaving(false);
+                if (response && response.success) {
+                    initialQueueSnapshot = readQueueSnapshot();
+                    initialQueueHtml = $queueList.html();
+                    setDirty(false, edpq_admin_queue.saved);
+                    return;
+                }
+
+                if (response && response.data && response.data.conflict) {
+                    setStatus(edpq_admin_queue.conflict, 'warning');
+                    return;
+                }
+
+                setStatus((response && response.data && response.data.message) || edpq_admin_queue.error, 'error');
+            },
+            error: function() {
+                setSaving(false);
+                setStatus(edpq_admin_queue.error, 'error');
+            }
+        });
+    });
+
+    $('#full-wipe-btn').on('click', function() {
+        if (!window.confirm('Are you sure? This will delete ALL queue data and ALL net_submission posts. This cannot be undone.')) {
+            return;
+        }
+
+        setSaving(true);
+        $.ajax({
+            type: 'POST',
+            url: ajaxurl,
+            data: {
+                action: 'admin_queue_full_wipe',
+                nonce: edpq_admin_queue.nonce
+            },
+            success: function(response) {
+                setSaving(false);
+                if (response && response.success) {
+                    window.location.reload();
+                } else {
+                    setStatus(edpq_admin_queue.error, 'error');
+                }
+            },
+            error: function() {
+                setSaving(false);
+                setStatus(edpq_admin_queue.error, 'error');
+            }
+        });
+    });
+
+    function moveRow($row, direction) {
+        var $target = direction === 'up' ? $row.prev('.queue-row') : $row.next('.queue-row');
+        if (!$target.length) {
+            return;
+        }
+
+        if (direction === 'up') {
+            $row.insertBefore($target);
+        } else {
+            $row.insertAfter($target);
+        }
+
+        renumberQueue();
+        $row.trigger('focus');
+        setDirty(true, edpq_admin_queue.dirty);
+    }
+
+    function readQueueSnapshot() {
+        var snapshot = [];
+        $queueList.find('.queue-row').each(function() {
+            snapshot.push({
+                postid: parseInt($(this).attr('data-postid'), 10),
+                queueNumber: parseInt($(this).attr('data-queuenumber'), 10)
+            });
+        });
+        return snapshot;
+    }
+
     function renumberQueue() {
-        // Always assign sequential queueNumber values (1,2,3...) to all items
-        $('#queue-list .queue-row').each(function(index) {
+        var $rows = $queueList.find('.queue-row');
+        $rows.each(function(index) {
             var newNumber = index + 1;
             var $row = $(this);
             var $badge = $row.find('.edpq-display-badge');
@@ -52,7 +154,7 @@ jQuery(document).ready(function($) {
             $row.find('input[name^="queue-postID-"]').attr('name', 'queue-postID-' + newNumber);
             $row.find('input[name^="queue-value-"]').attr('name', 'queue-value-' + newNumber).val(newNumber);
             $row.find('.queue-up').prop('disabled', index === 0);
-            $row.find('.queue-down').prop('disabled', index === $('#queue-list .queue-row').length - 1);
+            $row.find('.queue-down').prop('disabled', index === $rows.length - 1);
 
             $badge.removeClass('edpq-display-current');
             if (index === 0) {
@@ -65,71 +167,23 @@ jQuery(document).ready(function($) {
         });
     }
 
-        // AJAX form submission for saving queue order
-    $('#admin-queue-edit-form').on('submit', function(e) {
-        e.preventDefault();
-        var $form = $(this);
-        var formData = $form.serialize();
-        $form.find('button[type="submit"]').prop('disabled', true);
-        $form.append('<div class="edpq-ajax-loader"></div>');
-        $.ajax({
-            type: 'POST',
-            url: ajaxurl,
-            data: {
-                action: 'admin_queue_edit',
-                nonce: edpq_admin_queue.nonce,
-                form_data: formData,
-                client_snapshot: JSON.stringify(initialQueueSnapshot)
-            },
-            success: function(response) {
-                $('.edpq-ajax-loader').remove();
-                $form.find('button[type="submit"]').prop('disabled', false);
-                if (response && response.success) {
-                    alert('Queue updated successfully!');
-                    location.reload();
-                } else if (response && response.data && response.data.conflict) {
-                    // Conflict detected: another user has changed the queue
-                    var $conflict = $('<div class="edpq-conflict-warning">Another user has updated the queue. This page will refresh in 5 seconds.</div>');
-                    $form.prepend($conflict);
-                    setTimeout(function() { location.reload(); }, 5000);
-                } else {
-                    alert('Error updating queue.');
-                }
-            },
-            error: function() {
-                $('.edpq-ajax-loader').remove();
-                $form.find('button[type="submit"]').prop('disabled', false);
-                alert('AJAX error.');
-            }
-        });
-    });
-    
-        // Full Wipe button AJAX
-        $('#full-wipe-btn').on('click', function() {
-            if (!confirm('Are you sure? This will delete ALL queue data and ALL net_submission posts. This cannot be undone.')) return;
-            var $form = $('#admin-queue-edit-form');
-            $form.append('<div class="edpq-ajax-loader"></div>');
-            $.ajax({
-                type: 'POST',
-                url: ajaxurl,
-                data: {
-                    action: 'admin_queue_full_wipe',
-                    nonce: edpq_admin_queue.nonce
-                },
-                success: function(response) {
-                    $('.edpq-ajax-loader').remove();
-                    if (response && response.success) {
-                        alert('Full wipe completed!');
-                        location.reload();
-                    } else {
-                        alert('Error during full wipe.');
-                    }
-                },
-                error: function() {
-                    $('.edpq-ajax-loader').remove();
-                    alert('AJAX error.');
-                }
-            });
-        });
+    function setDirty(isDirty, message) {
+        $form.data('dirty', isDirty);
+        $saveButton.prop('disabled', !isDirty);
+        $discardButton.prop('disabled', !isDirty);
+        setStatus(message, isDirty ? 'warning' : 'success');
+    }
 
+    function setSaving(isSaving) {
+        $form.toggleClass('edpq-is-saving', isSaving);
+        $saveButton.prop('disabled', isSaving || !$form.data('dirty'));
+        $discardButton.prop('disabled', isSaving || !$form.data('dirty'));
+    }
+
+    function setStatus(message, type) {
+        $status
+            .removeClass('edpq-status-info edpq-status-success edpq-status-warning edpq-status-error')
+            .addClass('edpq-status-' + type)
+            .text(message || '');
+    }
 });

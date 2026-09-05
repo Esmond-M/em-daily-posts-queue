@@ -135,10 +135,23 @@
 .edpq-queue-toolbar .button {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
 }
 
+.edpq-queue-toolbar .dashicons {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    line-height: 1;
+}
+
 .edpq-toolbar-danger {
+    display: inline-flex;
+    align-items: center;
     min-height: 30px;
     padding: 0 6px;
     border: 0;
@@ -215,6 +228,11 @@
     background: #fff;
     border: 1px solid #dcdcde;
     border-radius: 8px;
+}
+
+.edpq-queue-row:focus-visible {
+    outline: 2px solid #2271b1;
+    outline-offset: 2px;
 }
 
 .edpq-queue-list .edpq-queue-row:first-child {
@@ -349,6 +367,11 @@
     line-height: 1;
 }
 
+.edpq-icon-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 .edpq-row-delete {
     display: inline-flex;
     align-items: center;
@@ -377,6 +400,30 @@
     padding: 14px 18px;
     background: #f6f7f7;
     border-top: 1px solid #dcdcde;
+}
+
+.edpq-queue-status {
+    min-width: 180px;
+    color: #646970;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.edpq-status-success {
+    color: #008a20;
+}
+
+.edpq-status-warning {
+    color: #996800;
+}
+
+.edpq-status-error {
+    color: #b32d2e;
+}
+
+.edpq-is-saving .edpq-queue-list {
+    opacity: 0.72;
+    pointer-events: none;
 }
 
 .edpq-queue-panel-footer .submit {

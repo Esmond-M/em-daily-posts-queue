@@ -312,6 +312,13 @@ class PhotoNetSubmissionAjax {
                             'showingNow' => __('Showing now', 'em-daily-posts-queue'),
                             'upNext'     => __('Up next', 'em-daily-posts-queue'),
                             'queued'     => __('Queued', 'em-daily-posts-queue'),
+                            'clean'      => __('No unsaved changes.', 'em-daily-posts-queue'),
+                            'dirty'      => __('You have unsaved queue changes.', 'em-daily-posts-queue'),
+                            'saving'     => __('Saving queue changes...', 'em-daily-posts-queue'),
+                            'saved'      => __('Queue changes saved.', 'em-daily-posts-queue'),
+                            'conflict'   => __('The queue changed in another window. Your changes were not saved; review them before refreshing.', 'em-daily-posts-queue'),
+                            'error'      => __('Queue changes could not be saved.', 'em-daily-posts-queue'),
+                            'confirmDelete' => __('Remove this item from the queue and permanently delete its submission?', 'em-daily-posts-queue'),
                         ]);
                     }
                 }
