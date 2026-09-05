@@ -6,6 +6,7 @@ if (!defined('ABSPATH')) {
 
 $queue_error = !isset($queue_list) || !is_array($queue_list) || isset($queue_list['error']);
 $queue_items = $queue_error ? [] : array_values($queue_list);
+$can_manage_queue = current_user_can('manage_options');
 ?>
 <div class="wrap edpq-queue-overview">
     <h1><?php esc_html_e('Photo Queue', 'em-daily-posts-queue'); ?></h1>
@@ -16,10 +17,13 @@ $queue_items = $queue_error ? [] : array_values($queue_list);
         <a class="button" href="<?php echo esc_url(admin_url('edit.php?post_type=net_submission')); ?>">
             <?php esc_html_e('All submissions', 'em-daily-posts-queue'); ?>
         </a>
-        <?php if (current_user_can('manage_options')): ?>
-            <a class="button" href="<?php echo esc_url(admin_url('edit.php?post_type=net_submission&page=admin-queue-edit')); ?>">
-                <?php esc_html_e('Manage queue', 'em-daily-posts-queue'); ?>
+        <?php if ($can_manage_queue): ?>
+            <a href="<?php echo esc_url(add_query_arg('import_demo', '1')); ?>" class="button">
+                <?php esc_html_e('Import demo submissions', 'em-daily-posts-queue'); ?>
             </a>
+            <button type="button" id="full-wipe-btn" class="button button-link-delete">
+                <?php esc_html_e('Full Wipe', 'em-daily-posts-queue'); ?>
+            </button>
         <?php endif; ?>
     </div>
 
@@ -42,7 +46,10 @@ $queue_items = $queue_error ? [] : array_values($queue_list);
                 ?>
             </p>
         </div>
-        <div class="edpq-queue-table-scroll" role="region" aria-labelledby="edpq-display-order" tabindex="0">
+        <?php if ($can_manage_queue): ?>
+            <form id="admin-queue-edit-form" method="post">
+        <?php endif; ?>
+        <div id="queue-list" class="edpq-queue-table-scroll" role="region" aria-labelledby="edpq-display-order" tabindex="0">
             <table class="widefat striped edpq-queue-table">
                 <caption class="screen-reader-text"><?php esc_html_e('Photo submissions in saved display order', 'em-daily-posts-queue'); ?></caption>
                 <thead>
@@ -51,6 +58,9 @@ $queue_items = $queue_error ? [] : array_values($queue_list);
                         <th scope="col" class="edpq-photo"><?php esc_html_e('Photo', 'em-daily-posts-queue'); ?></th>
                         <th scope="col"><?php esc_html_e('Submission', 'em-daily-posts-queue'); ?></th>
                         <th scope="col" class="edpq-display"><?php esc_html_e('Display', 'em-daily-posts-queue'); ?></th>
+                        <?php if ($can_manage_queue): ?>
+                            <th scope="col" class="edpq-actions"><?php esc_html_e('Actions', 'em-daily-posts-queue'); ?></th>
+                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
@@ -65,7 +75,7 @@ $queue_items = $queue_error ? [] : array_values($queue_list);
                         $thumbnail = $available ? get_the_post_thumbnail($submission_id, 'thumbnail', ['alt' => '', 'loading' => 'lazy']) : '';
                         $caption = $available ? get_post_meta($submission_id, 'topic_caption_value', true) : '';
                         ?>
-                        <tr>
+                        <tr class="<?php echo $can_manage_queue ? 'queue-row' : ''; ?>" data-postid="<?php echo esc_attr($submission_id); ?>" data-queuenumber="<?php echo esc_attr($index + 1); ?>" data-posttitle="<?php echo esc_attr($title); ?>">
                             <td class="edpq-position"><?php echo esc_html(number_format_i18n($index + 1)); ?></td>
                             <td class="edpq-photo">
                                 <?php if ($thumbnail): ?>
@@ -76,9 +86,9 @@ $queue_items = $queue_error ? [] : array_values($queue_list);
                             </td>
                             <th scope="row" class="edpq-submission">
                                 <?php if ($can_view): ?>
-                                    <a class="edpq-submission-title" href="<?php echo esc_url(get_permalink($submission)); ?>"><?php echo esc_html($title); ?></a>
+                                    <a class="edpq-submission-title queue-title" href="<?php echo esc_url(get_permalink($submission)); ?>"><?php echo esc_html($title); ?></a>
                                 <?php else: ?>
-                                    <span class="edpq-submission-title"><?php echo esc_html($title); ?></span>
+                                    <span class="edpq-submission-title queue-title"><?php echo esc_html($title); ?></span>
                                 <?php endif; ?>
                                 <span class="edpq-submission-id">
                                     <?php
@@ -104,10 +114,40 @@ $queue_items = $queue_error ? [] : array_values($queue_list);
                                     <span class="edpq-display-badge"><?php esc_html_e('Queued', 'em-daily-posts-queue'); ?></span>
                                 <?php endif; ?>
                             </td>
+                            <?php if ($can_manage_queue): ?>
+                                <td class="edpq-actions">
+                                    <button type="button" class="button button-small queue-up"><?php esc_html_e('Move up', 'em-daily-posts-queue'); ?></button>
+                                    <button type="button" class="button button-small queue-down"><?php esc_html_e('Move down', 'em-daily-posts-queue'); ?></button>
+                                    <button type="button" class="button button-small button-link-delete queue-delete"><?php esc_html_e('Remove and delete', 'em-daily-posts-queue'); ?></button>
+                                    <input type="hidden" name="queue-postID-<?php echo esc_attr($index + 1); ?>" value="<?php echo esc_attr($submission_id); ?>">
+                                    <input type="hidden" name="queue-value-<?php echo esc_attr($index + 1); ?>" value="<?php echo esc_attr($index + 1); ?>">
+                                </td>
+                            <?php endif; ?>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
+        </div>
+        <?php if ($can_manage_queue): ?>
+            <p class="submit edpq-queue-save-actions">
+                <button type="submit" name="save_queue_order" class="button button-primary">
+                    <?php esc_html_e('Save queue order', 'em-daily-posts-queue'); ?>
+                </button>
+            </p>
+            </form>
+        <?php endif; ?>
+    <?php endif; ?>
+    <?php if ($can_manage_queue): ?>
+        <div class="edpq-schedule-panel">
+            <h2><?php esc_html_e('Schedule', 'em-daily-posts-queue'); ?></h2>
+            <form id="cron-time-form" method="post">
+                <label for="cron-time-input"><?php esc_html_e('Schedule expression', 'em-daily-posts-queue'); ?></label>
+                <input type="text" name="cron_time_input" id="cron-time-input" class="regular-text" placeholder="+1 weekday 8pm">
+                <button type="submit" name="update_cron_time" class="button">
+                    <?php esc_html_e('Update schedule', 'em-daily-posts-queue'); ?>
+                </button>
+                <p class="description"><?php esc_html_e('Example: +1 weekday 8pm', 'em-daily-posts-queue'); ?></p>
+            </form>
         </div>
     <?php endif; ?>
 </div>

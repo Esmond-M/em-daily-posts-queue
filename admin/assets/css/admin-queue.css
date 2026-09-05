@@ -85,6 +85,14 @@
     width: 120px;
 }
 
+.edpq-queue-overview .edpq-actions {
+    width: 220px;
+}
+
+.edpq-queue-overview .edpq-actions .button {
+    margin: 0 4px 6px 0;
+}
+
 .edpq-queue-overview .edpq-submission {
     font-weight: 400;
     overflow-wrap: anywhere;
@@ -143,6 +151,32 @@
 
 .edpq-queue-overview .edpq-queue-empty p:last-child {
     margin-bottom: 0;
+}
+
+.edpq-queue-overview .edpq-queue-save-actions {
+    margin-top: 16px;
+}
+
+.edpq-queue-overview .edpq-schedule-panel {
+    max-width: 760px;
+    margin-top: 28px;
+    padding: 18px 20px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+}
+
+.edpq-queue-overview .edpq-schedule-panel h2 {
+    margin-top: 0;
+}
+
+.edpq-queue-overview .edpq-schedule-panel label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.edpq-queue-overview .edpq-schedule-panel .button {
+    margin-left: 6px;
 }
 
 @media screen and (max-width: 782px) {

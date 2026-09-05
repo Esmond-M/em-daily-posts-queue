@@ -305,6 +305,12 @@ class PhotoNetSubmissionAjax {
                     isset($_GET['page']) && $_GET['page'] === 'admin-queue-list'
                 ) {
                     wp_enqueue_style( 'admin_option_css', $plugin_url . 'admin/assets/css/admin-queue.css', array(), (string) filemtime(dirname(__DIR__) . '/admin/assets/css/admin-queue.css') );
+                    if (current_user_can('manage_options')) {
+                        wp_enqueue_script('admin-queue-edits-js', $plugin_url . '/admin/assets/js/admin-queue-edits.js', array('jquery'), (string) filemtime(dirname(__DIR__) . '/admin/assets/js/admin-queue-edits.js'), true);
+                        wp_localize_script('admin-queue-edits-js', 'edpq_admin_queue', [
+                            'nonce' => wp_create_nonce('edpq_admin_queue'),
+                        ]);
+                    }
                 }
                 // Only enqueue styles and scripts for the edit_net_submissions page
                 if (
@@ -320,20 +326,6 @@ class PhotoNetSubmissionAjax {
                         'noposts' => __('No older posts found', 'edpq-white'),
                     ));
                 }
-                // Enqueue admin-queue-edits.js for the Edit Photo Queue page
-                if (
-                    'edit.php' === $pagenow &&
-                    isset($_GET['post_type']) && $_GET['post_type'] === 'net_submission' &&
-                    isset($_GET['page']) && $_GET['page'] === 'admin-queue-edit'
-                ) {
-                    wp_enqueue_style( 'font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css', array(), '6.5.2' );
-                    wp_enqueue_style( 'edpq-admin-queue-edit-css', $plugin_url . '/admin/assets/css/admin-queue-edit.css', array('font-awesome'), $rand );
-                    wp_enqueue_script('admin-queue-edits-js', $plugin_url . '/admin/assets/js/admin-queue-edits.js', array('jquery'), $rand, true);
-                    wp_localize_script('admin-queue-edits-js', 'edpq_admin_queue', [
-                        'nonce' => wp_create_nonce('edpq_admin_queue'),
-                    ]);
-                }
-
     }
 
     /**
