@@ -125,6 +125,14 @@ class CPT_NetSubmission
         $net_submission_role = get_role( 'net_submission_role' );
         $admins = get_role( 'administrator' );
 
+        // Add viewing access for existing installations as well as new roles.
+        // Preserve every existing capability and avoid rewriting this grant on each request.
+        foreach ( [ $admins, $net_submission_role ] as $queue_viewer_role ) {
+            if ( $queue_viewer_role && ! $queue_viewer_role->has_cap( 'edpq_view_queue' ) ) {
+                $queue_viewer_role->add_cap( 'edpq_view_queue' );
+            }
+        }
+
         $admins->add_cap( 'edit_net_submission' );
         $admins->add_cap( 'edit_net_submission' );
         $admins->add_cap( 'read_net_submission' );

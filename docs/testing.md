@@ -11,6 +11,15 @@ composer test:unit
 composer test:hooks
 ```
 
+Run the full WordPress integration suite only through the disposable database
+runner. Pass the directory that contains `mysqld.exe`, `mysql.exe`, and
+`mysqladmin.exe`:
+
+```powershell
+.\tests\run-integration.ps1 -MySqlBinDirectory 'C:\Program Files\MySQL\MySQL Server 5.7\bin'
+.\tests\run-integration.ps1 -MySqlBinDirectory 'C:\Program Files\MySQL\MySQL Server 5.7\bin' --order-by=random --random-order-seed=20260905
+```
+
 Use `composer install` to reproduce `composer.lock`; an update is not needed.
 PHP must satisfy the locked dependencies (the current lock requires PHP 8.1 or
 newer) and have PHPUnit's DOM, JSON, libxml, mbstring, tokenizer, XML, and
@@ -42,13 +51,18 @@ php -d extension=zip C:/ProgramData/ComposerSetup/bin/composer.phar install
 | --- | --- | --- |
 | `unit` | JSON/legacy queue decoding, malformed entry filtering, selected snapshot comparison cases | Queue utility class and PHPUnit |
 | `wordpress-hooks` | Submission row/bulk actions, preservation of other post types, guest/authenticated AJAX registrations | Real WordPress hook API plus queue controller |
+| `wordpress-integration` | Queue-viewing capability grants, direct admin page access, submenu visibility, protected AJAX mutations, uninstall cleanup | Full WordPress PHPUnit bootstrap plus a disposable MySQL database |
 
 The hook suite loads only `wordpress/wp-includes/plugin.php`, not `wp-load.php`
 or the WordPress PHPUnit installer. Hook globals are restored after every test.
 Hook registration tests do not prove the request handlers enforce capabilities
 or nonces. Snapshot tests do not establish complete concurrency correctness.
 
-PHPUnit discovers `*Test.php` in the two suite directories. Empty runs,
+The integration runner starts a temporary MySQL instance, sets explicit
+`EDPQ_TEST_*` environment variables, and the integration bootstrap refuses to run
+without them. It must never be pointed at the working LocalWP site database.
+
+PHPUnit discovers `*Test.php` in each configured suite directory. Empty runs,
 warnings, and risky tests fail. To check discovery or run in a different order:
 
 ```sh
@@ -61,7 +75,7 @@ composer test -- --order-by=random --random-order-seed=20260905
 - Add expected inputs/outputs for queue logic; prefer public behavior over method-existence checks.
 - Existing decoder characterization uses reflection because the decoder is private. Do not expose production methods solely for tests.
 - Use the hook suite for WordPress filter/action behavior that needs no site bootstrap.
-- Add a separately invoked full WordPress integration suite when implementing permissions, persistence, post lifecycle, or scheduling changes. Use an explicitly configured disposable database; the WordPress test installer recreates tables.
+- Add full WordPress integration coverage when implementing permissions, persistence, post lifecycle, or scheduling changes. Use the disposable database runner; the WordPress test installer recreates tables.
 - The legacy `tests/wp-config.php` is not loaded by either current suite and is not a ready-to-run integration environment.
 - Add browser checks for UI changes. Do not treat a green PHP baseline as UI validation.
 

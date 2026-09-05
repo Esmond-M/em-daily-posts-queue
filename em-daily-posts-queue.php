@@ -63,6 +63,10 @@ if ( ! defined( 'ABSPATH' ) ) {
          * the role will be recognised again if the plugin is reinstalled.
          */
         public static function EmDailyPostsQueue_uninstall() {
+            $administrator = get_role( 'administrator' );
+            if ( $administrator ) {
+                $administrator->remove_cap( 'edpq_view_queue' );
+            }
             remove_role( 'net_submission_role' );
         }
 

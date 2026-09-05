@@ -195,14 +195,14 @@ class EmDailyPostsQueueUIManager
 
         // Register custom admin submenu pages for photo submission queue management
 
-        // Submenu: Admin Photo Queue List (read-only view)
+        // Submenu: Photo Queue (read-only view)
         // - Appears under the "net_submission" post type menu
-        // - Allows admins to view the current photo submission queue
+        // - Allows queue viewers to inspect the saved display order
         add_submenu_page(
             'edit.php?post_type=net_submission',
-            'Admin Photo Queue List',
-            'Admin Photo Queue List',
-            'manage_options',
+            __('Photo Queue', 'em-daily-posts-queue'),
+            __('Photo Queue', 'em-daily-posts-queue'),
+            'edpq_view_queue',
             'admin-queue-list',
             [$this, 'edpqadmin_queue_list_page']
         );
@@ -355,6 +355,10 @@ class EmDailyPostsQueueUIManager
      * Render the admin queue edit page (with reorder/delete UI)
      */
     public function edpqadmin_queue_edit_page(){
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('You do not have permission to manage the photo queue.', 'em-daily-posts-queue'), '', ['response' => 403]);
+        }
+
         // Handle demo import trigger
         if (isset($_GET['import_demo']) && $_GET['import_demo'] === '1' && current_user_can('manage_options')) {
             $this->utils->import_demo_net_submissions();
@@ -382,8 +386,12 @@ class EmDailyPostsQueueUIManager
      */
     public function edpqadmin_queue_list_page(){
 
+        if (!current_user_can('edpq_view_queue')) {
+            wp_die(esc_html__('You do not have permission to view the photo queue.', 'em-daily-posts-queue'), '', ['response' => 403]);
+        }
+
         $queue_list = $this->utils->get_queue_list();
-        require_once __DIR__ . '/../templates/options-page-admin-queue-list.php';
+        require __DIR__ . '/../templates/options-page-admin-queue-list.php';
 
     }
 
