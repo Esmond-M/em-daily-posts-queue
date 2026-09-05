@@ -18,7 +18,9 @@
     "yoast/phpunit-polyfills": "^1.0"
   },
     "scripts": {
-    "test": "phpunit"
+    "test": "@php vendor/bin/phpunit --configuration phpunit.xml",
+    "test:unit": "@test --testsuite unit",
+    "test:hooks": "@test --testsuite wordpress-hooks"
   },
   "config": {
         "platform": {

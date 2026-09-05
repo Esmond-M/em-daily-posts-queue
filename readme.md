@@ -139,13 +139,9 @@ cd em-daily-posts-queue
 composer install
 ```
 
-Configure `tests/wp-config.php`:
-```php
-define( 'DB_NAME',     'wordpress_test' );
-define( 'DB_USER',     'your_username' );
-define( 'DB_PASSWORD', 'your_password' );
-define( 'DB_HOST',     'localhost' );
-```
+Run `composer test` to verify the database-free test baseline. No Local site shell
+or database configuration is needed. See [Testing](docs/testing.md) for setup,
+individual suites, and the limits of this baseline.
 
 ### Build zip
 
@@ -175,7 +171,7 @@ em-daily-posts-queue/
 │   └── single-net-submission.php             # Single post template
 ├── tests/
 │   ├── bootstrap.php
-│   ├── EmDailyPostsQueueUIManagerTest.php
+│   ├── unit/ and wordpress-hooks/
 │   └── wp-config.php
 ├── docs/
 ├── vendor/
@@ -189,20 +185,25 @@ em-daily-posts-queue/
 ## Testing
 
 ```bash
-# Run all tests
-.\vendor\bin\phpunit --bootstrap tests/bootstrap.php tests
+# Run both database-free suites
+composer test
+
+# Run either suite separately
+composer test:unit
+composer test:hooks
 
 # Run with verbose output
-.\vendor\bin\phpunit --bootstrap tests/bootstrap.php tests --verbose
+composer test -- --verbose
 ```
 
 ### Coverage areas
-- CPT registration, roles, capabilities
-- Meta box rendering and save
-- Queue array comparison and conflict detection
-- Cron scheduling and queue rotation
-- Shortcode registration
-- AJAX handler security (nonce, capability checks)
+- Queue decoding, legacy storage compatibility, malformed entries, and snapshot comparisons
+- Submission row/bulk action behavior through the real WordPress hook API
+- Authenticated and guest AJAX hook registration
+
+This does not yet cover database writes, role/capability enforcement, nonces,
+cron execution, or browser interactions. See [Testing](docs/testing.md) before
+adding full WordPress integration tests.
 
 ## Changelog
 

@@ -1,24 +1,12 @@
 <?php
 /**
- * PHPUnit bootstrap file
+ * Database-free bootstrap. Never load wp-load.php or the WP test installer.
  */
 
-// Composer autoloader
-require_once dirname(__DIR__) . '/vendor/autoload.php';
+$edpq_root = dirname(__DIR__);
+if (!is_file($edpq_root . '/vendor/autoload.php')) {
+    throw new RuntimeException('Missing test dependencies. Run composer install first.');
+}
 
-// WP test functions
-require_once getenv('WP_PHPUNIT__DIR') . '/includes/functions.php';
-
-tests_add_filter('muplugins_loaded', function() {
-    // test set up, plugin activation, etc.
-});
-
-// WP testing environment
-require getenv('WP_PHPUNIT__DIR') . '/includes/bootstrap.php';
-
-// Manually require plugin class files for tests
-require_once dirname(__DIR__) . '/classes/class-cron-event-timer.php';
-require_once dirname(__DIR__) . '/classes/class-photo-submission-queue-manager.php';
-require_once dirname(__DIR__) . '/classes/class-photo-submission-ajax.php';
-require_once dirname(__DIR__) . '/classes/class-photo-submission-utils.php';
-// Add other class files as needed
+require_once $edpq_root . '/vendor/autoload.php';
+require_once $edpq_root . '/classes/class-photo-submission-utils.php';
