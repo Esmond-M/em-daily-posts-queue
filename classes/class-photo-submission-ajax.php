@@ -295,7 +295,7 @@ class PhotoNetSubmissionAjax {
                 $rand = rand(1, 99999999999);
                 $plugin_url = plugin_dir_url(dirname(__FILE__));
 
-                if ( 'edit.php' === $pagenow  && 'net_submission' ===  $_GET['post_type'] ) {
+                if ( 'edit.php' === $pagenow && isset($_GET['post_type']) && 'net_submission' === $_GET['post_type'] ) {
                 wp_enqueue_style( 'edit_screen_css',  $plugin_url  . '/admin/assets/css/net-submission-edit.css' , array(),  $rand );
                 }
                 // Only enqueue admin_option_css for the specific admin queue list page
@@ -304,7 +304,7 @@ class PhotoNetSubmissionAjax {
                     isset($_GET['post_type']) && $_GET['post_type'] === 'net_submission' &&
                     isset($_GET['page']) && $_GET['page'] === 'admin-queue-list'
                 ) {
-                    wp_enqueue_style( 'admin_option_css',  $plugin_url  . '/admin/assets/css/admin-queue.css' , array(),  $rand );
+                    wp_enqueue_style( 'admin_option_css', $plugin_url . 'admin/assets/css/admin-queue.css', array(), (string) filemtime(dirname(__DIR__) . '/admin/assets/css/admin-queue.css') );
                 }
                 // Only enqueue styles and scripts for the edit_net_submissions page
                 if (

@@ -1,72 +1,161 @@
-/* Conflict warning styling */
-.edpq-conflict-warning {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeeba;
-  border-radius: 5px;
-  padding: 14px 18px;
-  margin-bottom: 18px;
-  font-size: 1.08rem;
-  font-weight: 500;
-  text-align: center;
-}
-* {
-  box-sizing: border-box;
+/* Keep queue overview styling inside this plugin page. */
+.edpq-queue-overview {
+    max-width: 1120px;
 }
 
-html,
-body {
-  padding: 0;
-  margin: 0;
+.edpq-queue-overview .edpq-queue-intro {
+    max-width: 780px;
+    margin: 12px 0 18px;
 }
 
-body {
-  font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+.edpq-queue-overview .edpq-queue-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
 }
 
-table {
-    display: grid;
-    max-width: 709px;
-    border-collapse: collapse;
-    width: 100%;
-    grid-template-columns: minmax(150px, 0.5fr) minmax(150px, 0.5fr);
-    margin: 74px auto 0 0;
+.edpq-queue-overview .edpq-queue-summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
 }
 
-thead,
-tbody,
-tr {
-  display: contents;
+.edpq-queue-overview .edpq-queue-summary h2 {
+    margin: 0 0 12px;
 }
 
-th,
-td {
-  padding: 15px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.edpq-queue-overview .edpq-queue-summary p {
+    margin: 0 0 12px;
+    color: #50575e;
 }
 
-th {
-  position: sticky;
-  top: 0;
-  background: #6c7ae0;
-  text-align: left;
-  font-weight: normal;
-  font-size: 1.1rem;
-  color: white;
+.edpq-queue-overview .edpq-queue-table-scroll {
+    overflow-x: auto;
 }
 
-th:last-child {
-  border: 0;
+.edpq-queue-overview .edpq-queue-table-scroll:focus-visible {
+    outline: 2px solid #2271b1;
+    outline-offset: 2px;
 }
 
-td {
-  padding-top: 10px;
-  padding-bottom: 10px;
-  color: #808080;
+.edpq-queue-overview .edpq-queue-table {
+    min-width: 540px;
+    table-layout: fixed;
 }
 
-tr:nth-child(even) td {
-  background: #f8f6ff;
+.edpq-queue-overview .edpq-queue-table td,
+.edpq-queue-overview .edpq-queue-table tbody th {
+    vertical-align: top;
+    padding: 16px 12px;
+}
+
+.edpq-queue-overview .edpq-position {
+    width: 64px;
+}
+
+.edpq-queue-overview .edpq-photo {
+    width: 80px;
+}
+
+.edpq-queue-overview .edpq-photo img {
+    display: block;
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 3px;
+}
+
+.edpq-queue-overview .edpq-no-photo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    min-height: 64px;
+    background: #f0f0f1;
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
+    color: #50575e;
+    font-size: 12px;
+    text-align: center;
+}
+
+.edpq-queue-overview .edpq-display {
+    width: 120px;
+}
+
+.edpq-queue-overview .edpq-submission {
+    font-weight: 400;
+    overflow-wrap: anywhere;
+}
+
+.edpq-queue-overview .edpq-submission-title {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.edpq-queue-overview .edpq-submission-id {
+    display: block;
+    margin-top: 3px;
+    color: #646970;
+    font-size: 12px;
+}
+
+.edpq-queue-overview .edpq-submission-caption {
+    margin: 8px 0 0;
+    color: #50575e;
+    line-height: 1.6;
+}
+
+.edpq-queue-overview .edpq-display-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: #f0f0f1;
+    color: #2c3338;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.edpq-queue-overview .edpq-display-current {
+    background: #edfaef;
+    color: #005c12;
+}
+
+.edpq-queue-overview .edpq-display-unavailable {
+    background: #fcf0f1;
+    color: #8a2424;
+}
+
+.edpq-queue-overview .edpq-queue-empty {
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+}
+
+.edpq-queue-overview .edpq-queue-empty h2 {
+    margin-top: 0;
+}
+
+.edpq-queue-overview .edpq-queue-empty p:last-child {
+    margin-bottom: 0;
+}
+
+@media screen and (max-width: 782px) {
+    .edpq-queue-overview .edpq-queue-table td,
+    .edpq-queue-overview .edpq-queue-table tbody th {
+        padding: 12px 8px;
+    }
+
+    .edpq-queue-overview .edpq-position {
+        width: 56px;
+    }
+
+    .edpq-queue-overview .edpq-photo {
+        width: 72px;
+    }
 }
