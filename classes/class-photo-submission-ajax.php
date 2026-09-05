@@ -308,7 +308,10 @@ class PhotoNetSubmissionAjax {
                     if (current_user_can('manage_options')) {
                         wp_enqueue_script('admin-queue-edits-js', $plugin_url . '/admin/assets/js/admin-queue-edits.js', array('jquery'), (string) filemtime(dirname(__DIR__) . '/admin/assets/js/admin-queue-edits.js'), true);
                         wp_localize_script('admin-queue-edits-js', 'edpq_admin_queue', [
-                            'nonce' => wp_create_nonce('edpq_admin_queue'),
+                            'nonce'      => wp_create_nonce('edpq_admin_queue'),
+                            'showingNow' => __('Showing now', 'em-daily-posts-queue'),
+                            'upNext'     => __('Up next', 'em-daily-posts-queue'),
+                            'queued'     => __('Queued', 'em-daily-posts-queue'),
                         ]);
                     }
                 }

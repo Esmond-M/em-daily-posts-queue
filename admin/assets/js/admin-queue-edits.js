@@ -7,6 +7,7 @@ jQuery(document).ready(function($) {
             queueNumber: parseInt($(this).attr('data-queuenumber'), 10)
         });
     });
+    renumberQueue();
 
     // Move queue item up
     $(document).on('click', '.queue-up', function(e) {
@@ -44,11 +45,23 @@ jQuery(document).ready(function($) {
         // Always assign sequential queueNumber values (1,2,3...) to all items
         $('#queue-list .queue-row').each(function(index) {
             var newNumber = index + 1;
-            var postTitle = $(this).attr('data-posttitle') || 'Photo Submission';
-            $(this).attr('data-queuenumber', newNumber);
-            $(this).find('.queue-title').text(postTitle + ' (Queue Order: ' + newNumber + ')');
-            $(this).find('input[name^="queue-postID-"]').attr('name', 'queue-postID-' + newNumber);
-            $(this).find('input[name^="queue-value-"]').attr('name', 'queue-value-' + newNumber).val(newNumber);
+            var $row = $(this);
+            var $badge = $row.find('.edpq-display-badge');
+            $row.attr('data-queuenumber', newNumber);
+            $row.find('.edpq-position').first().text(newNumber);
+            $row.find('input[name^="queue-postID-"]').attr('name', 'queue-postID-' + newNumber);
+            $row.find('input[name^="queue-value-"]').attr('name', 'queue-value-' + newNumber).val(newNumber);
+            $row.find('.queue-up').prop('disabled', index === 0);
+            $row.find('.queue-down').prop('disabled', index === $('#queue-list .queue-row').length - 1);
+
+            $badge.removeClass('edpq-display-current');
+            if (index === 0) {
+                $badge.addClass('edpq-display-current').text(edpq_admin_queue.showingNow);
+            } else if (index === 1) {
+                $badge.text(edpq_admin_queue.upNext);
+            } else {
+                $badge.text(edpq_admin_queue.queued);
+            }
         });
     }
 

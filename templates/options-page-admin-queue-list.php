@@ -18,10 +18,10 @@ $can_manage_queue = current_user_can('manage_options');
             <?php esc_html_e('All submissions', 'em-daily-posts-queue'); ?>
         </a>
         <?php if ($can_manage_queue): ?>
-            <a href="<?php echo esc_url(add_query_arg('import_demo', '1')); ?>" class="button">
+            <a href="<?php echo esc_url(add_query_arg('import_demo', '1')); ?>" class="button edpq-toolbar-secondary">
                 <?php esc_html_e('Import demo submissions', 'em-daily-posts-queue'); ?>
             </a>
-            <button type="button" id="full-wipe-btn" class="button button-link-delete">
+            <button type="button" id="full-wipe-btn" class="button-link-delete edpq-toolbar-danger">
                 <?php esc_html_e('Full Wipe', 'em-daily-posts-queue'); ?>
             </button>
         <?php endif; ?>
@@ -116,9 +116,18 @@ $can_manage_queue = current_user_can('manage_options');
                             </td>
                             <?php if ($can_manage_queue): ?>
                                 <td class="edpq-actions">
-                                    <button type="button" class="button button-small queue-up"><?php esc_html_e('Move up', 'em-daily-posts-queue'); ?></button>
-                                    <button type="button" class="button button-small queue-down"><?php esc_html_e('Move down', 'em-daily-posts-queue'); ?></button>
-                                    <button type="button" class="button button-small button-link-delete queue-delete"><?php esc_html_e('Remove and delete', 'em-daily-posts-queue'); ?></button>
+                                    <div class="edpq-action-group" aria-label="<?php esc_attr_e('Queue item actions', 'em-daily-posts-queue'); ?>">
+                                        <button type="button" class="button button-small edpq-icon-button queue-up" aria-label="<?php esc_attr_e('Move up', 'em-daily-posts-queue'); ?>">
+                                            <span class="dashicons dashicons-arrow-up-alt2" aria-hidden="true"></span>
+                                        </button>
+                                        <button type="button" class="button button-small edpq-icon-button queue-down" aria-label="<?php esc_attr_e('Move down', 'em-daily-posts-queue'); ?>">
+                                            <span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>
+                                        </button>
+                                        <?php if ($available && current_user_can('edit_post', $submission_id)): ?>
+                                            <a class="button button-small" href="<?php echo esc_url(get_edit_post_link($submission_id, '')); ?>"><?php esc_html_e('Edit', 'em-daily-posts-queue'); ?></a>
+                                        <?php endif; ?>
+                                    </div>
+                                    <button type="button" class="button-link-delete edpq-row-delete queue-delete"><?php esc_html_e('Remove and delete', 'em-daily-posts-queue'); ?></button>
                                     <input type="hidden" name="queue-postID-<?php echo esc_attr($index + 1); ?>" value="<?php echo esc_attr($submission_id); ?>">
                                     <input type="hidden" name="queue-value-<?php echo esc_attr($index + 1); ?>" value="<?php echo esc_attr($index + 1); ?>">
                                 </td>

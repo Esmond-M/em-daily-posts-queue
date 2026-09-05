@@ -11,8 +11,18 @@
 .edpq-queue-overview .edpq-queue-toolbar {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
     margin-bottom: 24px;
+}
+
+.edpq-queue-overview .edpq-toolbar-danger {
+    min-height: 30px;
+    padding: 0 4px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    line-height: 2.15384615;
 }
 
 .edpq-queue-overview .edpq-queue-summary {
@@ -41,8 +51,8 @@
 }
 
 .edpq-queue-overview .edpq-queue-table {
-    min-width: 540px;
-    table-layout: fixed;
+    min-width: 860px;
+    table-layout: auto;
 }
 
 .edpq-queue-overview .edpq-queue-table td,
@@ -52,17 +62,18 @@
 }
 
 .edpq-queue-overview .edpq-position {
-    width: 64px;
+    width: 72px;
+    text-align: center;
 }
 
 .edpq-queue-overview .edpq-photo {
-    width: 80px;
+    width: 96px;
 }
 
 .edpq-queue-overview .edpq-photo img {
     display: block;
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
     object-fit: cover;
     border-radius: 3px;
 }
@@ -71,8 +82,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 64px;
-    min-height: 64px;
+    width: 72px;
+    min-height: 72px;
     background: #f0f0f1;
     border: 1px solid #dcdcde;
     border-radius: 3px;
@@ -82,20 +93,49 @@
 }
 
 .edpq-queue-overview .edpq-display {
-    width: 120px;
+    width: 136px;
 }
 
 .edpq-queue-overview .edpq-actions {
-    width: 220px;
+    width: 190px;
 }
 
-.edpq-queue-overview .edpq-actions .button {
-    margin: 0 4px 6px 0;
+.edpq-queue-overview .edpq-action-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.edpq-queue-overview .edpq-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    min-height: 30px;
+    padding: 0;
+}
+
+.edpq-queue-overview .edpq-icon-button .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.edpq-queue-overview .edpq-row-delete {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1.5;
 }
 
 .edpq-queue-overview .edpq-submission {
     font-weight: 400;
-    overflow-wrap: anywhere;
+    min-width: 280px;
+    overflow-wrap: break-word;
 }
 
 .edpq-queue-overview .edpq-submission-title {
@@ -127,6 +167,7 @@
     font-size: 12px;
     font-weight: 600;
     line-height: 1.6;
+    white-space: nowrap;
 }
 
 .edpq-queue-overview .edpq-display-current {
@@ -190,6 +231,10 @@
     }
 
     .edpq-queue-overview .edpq-photo {
-        width: 72px;
+        width: 80px;
+    }
+
+    .edpq-queue-overview .edpq-actions {
+        width: 170px;
     }
 }
