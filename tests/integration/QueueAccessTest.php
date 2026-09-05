@@ -5,6 +5,7 @@ final class QueueAccessTest extends WP_UnitTestCase
     public function set_up() {
         parent::set_up();
         remove_action('admin_enqueue_scripts', 'wp_auth_check_load');
+        $GLOBALS['edpq_test_scheduled_actions'] = [];
         $GLOBALS['edpq_test_cpt']->net_submission_role();
         $GLOBALS['edpq_test_cpt']->net_submission_cap();
     }
@@ -100,6 +101,55 @@ final class QueueAccessTest extends WP_UnitTestCase
         try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
         finally { ob_end_clean(); }
         self::assertEquals($before, wp_count_posts('net_submission'));
+    }
+
+    public function testAdministratorScheduleUpdateRequiresValidNonceBeforeReplacingSchedule() {
+        $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log'] = [['timestamp' => 123, 'interval' => 86400]];
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+        $_POST = ['update_cron_time' => '1', 'cron_time_input' => '+2 weekdays 8pm'];
+
+        ob_start();
+        try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
+        finally { $html = ob_get_clean(); }
+
+        self::assertStringContainsString('security check failed', $html);
+        self::assertSame([['timestamp' => 123, 'interval' => 86400]], $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log']);
+    }
+
+    public function testAdministratorInvalidScheduleInputDoesNotReplaceExistingSchedule() {
+        $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log'] = [['timestamp' => 123, 'interval' => 86400]];
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+        $_POST = [
+            'update_cron_time' => '1',
+            'cron_time_input' => 'not-a-real-time-expression',
+            'edpq_schedule_nonce' => wp_create_nonce('edpq_update_schedule'),
+        ];
+
+        ob_start();
+        try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
+        finally { $html = ob_get_clean(); }
+
+        self::assertStringContainsString('Schedule was not updated', $html);
+        self::assertSame([['timestamp' => 123, 'interval' => 86400]], $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log']);
+    }
+
+    public function testAdministratorValidScheduleInputReplacesExistingSchedule() {
+        $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log'] = [['timestamp' => 123, 'interval' => 86400]];
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+        $_POST = [
+            'update_cron_time' => '1',
+            'cron_time_input' => '+2 weekdays 8pm',
+            'edpq_schedule_nonce' => wp_create_nonce('edpq_update_schedule'),
+        ];
+
+        ob_start();
+        try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
+        finally { $html = ob_get_clean(); }
+
+        self::assertStringContainsString('Cron event time updated', $html);
+        self::assertCount(1, $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log']);
+        self::assertNotSame(123, $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log'][0]['timestamp']);
+        self::assertSame(86400, $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log'][0]['interval']);
     }
 
     public function testQueueListLoadsManagementAssetsForAdministratorsOnly() {

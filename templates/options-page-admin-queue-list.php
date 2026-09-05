@@ -224,6 +224,7 @@ $current_title = '' !== trim($current_title) ? $current_title : __('(Untitled su
         <div class="edpq-schedule-panel">
             <h2><?php esc_html_e('Schedule', 'em-daily-posts-queue'); ?></h2>
             <form id="cron-time-form" method="post">
+                <?php wp_nonce_field('edpq_update_schedule', 'edpq_schedule_nonce'); ?>
                 <label for="cron-time-input"><?php esc_html_e('Schedule expression', 'em-daily-posts-queue'); ?></label>
                 <input type="text" name="cron_time_input" id="cron-time-input" class="regular-text" placeholder="+1 weekday 8pm">
                 <button type="submit" name="update_cron_time" class="button">

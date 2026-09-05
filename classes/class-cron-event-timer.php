@@ -36,7 +36,7 @@ class CronEventTimer {
 
         if (
             /** @intelephense-ignore */
-            false === as_has_scheduled_action( 'eg_1_weekdays_log' )
+            function_exists( '\\as_has_scheduled_action' ) && false === \as_has_scheduled_action( 'eg_1_weekdays_log' )
         ) {
             $str1Weekdays = strtotime( '+1 weekday 10pm ' . $wp_timezone );
             $strToday = strtotime( 'Now ' . $wp_timezone );
@@ -51,7 +51,9 @@ class CronEventTimer {
                 $this->utils->send_admin_email('Run timer value', 'timer:' . $oneWeekDayInterval);
             }
             /** @intelephense-ignore */
-            as_schedule_recurring_action( $str1Weekdays, $oneWeekDayInterval, 'eg_1_weekdays_log' );
+            if ( function_exists( '\\as_schedule_recurring_action' ) ) {
+                \as_schedule_recurring_action( $str1Weekdays, $oneWeekDayInterval, 'eg_1_weekdays_log' );
+            }
         }
     }
 
@@ -61,23 +63,23 @@ class CronEventTimer {
         $wp_timezone_string = get_option('timezone_string');
         $wp_timezone = $wp_timezone_string ? $wp_timezone_string : 'UTC';
 
-        // Remove all previously scheduled actions for this hook
-        if (function_exists('as_unschedule_all_actions')) {
-            as_unschedule_all_actions('eg_1_weekdays_log');
-        }
-
-        // Schedule new recurring action using user input
         $timestamp = strtotime($time_string . ' ' . $wp_timezone);
         if ($timestamp === false) {
             $this->utils->send_admin_email('Invalid cron time', 'Could not parse time string: ' . esc_html($time_string));
             return false;
         }
 
-        if (function_exists('as_schedule_recurring_action')) {
-            as_schedule_recurring_action($timestamp, $interval, 'eg_1_weekdays_log');
+        if (!function_exists('\\as_unschedule_all_actions') || !function_exists('\\as_schedule_recurring_action')) {
+            return false;
+        }
+
+        \as_unschedule_all_actions('eg_1_weekdays_log');
+        $scheduled = \as_schedule_recurring_action($timestamp, $interval, 'eg_1_weekdays_log');
+        if ($scheduled) {
             $this->utils->send_admin_email('Cron time updated', 'New cron time: ' . esc_html($time_string));
             return true;
         }
+
         return false;
     }
 
