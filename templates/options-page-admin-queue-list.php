@@ -227,21 +227,25 @@ $current_title = '' !== trim($current_title) ? $current_title : __('(Untitled su
     <?php if ($can_manage_queue): ?>
         <div class="edpq-schedule-panel">
             <h2><?php esc_html_e('Demo Test Account', 'em-daily-posts-queue'); ?></h2>
-            <p class="description"><?php esc_html_e('Create a disposable Net Submitter account so someone can test queue-viewer permissions. The password is shown once here and is never stored.', 'em-daily-posts-queue'); ?></p>
-            <form method="post" class="edpq-inline-action">
-                <?php wp_nonce_field('edpq_demo_user', 'edpq_demo_user_nonce'); ?>
-                <input type="hidden" name="edpq_demo_user_action" value="create">
-                <button type="submit" class="button">
-                    <?php esc_html_e('Create/reset demo Net Submitter account', 'em-daily-posts-queue'); ?>
-                </button>
-            </form>
-            <form method="post" class="edpq-inline-action">
-                <?php wp_nonce_field('edpq_demo_user', 'edpq_demo_user_nonce'); ?>
-                <input type="hidden" name="edpq_demo_user_action" value="delete">
-                <button type="submit" class="button-link-delete">
-                    <?php esc_html_e('Delete demo Net Submitter account', 'em-daily-posts-queue'); ?>
-                </button>
-            </form>
+            <div class="edpq-demo-account-body">
+                <p class="description"><?php esc_html_e('Create a disposable Net Submitter account so someone can test queue-viewer permissions. The password is shown once here and is never stored.', 'em-daily-posts-queue'); ?></p>
+                <div class="edpq-demo-account-actions">
+                    <form method="post" class="edpq-inline-action">
+                        <?php wp_nonce_field('edpq_demo_user', 'edpq_demo_user_nonce'); ?>
+                        <input type="hidden" name="edpq_demo_user_action" value="create">
+                        <button type="submit" class="button">
+                            <?php esc_html_e('Create/reset demo Net Submitter account', 'em-daily-posts-queue'); ?>
+                        </button>
+                    </form>
+                    <form method="post" class="edpq-inline-action">
+                        <?php wp_nonce_field('edpq_demo_user', 'edpq_demo_user_nonce'); ?>
+                        <input type="hidden" name="edpq_demo_user_action" value="delete">
+                        <button type="submit" class="button-link-delete edpq-toolbar-danger">
+                            <?php esc_html_e('Delete demo Net Submitter account', 'em-daily-posts-queue'); ?>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     <?php endif; ?>
 
