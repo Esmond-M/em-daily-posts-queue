@@ -73,6 +73,10 @@ class PhotoNetSubmissionAjax {
         $old_postids = array_map(function($item) { return intval($item['postid']); }, $client_snapshot);
         $removed_postids = array_diff($old_postids, $new_postids);
         foreach ($removed_postids as $removed_id) {
+            if ('net_submission' !== get_post_type($removed_id)) {
+                wp_send_json_error(['message' => 'Invalid queue post type.']);
+                return;
+            }
             wp_delete_post($removed_id, true);
         }
 
@@ -149,6 +153,10 @@ class PhotoNetSubmissionAjax {
             $idToRemove        = (int) $_POST['remove_postid'];
             $queueNumberToRemove = (int) $_POST['remove_queue'];
             $old_stored_queue_list_arr = $stored_queue_list_arr;
+
+            if ('net_submission' !== get_post_type($idToRemove)) {
+                $render_ajax_response('The selected post is not a net submission.');
+            }
 
             // Remove post from queue
             foreach ($stored_queue_list_arr as $i => $item) {

@@ -55,7 +55,9 @@ class CronEvents
                 $ok = $this->utils->update_queue_list_in_db($queue);
                 if ($ok) {
                     if ($idToRemove) {
-                        wp_delete_post((int) $idToRemove, true);
+                        if ('net_submission' === get_post_type((int) $idToRemove)) {
+                            wp_delete_post((int) $idToRemove, true);
+                        }
                     }
                     echo 'Queue List updated. Item has been removed. Next weekly post active.';
                     $subject = 'Next submission Live: Check Status - ' . date('m-d-y');

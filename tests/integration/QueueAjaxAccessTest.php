@@ -58,6 +58,28 @@ final class QueueAjaxAccessTest extends WP_Ajax_UnitTestCase
         self::assertNotNull(get_post($post));
     }
 
+    public function testAdministratorCannotDeleteAnotherPostTypeThroughQueueEdit() {
+        $regular_post = self::factory()->post->create(['post_status' => 'publish']);
+        $utils = new EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionUtils();
+        $snapshot = [['postid' => $regular_post, 'queueNumber' => 1]];
+        $utils->update_queue_list_in_db($snapshot);
+
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+        $_POST = [
+            'nonce' => wp_create_nonce('edpq_admin_queue'),
+            'form_data' => '',
+            'client_snapshot' => wp_json_encode($snapshot),
+        ];
+
+        try { $this->_handleAjax('admin_queue_edit'); } catch (WPAjaxDieContinueException $error) { }
+
+        $response = json_decode($this->_last_response, true);
+        self::assertFalse($response['success']);
+        self::assertSame('Invalid queue post type.', $response['data']['message']);
+        self::assertNotNull(get_post($regular_post));
+        self::assertSame($snapshot, $utils->get_queue_list());
+    }
+
     public function testAdministratorCannotFullWipeWithoutTypedConfirmation() {
         $post = self::factory()->post->create(['post_type' => 'net_submission', 'post_status' => 'publish']);
         $utils = new EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionUtils();
