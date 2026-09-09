@@ -398,6 +398,34 @@ class EmDailyPostsQueueUIManager
             }
         }
 
+        if (current_user_can('manage_options') && isset($_POST['edpq_demo_user_action'])) {
+            $demo_user_nonce = isset($_POST['edpq_demo_user_nonce'])
+                ? sanitize_text_field(wp_unslash($_POST['edpq_demo_user_nonce']))
+                : '';
+            if (!wp_verify_nonce($demo_user_nonce, 'edpq_demo_user')) {
+                echo '<div class="notice notice-error"><p>' . esc_html__('The demo test account was not changed because the security check failed.', 'em-daily-posts-queue') . '</p></div>';
+            } elseif ('create' === $_POST['edpq_demo_user_action']) {
+                $result = $this->utils->create_or_reset_demo_submitter();
+                if (empty($result['login'])) {
+                    echo '<div class="notice notice-error"><p>' . esc_html__('The demo test account could not be created.', 'em-daily-posts-queue') . '</p></div>';
+                } else {
+                    $message = sprintf(
+                        /* translators: 1: demo account username, 2: one-time generated password. */
+                        esc_html__('Demo Net Submitter account ready. Username: %1$s Password: %2$s (shown once, not stored).', 'em-daily-posts-queue'),
+                        '<code>' . esc_html($result['login']) . '</code>',
+                        '<code>' . esc_html($result['password']) . '</code>'
+                    );
+                    echo '<div class="notice notice-success"><p>' . $message . '</p></div>';
+                }
+            } elseif ('delete' === $_POST['edpq_demo_user_action']) {
+                $deleted = $this->utils->delete_demo_submitter();
+                $message = $deleted
+                    ? esc_html__('Demo Net Submitter account deleted.', 'em-daily-posts-queue')
+                    : esc_html__('No demo Net Submitter account was found to delete.', 'em-daily-posts-queue');
+                echo '<div class="notice ' . ($deleted ? 'notice-success' : 'notice-error') . '"><p>' . $message . '</p></div>';
+            }
+        }
+
         $cron_timer = new \EmDailyPostsQueue\init_plugin\Classes\CronEventTimer();
 
         if (

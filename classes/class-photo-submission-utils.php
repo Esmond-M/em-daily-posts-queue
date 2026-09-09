@@ -178,4 +178,48 @@ class PhotoNetSubmissionUtils {
         $emailto = get_option('admin_email');
         wp_mail($emailto, $subject, $message);
     }
+
+    const DEMO_SUBMITTER_LOGIN = 'edpq_demo_submitter';
+
+    /**
+     * Create the reserved demo Net Submitter test account, or reset its password if it already exists.
+     * @return array{login:string,password:string,created:bool}
+     */
+    public function create_or_reset_demo_submitter(): array {
+        $password = wp_generate_password(20, true, true);
+        $user = get_user_by('login', self::DEMO_SUBMITTER_LOGIN);
+
+        if ($user) {
+            wp_set_password($password, $user->ID);
+            return ['login' => self::DEMO_SUBMITTER_LOGIN, 'password' => $password, 'created' => false];
+        }
+
+        $host = wp_parse_url(home_url(), PHP_URL_HOST) ?: 'example.test';
+        $user_id = wp_insert_user([
+            'user_login'   => self::DEMO_SUBMITTER_LOGIN,
+            'user_pass'    => $password,
+            'user_email'   => 'edpq-demo-submitter@' . $host,
+            'display_name' => 'EDPQ Demo Submitter',
+            'role'         => 'net_submission_role',
+        ]);
+        if (is_wp_error($user_id)) {
+            return ['login' => '', 'password' => '', 'created' => false];
+        }
+
+        // Flag the account so deletion never touches a normal user of the same login.
+        update_user_meta($user_id, '_edpq_demo_user', 1);
+        return ['login' => self::DEMO_SUBMITTER_LOGIN, 'password' => $password, 'created' => true];
+    }
+
+    /**
+     * Delete the reserved demo Net Submitter test account if present.
+     */
+    public function delete_demo_submitter(): bool {
+        $user = get_user_by('login', self::DEMO_SUBMITTER_LOGIN);
+        if (!$user || !get_user_meta($user->ID, '_edpq_demo_user', true)) {
+            return false;
+        }
+        require_once ABSPATH . 'wp-admin/includes/user.php';
+        return (bool) wp_delete_user($user->ID);
+    }
 }

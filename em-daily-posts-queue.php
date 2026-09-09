@@ -70,6 +70,12 @@ if ( ! defined( 'ABSPATH' ) ) {
             }
             delete_option( 'edpq_schedule_settings' );
             remove_role( 'net_submission_role' );
+
+            $demo_user = get_user_by( 'login', 'edpq_demo_submitter' );
+            if ( $demo_user && get_user_meta( $demo_user->ID, '_edpq_demo_user', true ) ) {
+                require_once ABSPATH . 'wp-admin/includes/user.php';
+                wp_delete_user( $demo_user->ID );
+            }
         }
 
         public function i18n() {
