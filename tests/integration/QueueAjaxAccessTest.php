@@ -58,6 +58,28 @@ final class QueueAjaxAccessTest extends WP_Ajax_UnitTestCase
         self::assertNotNull(get_post($post));
     }
 
+    public function testAdministratorCannotDeleteAnotherPostTypeThroughQueueEdit() {
+        $regular_post = self::factory()->post->create(['post_status' => 'publish']);
+        $utils = new EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionUtils();
+        $snapshot = [['postid' => $regular_post, 'queueNumber' => 1]];
+        $utils->update_queue_list_in_db($snapshot);
+
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+        $_POST = [
+            'nonce' => wp_create_nonce('edpq_admin_queue'),
+            'form_data' => '',
+            'client_snapshot' => wp_json_encode($snapshot),
+        ];
+
+        try { $this->_handleAjax('admin_queue_edit'); } catch (WPAjaxDieContinueException $error) { }
+
+        $response = json_decode($this->_last_response, true);
+        self::assertFalse($response['success']);
+        self::assertSame('Invalid queue post type.', $response['data']['message']);
+        self::assertNotNull(get_post($regular_post));
+        self::assertSame($snapshot, $utils->get_queue_list());
+    }
+
     public function testAdministratorCannotFullWipeWithoutTypedConfirmation() {
         $post = self::factory()->post->create(['post_type' => 'net_submission', 'post_status' => 'publish']);
         $utils = new EmDailyPostsQueue\init_plugin\Classes\PhotoNetSubmissionUtils();
@@ -72,6 +94,57 @@ final class QueueAjaxAccessTest extends WP_Ajax_UnitTestCase
         self::assertSame('Type FULL WIPE to confirm permanent deletion.', $response['data']['message']);
         self::assertSame($before, $utils->get_queue_list());
         self::assertNotNull(get_post($post));
+    }
+
+    public function testAnonymousSubmissionRejectsMissingUpload() {
+        wp_set_current_user(0);
+        $_POST = [
+            '_wpnonce' => wp_create_nonce('new-post'),
+            'topic_headline_value' => 'Missing image',
+            'topic_caption_value' => 'This request has no image.',
+        ];
+        $_FILES = [];
+
+        $message = '';
+        try {
+            $this->_handleAjax('form_post_new_net_photo_submission_ajax');
+        } catch (WPAjaxDieStopException | WPAjaxDieContinueException $error) {
+            $message = $error->getMessage();
+        }
+
+        self::assertStringContainsString('Please choose an image to upload.', $message);
+        self::assertSame(0, wp_count_posts('net_submission')->draft);
+    }
+
+    public function testAnonymousSubmissionRejectsOversizedUpload() {
+        wp_set_current_user(0);
+        $temporary_file = tempnam(sys_get_temp_dir(), 'edpq');
+        file_put_contents($temporary_file, 'test');
+        $_POST = [
+            '_wpnonce' => wp_create_nonce('new-post'),
+            'topic_headline_value' => 'Oversized image',
+            'topic_caption_value' => 'This request is too large.',
+        ];
+        $_FILES = [
+            'net_image' => [
+                'name' => 'photo.jpg',
+                'type' => 'image/jpeg',
+                'tmp_name' => $temporary_file,
+                'error' => UPLOAD_ERR_OK,
+                'size' => 8 * MB_IN_BYTES + 1,
+            ],
+        ];
+
+        $message = '';
+        try {
+            $this->_handleAjax('form_post_new_net_photo_submission_ajax');
+        } catch (WPAjaxDieStopException | WPAjaxDieContinueException $error) {
+            $message = $error->getMessage();
+        }
+
+        self::assertStringContainsString('The image must be 8 MB or smaller.', $message);
+        self::assertSame(0, wp_count_posts('net_submission')->draft);
+        unlink($temporary_file);
     }
 
     public function testAdministratorFullWipeDeletesSubmissionsInEveryStatusAndClearsQueue() {

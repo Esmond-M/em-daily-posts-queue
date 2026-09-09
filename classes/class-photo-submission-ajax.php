@@ -73,6 +73,10 @@ class PhotoNetSubmissionAjax {
         $old_postids = array_map(function($item) { return intval($item['postid']); }, $client_snapshot);
         $removed_postids = array_diff($old_postids, $new_postids);
         foreach ($removed_postids as $removed_id) {
+            if ('net_submission' !== get_post_type($removed_id)) {
+                wp_send_json_error(['message' => 'Invalid queue post type.']);
+                return;
+            }
             wp_delete_post($removed_id, true);
         }
 
@@ -149,6 +153,10 @@ class PhotoNetSubmissionAjax {
             $idToRemove        = (int) $_POST['remove_postid'];
             $queueNumberToRemove = (int) $_POST['remove_queue'];
             $old_stored_queue_list_arr = $stored_queue_list_arr;
+
+            if ('net_submission' !== get_post_type($idToRemove)) {
+                $render_ajax_response('The selected post is not a net submission.');
+            }
 
             // Remove post from queue
             foreach ($stored_queue_list_arr as $i => $item) {
@@ -240,6 +248,21 @@ class PhotoNetSubmissionAjax {
             $headline = sanitize_text_field(wp_unslash($_POST['topic_headline_value']));
             $caption  = sanitize_textarea_field(wp_unslash($_POST['topic_caption_value']));
 
+            $upload = isset($_FILES['net_image']) && is_array($_FILES['net_image'])
+                ? $_FILES['net_image']
+                : null;
+            $upload_error = $this->validate_submission_upload($upload);
+            if (is_wp_error($upload_error)) {
+                wp_die('<p class="newpost-fail">' . esc_html($upload_error->get_error_message()) . '</p>');
+            }
+
+            $rate_key = 'edpq_submission_rate_' . hash('sha256', (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+            $submission_count = (int) get_transient($rate_key);
+            if ($submission_count >= 5) {
+                wp_die('<p class="newpost-fail">Too many submissions. Please try again later.</p>');
+            }
+            set_transient($rate_key, $submission_count + 1, HOUR_IN_SECONDS);
+
             // Add the content of the form to $post as an array
             $new_post = array(
                 'post_title'  => $headline . ' ' . date('m-d-y'),
@@ -291,6 +314,47 @@ class PhotoNetSubmissionAjax {
                                         <a href="' . esc_url(home_url('/')) . '" class="edpq-success-home-btn">Return to Homepage</a>
                                     </div>';
             wp_die();
+    }
+
+    /**
+     * Validate the public submission upload before creating any post or attachment.
+     *
+     * @param array|null $upload The uploaded file data.
+     * @return true|\WP_Error
+     */
+    private function validate_submission_upload($upload) {
+        if (!is_array($upload) || !isset($upload['error'], $upload['tmp_name'], $upload['name'], $upload['size'])) {
+            return new \WP_Error('missing_upload', 'Please choose an image to upload.');
+        }
+
+        if ((int) $upload['size'] > 8 * MB_IN_BYTES) {
+            return new \WP_Error('upload_too_large', 'The image must be 8 MB or smaller.');
+        }
+
+        if (UPLOAD_ERR_OK !== (int) $upload['error'] || !is_uploaded_file($upload['tmp_name'])) {
+            return new \WP_Error('invalid_upload', 'The image upload was not valid.');
+        }
+
+        $allowed_mimes = [
+            'jpg|jpeg' => 'image/jpeg',
+            'png'      => 'image/png',
+        ];
+        $filetype = wp_check_filetype($upload['name'], $allowed_mimes);
+        $detected = wp_check_filetype_and_ext($upload['tmp_name'], $upload['name'], $allowed_mimes);
+        $image_mime = function_exists('wp_get_image_mime') ? wp_get_image_mime($upload['tmp_name']) : false;
+
+        if (
+            empty($filetype['type']) ||
+            empty($detected['type']) ||
+            !in_array($detected['type'], ['image/jpeg', 'image/png'], true) ||
+            $filetype['type'] !== $detected['type'] ||
+            $image_mime !== $detected['type'] ||
+            false === @getimagesize($upload['tmp_name'])
+        ) {
+            return new \WP_Error('invalid_image', 'Only valid JPG, JPEG, and PNG images are allowed.');
+        }
+
+        return true;
     }
 
     /**

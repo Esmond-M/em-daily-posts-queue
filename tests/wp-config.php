@@ -53,14 +53,14 @@ define( 'DB_COLLATE', '' );
  * Change these to different unique phrases!
  * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
  */
-define('AUTH_KEY',         'OouZCCjyLf7LA7|-t=*o#F)k?R_sCVoY@JZNknf}k)GScd-`HZX|KdRcUr!fwjE`');
-define('SECURE_AUTH_KEY',  'l5Xd:,F4{Q:+Mvy4/]=3`3=<)zpD[!Q-|.-n(lSJMbbn{y~M|)&I}erF5]P>d=CB');
-define('LOGGED_IN_KEY',    'ENzz:gxOf@h8rcLbCVmG?B<Gmnu}|>^!t.,-a(1)|E:-@3sF{.<hESwzxx<7I>){');
-define('NONCE_KEY',        'iASy9g-c62:)(X8{Ld2CsC@Wg)/?=~-V(M(8d9djAt9{yaO0KB- 9WI-^.Y5y!L+');
-define('AUTH_SALT',        'wtx/Jq~UK_xt`v=Q<|-ZkC])0K:WAH(tG/;.UhBldtFwajLqcYsz43{Z[>iW<c3x');
-define('SECURE_AUTH_SALT', 'DfE:.(t:H)+X%QsB|a>$a0#HL6;XJ;*mCPD~N6/<dLSLb3Nrnnh=sY}K9sE|Sq%z');
-define('LOGGED_IN_SALT',   ' &Wayu7>D~|rQGAEf9,VQaxSYri:Jr8d@l-~lTx)TD>-_czgm(%Be+n]KtIqy-6K');
-define('NONCE_SALT',       '|D;XUOhEJ/FsQJjwF6}S[.Di=`TksKSYVfsR`B@=gI^0):|n`q.G>u-g|8T:]WA9');
+define('AUTH_KEY',         'edpq-test-auth-key');
+define('SECURE_AUTH_KEY',  'edpq-test-secure-auth-key');
+define('LOGGED_IN_KEY',    'edpq-test-logged-in-key');
+define('NONCE_KEY',        'edpq-test-nonce-key');
+define('AUTH_SALT',        'edpq-test-auth-salt');
+define('SECURE_AUTH_SALT', 'edpq-test-secure-auth-salt');
+define('LOGGED_IN_SALT',   'edpq-test-logged-in-salt');
+define('NONCE_SALT',       'edpq-test-nonce-salt');
 
 $table_prefix = 'wp_';   // Only numbers, letters, and underscores please!
 

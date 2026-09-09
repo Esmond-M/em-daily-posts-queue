@@ -54,6 +54,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             if ( function_exists( 'as_unschedule_all_actions' ) ) {
                 as_unschedule_all_actions( 'eg_1_weekdays_log' );
             }
+            flush_rewrite_rules();
         }
 
         /**
@@ -107,6 +108,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                     error_log('Failed to insert initial row into ' . $table_name . ': ' . $wpdb->last_error);
                 }
             }
+
+            // 'init' already fired for this request, so register the CPT now before flushing.
+            require_once __DIR__ . '/classes/class-cpt-net-submission.php';
+            Classes\CPT_NetSubmission::em_daily_posts_register_cpts();
+            flush_rewrite_rules();
         }
 
     public function init_class() {

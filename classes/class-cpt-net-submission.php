@@ -61,7 +61,7 @@ class CPT_NetSubmission
             'public'                => true,
             'publicly_queryable'    => true,
             'show_ui'               => true,
-            'show_in_rest'          => true,
+            'show_in_rest'          => false,
             'rest_base'             => '',
             'rest_controller_class' => 'WP_REST_Posts_Controller',
             'rest_namespace'        => 'wp/v2',
@@ -174,10 +174,7 @@ class CPT_NetSubmission
     */
     public static function restrict_net_submission_access() {
         if (is_singular('net_submission') || is_post_type_archive('net_submission')) {
-            if (
-                !current_user_can('administrator') &&
-                !current_user_can('net_submission_role')
-            ) {
+            if (!current_user_can('edpq_view_queue')) {
                 wp_die('You do not have permission to view this page.');
             }
         }
