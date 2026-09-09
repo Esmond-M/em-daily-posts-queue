@@ -54,10 +54,21 @@ final class QueueAccessTest extends WP_UnitTestCase
         $GLOBALS['edpq_test_cpt']->net_submission_cap();
         $user = self::factory()->user->create(['role' => 'net_submission_role']);
         wp_set_current_user($user);
-        foreach (['edpq_view_queue', 'edit_net_submissions', 'edit_others_net_submissions', 'publish_net_submissions', 'delete_net_submissions', 'upload_files'] as $capability) {
+        foreach (['edpq_view_queue', 'edit_net_submissions', 'edit_others_net_submissions', 'publish_net_submissions', 'delete_net_submissions', 'upload_files', 'view_admin_dashboard'] as $capability) {
             self::assertTrue(current_user_can($capability), $capability);
         }
         self::assertFalse(current_user_can('manage_options'));
+    }
+
+    public function testAdminBarIsForcedOnForQueueViewersOnly() {
+        wp_set_current_user(self::factory()->user->create(['role' => 'net_submission_role']));
+        self::assertTrue(apply_filters('show_admin_bar', false));
+
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+        self::assertTrue(apply_filters('show_admin_bar', false));
+
+        wp_set_current_user(self::factory()->user->create(['role' => 'subscriber']));
+        self::assertFalse(apply_filters('show_admin_bar', false));
     }
 
     /** @dataProvider viewers */
@@ -87,6 +98,62 @@ final class QueueAccessTest extends WP_UnitTestCase
 
     public static function viewers() {
         return [['net_submission_role', false], ['administrator', true]];
+    }
+
+    public function testAdministratorCanCreateResetAndDeleteDemoSubmitterAccount() {
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+
+        $_POST = ['edpq_demo_user_action' => 'create', 'edpq_demo_user_nonce' => wp_create_nonce('edpq_demo_user')];
+        ob_start();
+        try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
+        finally { $html = ob_get_clean(); }
+        self::assertStringContainsString('Demo Net Submitter account ready', $html);
+        $user = get_user_by('login', 'edpq_demo_submitter');
+        self::assertNotFalse($user);
+        self::assertContains('net_submission_role', $user->roles);
+        self::assertSame('1', get_user_meta($user->ID, '_edpq_demo_user', true));
+        preg_match('/Password: <code>([^<]+)<\/code>/', $html, $first_password_match);
+        $first_password = $first_password_match[1] ?? null;
+        self::assertNotEmpty($first_password);
+
+        // Repeating the action must reset the same account rather than creating a duplicate.
+        $_POST = ['edpq_demo_user_action' => 'create', 'edpq_demo_user_nonce' => wp_create_nonce('edpq_demo_user')];
+        ob_start();
+        try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
+        finally { $html = ob_get_clean(); }
+        preg_match('/Password: <code>([^<]+)<\/code>/', $html, $second_password_match);
+        self::assertNotSame($first_password, $second_password_match[1] ?? null);
+        self::assertCount(1, get_users(['login' => 'edpq_demo_submitter']));
+
+        $_POST = ['edpq_demo_user_action' => 'delete', 'edpq_demo_user_nonce' => wp_create_nonce('edpq_demo_user')];
+        ob_start();
+        try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
+        finally { $html = ob_get_clean(); }
+        self::assertStringContainsString('Demo Net Submitter account deleted', $html);
+        self::assertFalse(get_user_by('login', 'edpq_demo_submitter'));
+    }
+
+    public function testSubmitterCannotCreateOrDeleteDemoSubmitterAccountEvenWithValidNonce() {
+        wp_set_current_user(self::factory()->user->create(['role' => 'net_submission_role']));
+        $_POST = ['edpq_demo_user_action' => 'create', 'edpq_demo_user_nonce' => wp_create_nonce('edpq_demo_user')];
+
+        ob_start();
+        try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
+        finally { ob_end_clean(); }
+
+        self::assertFalse(get_user_by('login', 'edpq_demo_submitter'));
+    }
+
+    public function testDemoSubmitterActionRejectsInvalidNonce() {
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+        $_POST = ['edpq_demo_user_action' => 'create', 'edpq_demo_user_nonce' => 'invalid'];
+
+        ob_start();
+        try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
+        finally { $html = ob_get_clean(); }
+
+        self::assertStringContainsString('security check failed', $html);
+        self::assertFalse(get_user_by('login', 'edpq_demo_submitter'));
     }
 
     /** @dataProvider outsiders */
