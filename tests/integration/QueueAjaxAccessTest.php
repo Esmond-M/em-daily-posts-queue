@@ -74,6 +74,57 @@ final class QueueAjaxAccessTest extends WP_Ajax_UnitTestCase
         self::assertNotNull(get_post($post));
     }
 
+    public function testAnonymousSubmissionRejectsMissingUpload() {
+        wp_set_current_user(0);
+        $_POST = [
+            '_wpnonce' => wp_create_nonce('new-post'),
+            'topic_headline_value' => 'Missing image',
+            'topic_caption_value' => 'This request has no image.',
+        ];
+        $_FILES = [];
+
+        $message = '';
+        try {
+            $this->_handleAjax('form_post_new_net_photo_submission_ajax');
+        } catch (WPAjaxDieStopException | WPAjaxDieContinueException $error) {
+            $message = $error->getMessage();
+        }
+
+        self::assertStringContainsString('Please choose an image to upload.', $message);
+        self::assertSame(0, wp_count_posts('net_submission')->draft);
+    }
+
+    public function testAnonymousSubmissionRejectsOversizedUpload() {
+        wp_set_current_user(0);
+        $temporary_file = tempnam(sys_get_temp_dir(), 'edpq');
+        file_put_contents($temporary_file, 'test');
+        $_POST = [
+            '_wpnonce' => wp_create_nonce('new-post'),
+            'topic_headline_value' => 'Oversized image',
+            'topic_caption_value' => 'This request is too large.',
+        ];
+        $_FILES = [
+            'net_image' => [
+                'name' => 'photo.jpg',
+                'type' => 'image/jpeg',
+                'tmp_name' => $temporary_file,
+                'error' => UPLOAD_ERR_OK,
+                'size' => 8 * MB_IN_BYTES + 1,
+            ],
+        ];
+
+        $message = '';
+        try {
+            $this->_handleAjax('form_post_new_net_photo_submission_ajax');
+        } catch (WPAjaxDieStopException | WPAjaxDieContinueException $error) {
+            $message = $error->getMessage();
+        }
+
+        self::assertStringContainsString('The image must be 8 MB or smaller.', $message);
+        self::assertSame(0, wp_count_posts('net_submission')->draft);
+        unlink($temporary_file);
+    }
+
     public function testAdministratorFullWipeDeletesSubmissionsInEveryStatusAndClearsQueue() {
         $post_ids = [];
         foreach (['publish', 'draft', 'pending', 'private', 'trash'] as $status) {
