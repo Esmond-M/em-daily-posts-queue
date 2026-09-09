@@ -386,9 +386,16 @@ class EmDailyPostsQueueUIManager
         }
 
         // Existing admin-only actions remain available on the unified queue screen.
-        if (current_user_can('manage_options') && isset($_GET['import_demo']) && $_GET['import_demo'] === '1') {
-            $this->utils->import_demo_net_submissions();
-            echo '<div class="notice notice-success"><p>' . esc_html__('Demo net_submission posts imported!', 'em-daily-posts-queue') . '</p></div>';
+        if (current_user_can('manage_options') && isset($_POST['import_demo']) && '1' === $_POST['import_demo']) {
+            $import_nonce = isset($_POST['edpq_import_demo_nonce'])
+                ? sanitize_text_field(wp_unslash($_POST['edpq_import_demo_nonce']))
+                : '';
+            if (wp_verify_nonce($import_nonce, 'edpq_import_demo')) {
+                $this->utils->import_demo_net_submissions();
+                echo '<div class="notice notice-success"><p>' . esc_html__('Demo net_submission posts imported!', 'em-daily-posts-queue') . '</p></div>';
+            } else {
+                echo '<div class="notice notice-error"><p>' . esc_html__('Demo submissions were not imported because the security check failed.', 'em-daily-posts-queue') . '</p></div>';
+            }
         }
 
         $cron_timer = new \EmDailyPostsQueue\init_plugin\Classes\CronEventTimer();

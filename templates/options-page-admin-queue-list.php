@@ -80,10 +80,14 @@ $current_title = '' !== trim($current_title) ? $current_title : __('(Untitled su
             <?php esc_html_e('All submissions', 'em-daily-posts-queue'); ?>
         </a>
         <?php if ($can_manage_queue): ?>
-            <a href="<?php echo esc_url(add_query_arg('import_demo', '1')); ?>" class="button">
-                <span class="dashicons dashicons-upload" aria-hidden="true"></span>
-                <?php esc_html_e('Import demo submissions', 'em-daily-posts-queue'); ?>
-            </a>
+            <form method="post" class="edpq-inline-action">
+                <?php wp_nonce_field('edpq_import_demo', 'edpq_import_demo_nonce'); ?>
+                <input type="hidden" name="import_demo" value="1">
+                <button type="submit" class="button">
+                    <span class="dashicons dashicons-upload" aria-hidden="true"></span>
+                    <?php esc_html_e('Import demo submissions', 'em-daily-posts-queue'); ?>
+                </button>
+            </form>
             <button type="button" id="full-wipe-btn" class="button-link-delete edpq-toolbar-danger">
                 <?php esc_html_e('Full Wipe', 'em-daily-posts-queue'); ?>
             </button>

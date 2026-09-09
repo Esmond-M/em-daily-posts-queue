@@ -124,8 +124,10 @@ final class QueueAccessTest extends WP_UnitTestCase
     public function testDemoImporterUsesBundledDemoImages() {
         wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
         $GLOBALS['edpq_test_scheduled_actions']['eg_1_weekdays_log'] = [];
-        $_GET['import_demo'] = '1';
-        $_POST = [];
+        $_POST = [
+            'import_demo' => '1',
+            'edpq_import_demo_nonce' => wp_create_nonce('edpq_import_demo'),
+        ];
 
         ob_start();
         try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
@@ -153,6 +155,21 @@ final class QueueAccessTest extends WP_UnitTestCase
             'edpq-demo-garden.png',
             'edpq-demo-sunrise.png',
         ], array_values(array_unique($filenames)));
+    }
+
+    public function testDemoImporterRejectsInvalidNonce() {
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+        $_POST = [
+            'import_demo' => '1',
+            'edpq_import_demo_nonce' => 'invalid',
+        ];
+
+        ob_start();
+        try { $GLOBALS['edpq_test_manager']->edpqadmin_queue_list_page(); }
+        finally { $html = ob_get_clean(); }
+
+        self::assertStringContainsString('security check failed', $html);
+        self::assertSame(0, (int) wp_count_posts('net_submission')->publish);
     }
 
     public function testAdministratorScheduleUpdateRequiresValidNonceBeforeReplacingSchedule() {
