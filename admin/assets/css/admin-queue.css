@@ -160,8 +160,19 @@
     line-height: 2.15384615;
 }
 
-.edpq-queue-panel,
+.edpq-demo-account-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.edpq-inline-action {
+    margin: 0;
+}
+
 .edpq-schedule-panel,
+.edpq-queue-panel,
 .edpq-queue-empty {
     background: #fff;
     border: 1px solid #dcdcde;
