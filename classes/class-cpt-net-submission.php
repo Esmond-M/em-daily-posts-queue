@@ -24,6 +24,8 @@ class CPT_NetSubmission
         add_action( 'init', [$this, 'net_submission_cap' ]  );
         add_action( 'template_redirect', [$this, 'restrict_net_submission_access'] );
         add_filter( 'template_include', [$this, 'net_submission_template_override'] );
+        // Priority 20 so this runs after WooCommerce's own show_admin_bar filter.
+        add_filter( 'show_admin_bar', [$this, 'show_admin_bar_for_queue_viewers'], 20 );
     }
 
 
@@ -180,6 +182,16 @@ class CPT_NetSubmission
                 wp_die('You do not have permission to view this page.');
             }
         }
+    }
+
+    /**
+     * Keep the toolbar visible for queue viewers even if WooCommerce hides it for non-shop-manager roles.
+     */
+    public static function show_admin_bar_for_queue_viewers($show_admin_bar) {
+        if (current_user_can('edpq_view_queue')) {
+            return true;
+        }
+        return $show_admin_bar;
     }
 
 }

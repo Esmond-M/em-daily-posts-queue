@@ -60,6 +60,17 @@ final class QueueAccessTest extends WP_UnitTestCase
         self::assertFalse(current_user_can('manage_options'));
     }
 
+    public function testAdminBarIsForcedOnForQueueViewersOnly() {
+        wp_set_current_user(self::factory()->user->create(['role' => 'net_submission_role']));
+        self::assertTrue(apply_filters('show_admin_bar', false));
+
+        wp_set_current_user(self::factory()->user->create(['role' => 'administrator']));
+        self::assertTrue(apply_filters('show_admin_bar', false));
+
+        wp_set_current_user(self::factory()->user->create(['role' => 'subscriber']));
+        self::assertFalse(apply_filters('show_admin_bar', false));
+    }
+
     /** @dataProvider viewers */
     public function testAuthorizedUsersCanRenderQueueAndViewSubmission($role, $canManage) {
         $user = self::factory()->user->create(['role' => $role]);
