@@ -174,10 +174,7 @@ class CPT_NetSubmission
     */
     public static function restrict_net_submission_access() {
         if (is_singular('net_submission') || is_post_type_archive('net_submission')) {
-            if (
-                !current_user_can('administrator') &&
-                !current_user_can('net_submission_role')
-            ) {
+            if (!current_user_can('edpq_view_queue')) {
                 wp_die('You do not have permission to view this page.');
             }
         }
