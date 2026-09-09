@@ -35,6 +35,19 @@ final class QueueAccessTest extends WP_UnitTestCase
         self::assertFalse(get_role('net_submission_role')->has_cap('manage_options'));
     }
 
+    public function testNetSubmissionsAreNotAvailableThroughRestApi() {
+        $post = self::factory()->post->create([
+            'post_type' => 'net_submission',
+            'post_status' => 'publish',
+        ]);
+
+        $request = new WP_REST_Request('GET', '/wp/v2/net_submission');
+        $response = rest_get_server()->dispatch($request);
+
+        self::assertSame(404, $response->get_status());
+        self::assertSame('rest_no_route', $response->get_data()['code']);
+    }
+
     public function testFreshSubmitterRoleReceivesViewingAndExistingPostPermissions() {
         remove_role('net_submission_role');
         $GLOBALS['edpq_test_cpt']->net_submission_role();

@@ -61,7 +61,7 @@ class CPT_NetSubmission
             'public'                => true,
             'publicly_queryable'    => true,
             'show_ui'               => true,
-            'show_in_rest'          => true,
+            'show_in_rest'          => false,
             'rest_base'             => '',
             'rest_controller_class' => 'WP_REST_Posts_Controller',
             'rest_namespace'        => 'wp/v2',
