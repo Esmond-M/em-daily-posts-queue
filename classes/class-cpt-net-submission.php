@@ -165,6 +165,8 @@ class CPT_NetSubmission
         $net_submission_role->add_cap( 'edit_private_net_submissions' );
         $net_submission_role->add_cap( 'edit_published_net_submissions' );
         $net_submission_role->add_cap( 'upload_files' ); // for featured images
+        // Lets WooCommerce's admin-access check through without granting edit_posts/manage_woocommerce.
+        $net_submission_role->add_cap( 'view_admin_dashboard' );
 
 
     }

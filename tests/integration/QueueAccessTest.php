@@ -54,7 +54,7 @@ final class QueueAccessTest extends WP_UnitTestCase
         $GLOBALS['edpq_test_cpt']->net_submission_cap();
         $user = self::factory()->user->create(['role' => 'net_submission_role']);
         wp_set_current_user($user);
-        foreach (['edpq_view_queue', 'edit_net_submissions', 'edit_others_net_submissions', 'publish_net_submissions', 'delete_net_submissions', 'upload_files'] as $capability) {
+        foreach (['edpq_view_queue', 'edit_net_submissions', 'edit_others_net_submissions', 'publish_net_submissions', 'delete_net_submissions', 'upload_files', 'view_admin_dashboard'] as $capability) {
             self::assertTrue(current_user_can($capability), $capability);
         }
         self::assertFalse(current_user_can('manage_options'));
